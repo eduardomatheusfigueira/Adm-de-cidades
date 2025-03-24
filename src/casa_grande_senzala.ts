@@ -121,4 +121,11 @@ export const casaGrandeSenzalaPeriods: TimelinePeriod[] = [
     startYear: 1500,
     endYear: 1888,
     title: "Período Colonial e Escravista",
-    description: "Long
+    description: "Longo período da história brasileira.",
+    source: "casa_grande_senzala"
+  }
+];
+
+export const casaGrandePeriods: TimelinePeriod[] = casaGrandeSenzalaPeriods;
+export const casaGrandeCharacters: Character[] = [];
+export const casaGrandeEvents: TimelineEvent[] = casaGrandeSenzalaEvents;
