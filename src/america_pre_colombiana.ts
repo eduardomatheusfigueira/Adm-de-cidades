@@ -17,7 +17,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Possível primeira onda de povoamento da América através de rota costeira durante fase glacial de Farmdale. Migração do sul de Bering ou Aleutas até Alasca e costa oeste dos EUA.',
     category: EventCategory.EXPLORATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30022,
     startYear: -40000,
@@ -26,7 +26,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Consenso atual sobre antiguidade máxima do povoamento da América, baseado em achados como Tlapacoya (México) e Pikimachay (Peru).',
     category: EventCategory.EXPLORATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30023,
     startYear: -15000,
@@ -35,7 +35,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Possível segunda onda de povoamento por rota interior durante fase glacial de New Haven. Caçadores avançados com pontas de pedra pelo corredor Mackenzie.',
     category: EventCategory.EXPLORATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30024,
     startYear: -11000,
@@ -44,7 +44,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Período com tecnologia lítica e pontas de projétil. Caça à megafauna do Pleistoceno (mamutes, bisões, etc.).',
     category: EventCategory.SOCIAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30025,
     year: -10000,
@@ -52,7 +52,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Centro de difusão de pontas de projétil especializadas (Clóvis, Folsom, etc.) na América do Norte, espalhando-se até a América do Sul.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30026,
     startYear: -14400,
@@ -61,7 +61,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Datas do sítio de Muaco (Venezuela), possível origem sul-americana das primeiras pontas de projétil.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30027,
     year: -10000,
@@ -69,7 +69,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Datação aproximada do "homem de Lagoa Santa" (Brasil), com características não mongolóides, indicando povoamento heterogêneo.',
     category: EventCategory.SOCIAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30028,
     startYear: -8800,
@@ -78,7 +78,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Fim do último período glacial e início da transição Pleistoceno-Holoceno na América.',
     category: EventCategory.SOCIAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30029,
     year: -6000,
@@ -86,7 +86,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Completa retirada das geleiras e início de fase quente e seca até 3.000 a.C.',
     category: EventCategory.SOCIAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30030,
     year: -2500,
@@ -94,7 +94,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Clima torna-se muito semelhante ao atual.',
     category: EventCategory.SOCIAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30031,
     year: -3000,
@@ -102,7 +102,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Elevação gradual do nível do mar, criando ambiente favorável a recursos marinhos.',
     category: EventCategory.ECONOMIC,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30032,
     year: -7000,
@@ -110,7 +110,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Processo avançado de extinção da megafauna do Pleistoceno.',
     category: EventCategory.SOCIAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30033,
     startYear: -7000,
@@ -119,7 +119,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Recuo da grande caça, diversificação cultural e regionalização dos modos de vida. Exploração de recursos aquáticos e coleta vegetal.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30034,
     year: -5000,
@@ -127,7 +127,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Aparecimento de "micrólitos" (Mesolítico europeu) nas regiões árticas da América.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30035,
     year: -5000,
@@ -135,7 +135,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Predomínio da caça especializada nos planaltos do Canadá até aproximadamente 5.000 a.C.',
     category: EventCategory.ECONOMIC,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30036,
     year: -1500,
@@ -143,7 +143,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Continuação da caça especializada na Patagônia até a chegada dos europeus.',
     category: EventCategory.ECONOMIC,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30037,
     year: -9000,
@@ -151,7 +151,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Datação de sambaquis indicando exploração especializada de moluscos.',
     category: EventCategory.ECONOMIC,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30038,
     startYear: -5000,
@@ -160,7 +160,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Estabelecimento da pesca especializada.',
     category: EventCategory.ECONOMIC,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30039,
     startYear: -7000,
@@ -169,7 +169,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Transição gradual para agricultura em Tamaulipas (México).',
     category: EventCategory.ECONOMIC,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30040,
     year: -7000,
@@ -177,7 +177,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Aldeias plenamente neolíticas no antigo Oriente Próximo Asiático.',
     category: EventCategory.SOCIAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30041,
     year: -2000,
@@ -185,7 +185,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Generalização de aldeias agrícolas sedentárias nas regiões avançadas da América (Mesoamérica e Andes Centrais).',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30042,
     year: -5000,
@@ -193,7 +193,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Início da domesticação de plantas na América: abóbora, milho, feijão, abacate (Mesoamérica); batata, quinoa, lhama (Andes Centrais); mandioca (possivelmente noroeste da América do Sul).',
     category: EventCategory.ECONOMIC,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30043,
     year: -2000,
@@ -201,7 +201,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Uso de instrumentos de metal (cobre martelado) por caçadores nos Grandes Lagos norte-americanos.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30044,
     year: -3200,
@@ -209,7 +209,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Cerâmica mais antiga conhecida na América, em Valdivia (Equador).',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30045,
     year: -2440,
@@ -217,7 +217,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Cerâmica mais antiga conhecida na Mesoamérica (Puerto Marquez).',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30046,
     year: -1750,
@@ -225,7 +225,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Introdução da cerâmica no Peru.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30047,
     startYear: -2500,
@@ -234,7 +234,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Difusão de aldeias e surgimento de templos e centros cerimoniais nos Andes Centrais. Centros: La Florida, Las Haldas, Kotosh.',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30048,
     startYear: -2000,
@@ -243,7 +243,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Generalização do habitat em aldeias sedentárias e diferenciação entre "área nuclear" (Mesoamérica/Andes) e "culturas marginais".',
     category: EventCategory.SOCIAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30049,
     startYear: -1200,
@@ -252,7 +252,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Florescimento do centro olmeca de San Lorenzo.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30050,
     startYear: -1000,
@@ -261,7 +261,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Florescimento do centro olmeca de La Venta.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30051,
     year: -600,
@@ -269,7 +269,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Importância de Tres Zapotes como centro olmeca posterior a La Venta.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30052,
     startYear: -1200,
@@ -278,7 +278,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Período geral da cultura olmeca na Costa do Golfo do México.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30053,
     year: -1000,
@@ -286,7 +286,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Desenvolvimento do estilo de Tlatilco (México), com cerâmica característica e influência olmecóide.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30054,
     startYear: -1500,
@@ -295,7 +295,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Surgimento de culturas formativas baseadas em aldeias agrícolas e milho na área maia (Ocos, Kaminaljuyu, Las Charcas).',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30055,
     century: 'Século V a.C.',
@@ -303,7 +303,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Surgimento da cerâmica de Mamom na região guatemalteca de Petén.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30056,
     year: -600,
@@ -311,7 +311,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Ocupação do sítio de Tikal.',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30057,
     startYear: -300,
@@ -320,7 +320,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Surgimento de templos de tijolos em Tikal, Uaxactun e Kaminaljuyu.',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30058,
     year: -200,
@@ -328,7 +328,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Influência olmeca (indireta) na civilização maia através da cultura de Izapa (Chiapas).',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30059,
     startYear: -900,
@@ -337,7 +337,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Primeira cultura inter-regional, estilo Chavín, expandindo-se pela costa e terras altas do Peru. Centro: Chavín de Huántar. Difusão de milho produtivo, irrigação e metalurgia.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30060,
     year: 100,
@@ -345,7 +345,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Entrada em fase urbana de Teotihuacan, primeira grande cidade mesoamericana.',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30061,
     startYear: 450,
@@ -354,7 +354,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Apogeu populacional de Teotihuacan (85.000 habitantes). Expansão de influência.',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30062,
     startYear: 200,
@@ -363,7 +363,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Apogeu da civilização maia: cidades-estados, arquitetura, escrita, matemática, astronomia, sistema religioso e calendário.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30063,
     year: 900,
@@ -371,7 +371,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Colapso dos principais centros maias da região central (Tierras Bajas).',
     category: EventCategory.SOCIAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30064,
     startYear: -200,
@@ -380,7 +380,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Desenvolvimento tecnológico e artístico. Estados organizados. Urbanismo andino (Tiahuanaco, Pucara, Huari). Irrigação e terraços. Tecelagem e metalurgia.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30065,
     startYear: 200,
@@ -389,7 +389,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Apogeu da cultura Mochica (Peru): agricultura irrigada, pesca, sociedade militarizada, cerâmica rica.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30066,
     startYear: 200,
@@ -398,7 +398,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Civilização urbana de Tiahuanaco (Bolívia): agricultura de batata/quinoa, pastoreio de lhamas, centro religioso.',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30067,
     startYear: 200,
@@ -407,7 +407,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Surgimento de pequenas cidades nos vales da costa meridional (Pisco, Ica, Nazca, Acari).',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30068,
     startYear: 600,
@@ -416,7 +416,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Expansão de Huari, formando império nos Andes Centrais. Difusão de estilos e urbanismo. Desintegração rápida.',
     category: EventCategory.POLITICAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30069,
     startYear: 600,
@@ -425,7 +425,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Desenvolvimento do santuário e cidade de Pachacamac (Peru).',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30070,
     startYear: 900,
@@ -434,7 +434,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Encontro de agricultores e guerreiros nômades (chichimecas). Militarismo. Fusão cultural (Teotihuacan/Mixteca-Puebla). Urbanização e agricultura irrigada.',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30071,
     startYear: 900,
@@ -443,7 +443,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Cultura Tolteca (capital Tula). Influência no México central.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30072,
     year: 1168,
@@ -451,7 +451,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Destruição de Tula (primeira fase).',
     category: EventCategory.POLITICAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30073,
     year: 1224,
@@ -459,7 +459,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Destruição total de Tula, vácuo de poder no México central, cidades-estados em conflito.',
     category: EventCategory.POLITICAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30074,
     startYear: 900,
@@ -468,7 +468,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Mixtecas em Oaxaca e Cholula: urbanismo mesoamericano final, metalurgia, cerâmica policroma, códices.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30075,
     year: 1325,
@@ -476,7 +476,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Fundação de Tenochtitlan (cidade Asteca) no Lago Texcoco.',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30076,
     startYear: 1434,
@@ -485,7 +485,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Ascensão dos Aztecas: alianças (Tríplice Aliança), conquistas sob Moctezuma I. "Império" mosaico em 1519.',
     category: EventCategory.POLITICAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30077,
     startYear: 900,
@@ -494,7 +494,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Maias no Pós-Clássico: cidades-estados menores no Yucatán, tradições culturais, comércio marítimo.',
     category: EventCategory.CULTURAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30078,
     startYear: 1000,
@@ -503,7 +503,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Descentralização após Huari, estados regionais independentes. Cobre e bronze. Urbanismo planejado (Chimú/Incas). Irrigação e terraços. Crescimento populacional.',
     category: EventCategory.URBANIZATION,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30079,
     startYear: 1000,
@@ -512,7 +512,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Reino Chimú (costa norte do Peru, capital Chan-Chan): irrigação, administração, tributos, cerâmica negra, metalurgia.',
     category: EventCategory.POLITICAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30080,
     startYear: 1476,
@@ -521,7 +521,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Expansão e consolidação do Império Inca (Tawantinsuyu) sob Pachakuti, Tupa Yupanki, Wayna Kápak. Capital Cusco. Estradas, correios, quipos. Ayllu, ayni, mita. Agricultura sofisticada. Culto ao Sol. Quíchua.',
     category: EventCategory.POLITICAL,
     source: americaPreColombianaSource.name
-  },
+  } as TimelineEvent,
   {
     id: 30081,
     year: 1531,
@@ -529,7 +529,7 @@ export const americaPreColombianaEvents: TimelineEvent[] = [
     description: 'Início da conquista espanhola, interrompendo o Império Inca.',
     category: EventCategory.COLONIZATION,
     source: americaPreColombianaSource.name
-  }
+  } as TimelineEvent
 ];
 
 export const americaPreColombianaCharacters: Character[] = [
@@ -770,7 +770,7 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     endYear: 1492,
     title: 'Período Pré-colombiano',
     source: americaPreColombianaSource.name
-  },
+  } as TimelinePeriod,
   {
     id: 40002,
     startYear: -40000,
@@ -778,7 +778,7 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     title: 'Paleolítico Americano',
     description: 'Povoamento inicial e desenvolvimento de tecnologias líticas de caça.',
     source: americaPreColombianaSource.name
-  },
+  } as TimelinePeriod,
   {
     id: 40003,
     startYear: -8800,
@@ -786,7 +786,7 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     title: 'Mesolítico Americano',
     description: 'Fim da glaciação, diversificação cultural, exploração de recursos aquáticos e vegetais.',
     source: americaPreColombianaSource.name
-  },
+  } as TimelinePeriod,
   {
     id: 40004,
     startYear: -7000,
@@ -794,7 +794,7 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     title: 'Sociedades Agrícolas Pré-Urbanas (Neolítico Americano)',
     description: 'Transição para agricultura, aldeias sedentárias, domesticação de plantas e cerâmica.',
     source: americaPreColombianaSource.name
-  },
+  } as TimelinePeriod,
   {
     id: 40005,
     startYear: -1200,
@@ -802,7 +802,7 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     title: 'Período Pré-Clássico ou Formativo (Mesoamérica)',
     description: 'Cultura Olmeca, centros cerimoniais, culturas formativas maias.',
     source: americaPreColombianaSource.name
-  },
+  } as TimelinePeriod,
   {
     id: 40006,
     startYear: 100,
@@ -810,7 +810,7 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     title: 'Período Clássico (Mesoamérica)',
     description: 'Teotihuacan, apogeu maia, cidades-estados, escrita, matemática, astronomia.',
     source: americaPreColombianaSource.name
-  },
+  } as TimelinePeriod,
   {
     id: 40007,
     startYear: -200,
@@ -818,7 +818,7 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     title: 'Intermédio Inicial (Andes Centrais)',
     description: 'Desenvolvimento tecnológico, estados organizados, Mochica, Tiahuanaco.',
     source: americaPreColombianaSource.name
-  },
+  } as TimelinePeriod,
   {
     id: 40008,
     startYear: 600,
@@ -826,7 +826,7 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     title: 'Horizonte Médio ou Intermédio Médio (Andes Centrais)',
     description: 'Império Huari, expansão e desintegração, santuário de Pachacamac.',
     source: americaPreColombianaSource.name
-  },
+  } as TimelinePeriod,
   {
     id: 40009,
     startYear: 900,
@@ -834,7 +834,7 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     title: 'Período Pós-Clássico (Mesoamérica)',
     description: 'Militarismo, urbanização, cultura Tolteca, Mixtecas, ascensão Azteca.',
     source: americaPreColombianaSource.name
-  },
+  } as TimelinePeriod,
   {
     id: 40010,
     startYear: 1000,
@@ -842,7 +842,7 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     title: 'Intermédio Tardio (Andes Centrais)',
     description: 'Estados regionais, reino Chimú, urbanismo planejado.',
     source: americaPreColombianaSource.name
-  },
+  } as TimelinePeriod,
   {
     id: 40011,
     startYear: 1476,
@@ -850,5 +850,5 @@ export const americaPreColombianaPeriods: TimelinePeriod[] = [
     title: 'Horizonte Tardio (Andes Centrais)',
     description: 'Império Inca, expansão, Cusco, sistema administrativo e cultural.',
     source: americaPreColombianaSource.name
-  }
+  } as TimelinePeriod
 ];

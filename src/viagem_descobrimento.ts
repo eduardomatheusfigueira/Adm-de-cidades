@@ -17,7 +17,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.POLITICAL,
     source: "A Viagem do Descobrimento",
     characters: ["Álvaro Gil Cabral", "D. João I"]
-  },
+  } as TimelineEvent,
   {
     id: 50002,
     year: 1387,
@@ -27,7 +27,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.POLITICAL,
     source: "A Viagem do Descobrimento",
     characters: ["D. João I", "Filipa de Lancaster"]
-  },
+  } as TimelineEvent,
   {
     id: 50003,
     century: "Início do Século XV",
@@ -35,7 +35,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     description: "Portugal inicia a sua expansão marítima, impulsionada por fatores econômicos, religiosos e pela ambição da nobreza.",
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento"
-  },
+  } as TimelineEvent,
   {
     id: 50004,
     year: 1415,
@@ -43,7 +43,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     description: "Conquista de Ceuta no norte da África por Portugal, um marco inicial da expansão ultramarina.",
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento"
-  },
+  } as TimelineEvent,
   {
     id: 50005,
     year: 1419,
@@ -53,7 +53,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.POLITICAL,
     source: "A Viagem do Descobrimento",
     characters: ["Infante D. Henrique"]
-  },
+  } as TimelineEvent,
   {
     id: 50006,
     year: 1420,
@@ -63,7 +63,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.POLITICAL,
     source: "A Viagem do Descobrimento",
     characters: ["Infante D. Henrique", "D. João I"]
-  },
+  } as TimelineEvent,
   {
     id: 50007,
     century: "Décadas de 1430 e 1440",
@@ -72,7 +72,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Infante D. Henrique"]
-  },
+  } as TimelineEvent,
   {
     id: 50008,
     year: 1441,
@@ -81,7 +81,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.SOCIAL,
     source: "A Viagem do Descobrimento",
     characters: ["Antão Gonçalves"]
-  },
+  } as TimelineEvent,
   {
     id: 50009,
     year: 1444,
@@ -90,7 +90,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Nuno Tristão"]
-  },
+  } as TimelineEvent,
   {
     id: 50010,
     year: 1445,
@@ -99,7 +99,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Dinis Dias"]
-  },
+  } as TimelineEvent,
   {
     id: 50011,
     year: 1453,
@@ -107,7 +107,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     description: "Queda de Constantinopla para os turcos otomanos, afetando rotas de comércio e incentivando rotas marítimas alternativas.",
     category: EventCategory.INTERNATIONAL,
     source: "A Viagem do Descobrimento"
-  },
+  } as TimelineEvent,
   {
     id: 50012,
     year: 1469,
@@ -116,7 +116,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Fernão Gomes", "D. Afonso V"]
-  },
+  } as TimelineEvent,
   {
     id: 50013,
     year: 1471,
@@ -126,7 +126,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Fernão Gomes"]
-  },
+  } as TimelineEvent,
   {
     id: 50014,
     year: 1481,
@@ -135,7 +135,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.POLITICAL,
     source: "A Viagem do Descobrimento",
     characters: ["D. João II"]
-  },
+  } as TimelineEvent,
   {
     id: 50015,
     year: 1488,
@@ -145,7 +145,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Bartolomeu Dias"]
-  },
+  } as TimelineEvent,
   {
     id: 50016,
     year: 1492,
@@ -155,7 +155,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Cristóvão Colombo", "Martim Behaim"]
-  },
+  } as TimelineEvent,
   {
     id: 50017,
     year: 1494,
@@ -165,7 +165,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     description: "Assinatura do Tratado de Tordesilhas entre Portugal e Espanha, dividindo o mundo.",
     category: EventCategory.INTERNATIONAL,
     source: "A Viagem do Descobrimento"
-  },
+  } as TimelineEvent,
   {
     id: 50018,
     year: 1495,
@@ -174,7 +174,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.POLITICAL,
     source: "A Viagem do Descobrimento",
     characters: ["D. Manuel I", "D. João II"]
-  },
+  } as TimelineEvent,
   {
     id: 50019,
     startYear: 1497,
@@ -184,7 +184,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Vasco da Gama", "Bartolomeu Dias"]
-  },
+  } as TimelineEvent,
   {
     id: 50020,
     year: 1499,
@@ -194,7 +194,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Vasco da Gama", "D. Manuel I"]
-  },
+  } as TimelineEvent,
   {
     id: 50021,
     year: 1500,
@@ -205,7 +205,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Pedro Álvares Cabral"]
-  },
+  } as TimelineEvent,
   {
     id: 50022,
     year: 1500,
@@ -215,7 +215,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Pedro Álvares Cabral"]
-  },
+  } as TimelineEvent,
   {
     id: 50023,
     year: 1500,
@@ -226,7 +226,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.COLONIZATION,
     source: "A Viagem do Descobrimento",
     characters: ["Pedro Álvares Cabral"]
-  },
+  } as TimelineEvent,
   {
     id: 50024,
     startYear: 1500,
@@ -238,7 +238,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.COLONIZATION,
     source: "A Viagem do Descobrimento",
     characters: ["Pedro Álvares Cabral"]
-  },
+  } as TimelineEvent,
   {
     id: 50025,
     year: 1500,
@@ -249,7 +249,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.SOCIAL,
     source: "A Viagem do Descobrimento",
     characters: ["Diogo Dias"]
-  },
+  } as TimelineEvent,
   {
     id: 50026,
     year: 1500,
@@ -260,7 +260,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.COLONIZATION,
     source: "A Viagem do Descobrimento",
     characters: ["Gaspar de Lemos", "Pedro Álvares Cabral"]
-  },
+  } as TimelineEvent,
   {
     id: 50027,
     year: 1500,
@@ -271,7 +271,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Pedro Álvares Cabral", "Bartolomeu Dias"]
-  },
+  } as TimelineEvent,
   {
     id: 50028,
     year: 1500,
@@ -281,7 +281,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Pedro Álvares Cabral", "Diogo Dias"]
-  },
+  } as TimelineEvent,
   {
     id: 50029,
     startYear: 1500,
@@ -292,7 +292,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.ECONOMIC,
     source: "A Viagem do Descobrimento",
     characters: ["Pedro Álvares Cabral"]
-  },
+  } as TimelineEvent,
   {
     id: 50030,
     year: 1501,
@@ -303,7 +303,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.EXPLORATION,
     source: "A Viagem do Descobrimento",
     characters: ["Pedro Álvares Cabral"]
-  },
+  } as TimelineEvent,
   {
     id: 50031,
     year: 1501,
@@ -314,7 +314,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.COLONIZATION,
     source: "A Viagem do Descobrimento",
     characters: ["Pedro Álvares Cabral"]
-  },
+  } as TimelineEvent,
   {
     id: 50032,
     year: 1501,
@@ -324,7 +324,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.CULTURAL,
     source: "A Viagem do Descobrimento",
     characters: ["Domenico Piasani"]
-  },
+  } as TimelineEvent,
   {
     id: 50033,
     year: 1501,
@@ -334,7 +334,7 @@ export const viagemDescobrimentoEvents: TimelineEvent[] = [
     category: EventCategory.CULTURAL,
     source: "A Viagem do Descobrimento",
     characters: ["Bartolomeu Marchioni"]
-  }
+  } as TimelineEvent
 ];
 
 export const viagemDescobrimentoPeriods: TimelinePeriod[] = [];
