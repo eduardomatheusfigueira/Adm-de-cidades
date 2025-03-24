@@ -1,0 +1,15 @@
+/* src/styles/CityProfileSummary.css */
+.city-profile-summary {
+  display: flex;
+  flex-direction: column;
+}
+
+.city-profile-summary .info-line {
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+.city-profile-summary .info-line b {
+  font-weight: bold;
+  margin-right: 5px;
+}

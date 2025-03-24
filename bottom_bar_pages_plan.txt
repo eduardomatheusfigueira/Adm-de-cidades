@@ -1,0 +1,76 @@
+# Planejamento das Páginas da Barra Inferior para Exploração de Dados Municipais (Estilo Simples)
+
+**Objetivo:** Expandir a funcionalidade da barra inferior para permitir uma exploração mais profunda dos indicadores e dados municipais, mantendo um estilo simples e direto.
+
+**Entendimento Principal:** A área de informações do município, localizada acima do menu inferior, será utilizada como a área de conteúdo para as páginas do menu inferior. A "contextualização" atual do município (código, estado, região, área, destaques de indicadores) representa a **primeira página**, que será a página de "Visão Geral". Não haverá conteúdo adicional exibido abaixo do menu inferior.
+
+**Páginas Propostas (Estilo Simples):**
+
+1.  **Visão Geral Rápida (Página Inicial)**
+    *   **Conteúdo:** Informações essenciais do município de forma concisa.
+        *   Código, Estado, Região, Área (em linha única ou poucas linhas).
+        *   "Destaques" - Top 3 e Bottom 3 indicadores (nomes e índices, sem gráficos complexos).
+        *   Seletores de município e ano (dropdowns simples).
+    *   **Local de Exibição:** Área de informações do município (acima do menu inferior).
+    *   **Objetivo:** Visão geral imediata, sem sobrecarregar visualmente.
+    *   **Componentes Reutilizados/Simplificados:** `CityProfileSummary` (versão simplificada), seletores dropdown padrão.
+    *   **Observação:** Esta página corresponde à "contextualização" atual do município, que agora entendemos ser a primeira página de conteúdo da barra inferior.
+
+2.  **Lista de Indicadores**
+    *   **Conteúdo:** Lista textual de indicadores e seus valores.
+        *   Nome do Indicador - Índice Posicional (em formato de lista simples).
+        *   Opção de ordenação (por nome, por índice).
+        *   Filtro básico por nome de indicador (opcional).
+    *   **Local de Exibição:** Área de informações do município (acima do menu inferior).
+    *   **Objetivo:** Acesso direto aos dados de indicadores em formato de lista, sem tabelas complexas.
+    *   **Componentes:** Lista (`<ul>`, `<li>`), campos de filtro/ordenação (simples, sem inputs elaborados).
+
+3.  **Série Temporal (Gráfico Simples)**
+    *   **Conteúdo:** Gráfico de linha básico para visualização da evolução de um indicador.
+        *   Seleção de um indicador (dropdown).
+        *   Gráfico de linha simples (eixo X: Anos, Eixo Y: Índice).
+        *   Sem interatividade avançada (zoom, tooltips opcionais e simples).
+    *   **Local de Exibição:** Área de informações do município (acima do menu inferior).
+    *   **Objetivo:** Visualização da tendência temporal de forma clara e direta, sem detalhes excessivos.
+    *   **Componentes:** Biblioteca de gráficos simples (ex: componente de gráfico de linha básico), seletor dropdown.
+
+4.  **Comparação Básica**
+    *   **Conteúdo:** Comparação lado a lado de um indicador entre municípios.
+        *   Seleção de um indicador (dropdown).
+        *   Lista dos Top 5 municípios para o indicador (nome e índice).
+        *   Destaque para o município selecionado atualmente na lista.
+    *   **Local de Exibição:** Área de informações do município (acima do menu inferior).
+    *   **Objetivo:** Comparação direta e rápida, focada nos principais destaques.
+    *   **Componentes:** Listas (`<ul>`, `<li>`), seletor dropdown.
+
+5.  **Dados Brutos (Download)**
+    *   **Conteúdo:** Link para download dos dados brutos.
+        *   Texto: "Dados Brutos" - Link para download (CSV ou JSON).
+    *   **Local de Exibição:** Área de informações do município (acima do menu inferior).
+    *   **Objetivo:** Acesso aos dados completos para usuários avançados, de forma discreta.
+    *   **Componentes:** Link (`<a>`).
+
+**Navegação Simples:**
+
+*   Botões de texto ou ícones simples na barra inferior para alternar entre as páginas (ex: "Visão Geral", "Indicadores", "Série Temporal", "Comparar", "Dados").
+*   Sem abas complexas ou menus dropdown na navegação da barra inferior.
+
+**Próximos Passos (Estilo Simples):**
+
+1.  Estrutura de navegação na barra inferior com botões/ícones simples.
+2.  Implementar "Visão Geral Rápida" (página inicial simplificada) - **já implementada como a contextualização atual.**
+3.  Desenvolver "Lista de Indicadores" (formato de lista textual).
+4.  Adicionar "Série Temporal (Gráfico Simples)" com gráfico de linha básico.
+5.  Implementar "Comparação Básica" com lista dos Top 5.
+6.  Incluir "Dados Brutos (Download)" com link direto.
+7.  Testar a usabilidade e a clareza, mantendo a simplicidade.
+
+**Considerações de Estilo Simples:**
+
+*   **Minimalismo Visual:** Evitar elementos gráficos excessivos, cores vibrantes em excesso, animações complexas.
+*   **Foco no Conteúdo:** Priorizar a informação textual e visualizações diretas e claras.
+*   **Componentes Padrão:** Utilizar componentes HTML padrão ou bibliotecas de UI com estilo simples e personalizável.
+*   **Intuitividade:** Navegação e layout devem ser autoexplicativos, sem necessidade de tutoriais.
+*   **Responsividade:** Garantir que o estilo simples funcione bem em diferentes tamanhos de tela, sem quebrar o layout.
+
+Este plano visa expandir a barra inferior com funcionalidades importantes de exploração de dados, mas sempre com foco em manter a simplicidade e a leveza visual que caracterizam a interface atual.

@@ -1,82 +1,79 @@
-# Linha do Tempo Interativa da História do Brasil
+# Jogo de Administração e Eleições do Brasil
 
-## Descrição do Projeto
+## Descrição
 
-Este projeto apresenta uma linha do tempo interativa e visualmente moderna da história do Brasil, abrangendo eventos de 8000 a.C. até 1945. O objetivo principal é oferecer uma ferramenta intuitiva e responsiva para explorar a história brasileira através de múltiplas fontes bibliográficas renomadas. A interface foi completamente redesenhada para proporcionar uma experiência de usuário otimizada e contemporânea, mantendo todas as funcionalidades existentes e adicionando melhorias visuais e de usabilidade.
+Este projeto visa criar um jogo de simulação da administração pública e eleições no Brasil. O jogo utilizará dados públicos para modelar cidades, estados e o país, permitindo aos jogadores tomar decisões administrativas e participar de eleições simuladas.
 
-## Funcionalidades
+## Funcionalidades Atuais
 
-*   **Interface Moderna e Responsiva:** Design contemporâneo e arrojado, otimizado para diferentes dispositivos e tamanhos de tela, proporcionando uma experiência de usuário consistente e agradável.
-*   **Visualização Abrangente:** Apresenta eventos e períodos históricos de 8000 a.C. até 1945, cobrindo a história do Brasil desde os tempos pré-coloniais até meados do século XX.
-*   **Múltiplas Fontes Integradas:** Combina dados de "A Invenção do Trabalhismo", "Raízes do Brasil", "1499: O Brasil antes de Cabral", "Casa-Grande & Senzala" e "A Urbanização Brasileira", oferecendo uma visão multifacetada da história.
-*   **Filtros Interativos:** Permite filtrar eventos por fonte bibliográfica e personagens históricos, facilitando a exploração de temas e perspectivas específicas.
-*   **Categorização de Eventos:** Eventos são categorizados (Política, Social, Econômico, Cultural, etc.) e codificados por cores para fácil identificação e análise.
-*   **Tooltips Detalhados:** Exibe tooltips informativos e visualmente aprimorados ao passar o mouse sobre eventos e períodos, fornecendo descrições detalhadas e contexto histórico.
-*   **Zoom e Navegação:** Funcionalidades de zoom e navegação horizontal intuitivas, permitindo explorar a linha do tempo em diferentes níveis de detalhe e focar em períodos específicos.
-*   **Legenda Detalhada:** Inclui legendas para categorias de eventos e fontes bibliográficas, auxiliando na compreensão da visualização.
-*   **Lista de Personagens:** Apresenta uma lista de personagens históricos relevantes, com possibilidade de filtro e destaque de eventos relacionados.
-*   **Filtro por Período:** Permite focar em períodos históricos específicos como Pré-Colonial, Colonial, Imperial e Republicano.
-*   **Desempenho Otimizado:** Animações e transições suaves, scrollbars personalizados e layout responsivo contribuem para uma experiência de uso fluida e eficiente.
-*   **Modo Escuro Automático:** Detecção automática das preferências do sistema para modo claro ou escuro, proporcionando conforto visual em diferentes ambientes.
+- **Mapa Interativo:** Visualização do mapa do Brasil com setores censitários, utilizando Mapbox GL JS.
+- **Editor de Cidades:** Interface para editar atributos de cidades diretamente no mapa.
+  - Edição de nome, população, economia, descrição e geometria (JSON).
+  - **Layout do Editor de Cidades Refatorado:** Interface de usuário redesenhada com layout aprimorado utilizando CSS Grid para melhor organização e usabilidade. Exibição de atributos e dados em tabela em uma única janela formatada.
+- **Dados CSV:** Integração de dados de arquivos CSV para enriquecer as informações das cidades.
 
-## Fontes de Dados
+## Próximos Passos
 
-Os dados para esta linha do tempo foram extraídos e adaptados das seguintes obras:
+- Finalizar ajustes no layout do Editor de Cidades e garantir responsividade.
+- Implementar regras básicas do jogo e lógica de administração municipal.
+- Desenvolver sistema de eleições simuladas.
+- Adicionar mais dados e indicadores ao jogo.
 
-*   **1499: O Brasil antes de Cabral** de Reinaldo José Lopes
-*   **A Casa-Grande & Senzala** de Gilberto Freyre
-*   **A Invenção do Trabalhismo** de Angela de Castro Gomes
-*   **As Raízes do Brasil** de Sérgio Buarque de Holanda
-*   **A Urbanização Brasileira** de Milton Santos
+## Roadmap Detalhado
+
+O roadmap completo e atualizado do projeto pode ser encontrado em [roadmaps/roadmap_revision_8.txt](roadmaps/roadmap_revision_8.txt). As revisões anteriores do roadmap também estão disponíveis na pasta `roadmaps/`.
 
 ## Tecnologias Utilizadas
 
-*   **TypeScript:** Linguagem de programação principal para desenvolvimento da aplicação, garantindo tipagem estática e melhor organização do código.
-*   **D3.js:** Biblioteca JavaScript poderosa para manipulação de documentos baseados em dados e criação de visualizações dinâmicas e interativas.
-*   **Vite:** Ferramenta de build e servidor de desenvolvimento extremamente rápido, otimizada para aplicações web modernas, proporcionando um ambiente de desenvolvimento ágil.
-*   **HTML & CSS:** Para a estrutura e estilização da página web, com CSS moderno e variáveis para fácil manutenção e customização do design.
+- **Frontend:** React, Mapbox GL JS, HTML, CSS, JavaScript, Vite
+- **Backend:** (A definir, possivelmente Node.js ou Python para etapas futuras, dependendo da necessidade de processamento de dados mais complexo - atualmente frontend-centric)
+- **Dados:** Dados públicos do governo brasileiro (IBGE, TSE, etc.), GeoJSON, CSV
 
-## Como Executar o Projeto
+## Como Contribuir
 
-1.  **Instalar dependências:**
-    ```shell
+Contribuições são bem-vindas! Se você tiver ideias, sugestões de melhorias ou quiser ajudar no desenvolvimento, por favor, entre em contato ou envie um pull request.
+
+## Instalação e Execução
+
+Para executar o jogo localmente, siga os seguintes passos:
+
+1.  **Clone o repositório:** (Este passo assume que você já tem o código no seu ambiente WebContainer)
+
+    ```bash
+    git clone [URL do repositório]
+    cd brazil-game-frontend
+    ```
+
+2.  **Instale as dependências:** Utilize o npm para instalar as dependências listadas no arquivo `package.json`.
+
+    ```bash
     npm install
     ```
-2.  **Iniciar o servidor de desenvolvimento:**
-    ```shell
+
+3.  **Execute o servidor de desenvolvimento:** Inicie o servidor de desenvolvimento Vite para rodar o jogo no seu navegador.
+
+    ```bash
     npm run dev
     ```
-3.  **Visualizar no navegador:**
-    O projeto estará disponível em `http://localhost:5173` ou no endereço fornecido pelo Vite no terminal.
 
-## Utilização
+4.  **Acesse o jogo no navegador:** O Vite iniciará um servidor de desenvolvimento local. Abra o URL fornecido no seu navegador (geralmente `http://localhost:5173`) para visualizar e interagir com o Jogo de Administração e Eleições do Brasil.
 
-Ao abrir a aplicação no navegador, você verá a linha do tempo da história do Brasil com a nova interface visual.
+### Observações sobre o Ambiente WebContainer
 
-*   **Navegação Horizontal:** Clique e arraste na linha do tempo para navegar horizontalmente pelos anos. A navegação foi aprimorada para ser mais intuitiva e responsiva.
-*   **Zoom:** Utilize os botões '+' e '-' para aumentar e diminuir o zoom da linha do tempo. O botão "Resetar Zoom" restaura o zoom original.
-*   **Filtro por Período:** Selecione um período no menu dropdown "Período" para focar em uma era específica da história do Brasil.
-*   **Filtro por Fonte:** Utilize a lista "Filtrar por Fonte" para selecionar ou desmarcar fontes bibliográficas e visualizar apenas os eventos relacionados a fontes específicas. A interface dos filtros foi modernizada para melhor usabilidade.
-*   **Lista de Personagens:** Explore a lista "Personagens Históricos" para selecionar personagens e destacar os eventos relacionados a eles na linha do tempo. Clique em um personagem para ativar/desativar o filtro. A apresentação da lista de personagens foi visualmente melhorada.
-*   **Tooltips:** Passe o mouse sobre os eventos e períodos na linha do tempo para ver informações detalhadas em tooltips com design renovado e melhor legibilidade.
-*   **Legenda:** Consulte a legenda para entender as categorias de eventos e as cores associadas às fontes bibliográficas. A legenda foi reorganizada e estilizada para melhor clareza.
-*   **Modo Escuro:** A aplicação agora suporta modo escuro automático, adaptando-se às preferências de tema do seu sistema operacional para uma visualização mais confortável em diferentes condições de iluminação.
+Este projeto foi desenvolvido para rodar em um ambiente WebContainer, que possui algumas características importantes:
 
-## Customização
+-   **Ambiente emulador:** O WebContainer emula um sistema Linux no navegador, mas não é um sistema Linux completo.
+-   **Restrições de bibliotecas Python:**  A execução de Python é limitada à biblioteca padrão. Não é possível instalar bibliotecas de terceiros com `pip`.
+-   **Ausência de compiladores C/C++:** Não há compiladores C/C++ disponíveis, o que impede a execução de binários nativos ou compilação de código C/C++.
+-   **Servidor web:** O WebContainer pode executar servidores web utilizando Node.js e npm packages como Vite.
+-   **Git não disponível:** O Git não está disponível no ambiente WebContainer.
+-   **Scripts Node.js preferíveis:** Para tarefas de script, prefira Node.js em vez de shell scripts devido a limitações no suporte a shell scripts.
 
-*   **Dados:** Os dados da linha do tempo estão localizados nos arquivos dentro do diretório `src/`. Para adicionar ou modificar eventos e períodos, edite os arquivos `.ts` correspondentes.
-*   **Estilos:** Os estilos da aplicação foram completamente revisados e podem ser modificados no arquivo `src/style.css`. Variáveis CSS foram amplamente utilizadas para facilitar a customização e manutenção do tema visual.
-*   **Configuração:** A configuração do projeto (como template do Vite) está no arquivo `config.json`.
-
-## Créditos
-
-*   Desenvolvido por Eduardo Matheus Figueira
-*   Baseado em dados e informações das obras listadas em "Fontes de Dados".
-*   Utiliza a biblioteca D3.js (d3js.org) para visualização de dados.
-*   Desenvolvido com Vite (vitejs.dev).
+Certifique-se de seguir estas instruções para configurar e executar o ambiente de desenvolvimento corretamente.
 
 ## Licença
 
-[Caso deseje adicionar uma licença, como MIT License, especifique aqui]
+[MIT License](LICENSE)
 
 ---
+**Última atualização:** 2024-08-08

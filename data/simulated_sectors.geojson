@@ -1,0 +1,77 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "SETOR": "410010",
+        "name": "ABATIA"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-54.58, -25.52],
+            [-54.57, -25.51],
+            [-54.56, -25.52],
+            [-54.58, -25.52]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SETOR": "410020",
+        "name": "ADRIANOPOLIS"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-54.58, -25.54],
+            [-54.57, -25.53],
+            [-54.56, -25.54],
+            [-54.58, -25.54]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SETOR": "410030",
+        "name": "AGUDOS DO SUL"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-54.55, -25.52],
+            [-54.54, -25.51],
+            [-54.53, -25.52],
+            [-54.55, -25.52]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "SETOR": "410040",
+        "name": "ALMIRANTE TAMANDARE"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-54.55, -25.54],
+            [-54.54, -25.53],
+            [-54.53, -25.54],
+            [-54.55, -25.54]
+          ]
+        ]
+      }
+    }
+  ]
+}

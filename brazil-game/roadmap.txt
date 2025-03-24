@@ -1,0 +1,56 @@
+**Última Atualização:** 08/03/2025 23:06\n# ROADMAP DO JOGO DE ADMINISTRAÇÃO E ELEIÇÕES DO BRASIL
+**Última Atualização:** 2024-08-09
+
+## FASE 1: CONFIGURAÇÃO INICIAL
+[x] Configurar ambiente de desenvolvimento com Vite e dependências necessárias
+[x] Criar estrutura básica do projeto (pastas para dados, componentes, assets)
+[x] Implementar página inicial básica com React
+[x] Integrar Mapbox com o token fornecido
+
+## FASE 2: IMPLEMENTAÇÃO DO MAPA
+[x] Baixar GeoJSON do IBGE para a pasta data/
+[x] Carregar mapa do Brasil usando GeoJSON do IBGE
+[x] Implementar zoom e navegação básica no mapa
+[x] Adicionar divisões de estados e municípios
+[x] Implementar seleção de regiões no mapa
+
+## FASE 3: INTEGRAÇÃO DE DADOS E CITY EDITOR
+[x] Importar e processar dados CSV simulados
+[x] Criar modelo de dados para armazenar informações de municípios e estados (inicial)
+[x] Implementar visualização de dados básicos ao selecionar setores no mapa (City Editor inicial)
+[x] Adicionar funcionalidade de edição no City Editor
+[x] Refatorar e melhorar o layout do City Editor com CSS Grid
+[ ] Finalizar refinamento do layout do City Editor
+[ ] Integrar dados CSV reais de fontes públicas (Datasus, SNIS, IPEAData, IPARDES)
+[ ] Adicionar filtros e camadas de visualização de dados no mapa
+
+## FASE 4: MECÂNICAS DE ADMINISTRAÇÃO
+[ ] Implementar sistema de recursos (orçamento, saúde, educação, infraestrutura)
+[ ] Criar painel de administração para tomada de decisões
+[ ] Desenvolver sistema de consequências para decisões administrativas
+[ ] Implementar indicadores de desempenho e satisfação da população
+
+## FASE 5: SISTEMA DE ELEIÇÕES
+[ ] Criar sistema de partidos políticos e candidatos
+[ ] Implementar mecânica de campanhas eleitorais
+[ ] Desenvolver algoritmo de simulação de eleições baseado em dados históricos
+[ ] Adicionar eventos políticos aleatórios que afetam as eleições
+
+## FASE 6: INTERFACE DO USUÁRIO
+[ ] Melhorar design da interface principal
+[ ] Criar painéis informativos e dashboards
+[ ] Implementar tutoriais e ajuda contextual
+[ ] Adicionar feedback visual para ações do jogador
+
+## FASE 7: SISTEMAS AVANÇADOS
+[ ] Implementar sistema de tempo (turnos ou tempo real)
+[ ] Adicionar eventos históricos baseados em dados reais
+[ ] Criar sistema de objetivos e conquistas
+[ ] Implementar cenários históricos alternativos
+
+## FASE 8: POLIMENTO E LANÇAMENTO
+[ ] Realizar testes de usabilidade e ajustes
+[ ] Otimizar desempenho para grandes conjuntos de dados
+[ ] Corrigir bugs e problemas identificados
+[ ] Preparar documentação e guia do usuário
+[ ] Lançar versão 1.0

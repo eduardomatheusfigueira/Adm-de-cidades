@@ -1,0 +1,56 @@
+# ROADMAP DO JOGO DE ADMINISTRAÇÃO E ELEIÇÕES DO BRASIL
+
+**NOTA:** As revisões do roadmap serão mantidas na pasta `roadmaps/`.
+
+A revisão mais recente é `roadmaps/roadmap_revision_11.txt`.
+
+**Roadmap:**
+
+1.  **Refinamento da Interface de Usuário (UI)**
+    *   Melhorias na responsividade e usabilidade da interface.
+    *   Implementação de feedback visual para ações do usuário.
+    *   Polimento geral do design para uma experiência mais agradável.
+    *   **Subtarefa:** Refinar a barra inferior para melhor usabilidade e clareza visual.
+
+2.  **Integração da Legenda no Mapa**
+    *   Adicionar uma legenda interativa no canto inferior direito do mapa.
+    *   A legenda deve refletir a escala de cores utilizada para os atributos dos municípios.
+    *   Permitir que a legenda seja recolhida ou expandida pelo usuário.
+
+3.  **Correção de Bugs e Refatoração de Código**
+    *   Resolver o erro de sintaxe persistente no arquivo `colorUtils.js`.
+    *   Refatorar componentes para melhor organização e reutilização de código.
+    *   Otimizar o desempenho geral da aplicação.
+
+4.  **Implementação de Filtros Numéricos e Categóricos**
+    *   Assegurar que os filtros funcionem corretamente com atributos numéricos e categóricos.
+    *   Ajustar a escala de cores no mapa com base nos filtros aplicados.
+    *   Testar exaustivamente os filtros para garantir a precisão.
+
+5.  **Funcionalidade de Exclusão de Municípios**
+    *   Implementar a capacidade de excluir municípios do mapa e dos dados.
+    *   Garantir que a exclusão seja persistente ou opcional, conforme necessário.
+    *   Considerar a interface do usuário para a funcionalidade de exclusão.
+
+6.  **Criação e Exclusão Manual de Indicadores**
+    *   Permitir que usuários criem novos indicadores manualmente.
+    *   Implementar a funcionalidade de excluir indicadores existentes.
+    *   Integrar essas operações com a visualização no mapa e na legenda.
+
+7.  **Testes e Validação Contínua**
+    *   Realizar testes regulares em diferentes navegadores e dispositivos.
+    *   Validar a precisão dos dados e a funcionalidade dos componentes.
+    *   Corrigir quaisquer problemas identificados durante os testes.
+
+8.  **Documentação e Preparação para Entrega**
+    *   Documentar o código e a arquitetura da aplicação.
+    *   Preparar um guia do usuário para explicar as funcionalidades.
+    *   Organizar o código e os arquivos para facilitar a manutenção futura.
+
+**Próximos Passos:**
+
+*   Continuar refinando a barra inferior conforme feedback do usuário.
+*   Avançar para a integração da legenda e correção de bugs pendentes.
+*   Iniciar a implementação dos filtros numéricos e categóricos.
+
+**Última Atualização:** 30/08/2024 10:30

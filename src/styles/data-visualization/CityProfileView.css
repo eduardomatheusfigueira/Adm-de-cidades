@@ -1,0 +1,151 @@
+/* CityProfileView.css */
+.city-profile-view {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.city-profile-header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #3498db;
+}
+
+.city-profile-header h2 {
+  margin: 0 0 5px 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.city-profile-header .city-meta {
+  display: flex;
+  gap: 15px;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.city-profile-header .city-meta span {
+  display: flex;
+  align-items: center;
+}
+
+.city-profile-header .city-meta .capital-badge {
+  background-color: #ffc107;
+  color: #212529;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.city-profile-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.profile-card {
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.profile-card-header {
+  background-color: #f8f9fa;
+  padding: 12px 15px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.profile-card-header h3 {
+  margin: 0;
+  color: #343a40;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.profile-card-body {
+  padding: 15px;
+}
+
+.indicator-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.indicator-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.indicator-item:last-child {
+  border-bottom: none;
+}
+
+.indicator-name {
+  display: block;
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 3px;
+}
+
+.indicator-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.indicator-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 5px;
+}
+
+.indicator-position {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.position-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.position-top-10 {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+}
+
+.position-top-50 {
+  background-color: rgba(23, 162, 184, 0.2);
+  color: #17a2b8;
+}
+
+.position-top-100 {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+}
+
+.position-other {
+  background-color: rgba(108, 117, 125, 0.2);
+  color: #6c757d;
+}
+
+.no-data-message {
+  padding: 20px;
+  text-align: center;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px dashed #ced4da;
+  grid-column: 1 / -1;
+}

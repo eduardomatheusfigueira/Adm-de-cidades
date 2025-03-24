@@ -1,0 +1,53 @@
+# ROADMAP DO JOGO DE ADMINISTRAÇÃO E ELEIÇÕES DO BRASIL - REVISÃO 1
+
+## FASE 1: CONFIGURAÇÃO INICIAL
+[x] Configurar ambiente de desenvolvimento com Dash e dependências necessárias (Inicialmente planejado)
+[x] Criar estrutura básica do projeto (pastas para dados, componentes, assets)
+[x] Implementar página inicial básica com Dash (Inicialmente planejado)
+[x] Integrar Mapbox com o token fornecido (Inicialmente planejado)
+[x] Configurar ambiente de desenvolvimento com Vite e React
+[x] Corrigir erro "React is not defined"
+
+## FASE 2: IMPLEMENTAÇÃO DO MAPA
+[ ] Baixar GeoJSON do IBGE para a pasta data/
+[ ] Carregar mapa do Brasil usando GeoJSON do IBGE
+[ ] Implementar zoom e navegação básica no mapa
+[ ] Adicionar divisões de estados e municípios
+[ ] Implementar seleção de regiões no mapa
+
+## FASE 3: INTEGRAÇÃO DE DADOS
+[ ] Importar e processar dados CSV de fontes públicas (Datasus, SNIS, IPEAData, IPARDES)
+[ ] Criar modelo de dados para armazenar informações de municípios e estados
+[ ] Implementar visualização de dados básicos ao selecionar regiões
+[ ] Adicionar filtros e camadas de visualização de dados no mapa
+
+## FASE 4: MECÂNICAS DE ADMINISTRAÇÃO
+[ ] Implementar sistema de recursos (orçamento, saúde, educação, infraestrutura)
+[ ] Criar painel de administração para tomada de decisões
+[ ] Desenvolver sistema de consequências para decisões administrativas
+[ ] Implementar indicadores de desempenho e satisfação da população
+
+## FASE 5: SISTEMA DE ELEIÇÕES
+[ ] Criar sistema de partidos políticos e candidatos
+[ ] Implementar mecânica de campanhas eleitorais
+[ ] Desenvolver algoritmo de simulação de eleições baseado em dados históricos
+[ ] Adicionar eventos políticos aleatórios que afetam as eleições
+
+## FASE 6: INTERFACE DO USUÁRIO
+[ ] Melhorar design da interface principal
+[ ] Criar painéis informativos e dashboards
+[ ] Implementar tutoriais e ajuda contextual
+[ ] Adicionar feedback visual para ações do jogador
+
+## FASE 7: SISTEMAS AVANÇADOS
+[ ] Implementar sistema de tempo (turnos ou tempo real)
+[ ] Adicionar eventos históricos baseados em dados reais
+[ ] Criar sistema de objetivos e conquistas
+[ ] Implementar cenários históricos alternativos
+
+## FASE 8: POLIMENTO E LANÇAMENTO
+[ ] Realizar testes de usabilidade e ajustes
+[ ] Otimizar desempenho para grandes conjuntos de dados
+[ ] Corrigir bugs e problemas identificados
+[ ] Preparar documentação e guia do usuário
+[ ] Lançar versão 1.0

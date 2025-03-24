@@ -1,0 +1,261 @@
+/* FilterMenu.css */
+.filter-menu {
+  position: absolute; /* Changed to absolute to position relative to parent */
+  top: 10px;
+  right: 50px; /* Alterado para right para afastar mais da lateral */
+  z-index: 5;
+  width: auto; /* Adjust width to auto to fit icon button */
+  max-width: none; /* Remove max-width */
+  background-color: transparent; /* Make background transparent for the container */
+  border-radius: 0; /* Remove border-radius */
+  box-shadow: none; /* Remove box-shadow */
+  overflow: visible; /* Allow content to overflow */
+  transition: none; /* Remove transition from container */
+  margin-left: 10px; /* Add some left margin to separate from other buttons */
+}
+
+.filter-menu-toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; /* Adjust size as needed */
+  height: 40px; /* Adjust size as needed */
+  border-radius: 50%; /* Make it round */
+  background-color: #2c3e50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.filter-menu-toggle-icon.top-left {
+  /* position: absolute;  Removido */
+  /* top: 10px; Removido */
+  /* left: 10px; Removido */
+}
+
+
+.filter-menu-toggle-icon:hover {
+  background-color: #34495e;
+}
+
+
+.filter-menu-toggle {
+  display: none; /* Hide the original toggle button */
+}
+
+.filter-menu-content {
+  position: absolute; /* Position content relative to the icon button */
+  top: 100%; /* Position below the icon button */
+  right: 0; /* Alterado para right para abrir para a esquerda do icone */
+  margin-top: 10px; /* Adjust to position below the icon button */
+  width: 300px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  max-height: 80vh;
+  padding: 15px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+  text-align: left; /* Align text to the left */
+}
+
+.filter-menu-content.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+
+.menu-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+
+.filter-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.filter-section {
+  margin-bottom: 20px;
+}
+
+.filter-section h3 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 500;
+  border-bottom: 1px solid #ecf0f1;
+  padding-bottom: 8px;
+  text-align: left; /* Ensure section titles are left-aligned */
+}
+
+.search-box {
+  margin-bottom: 15px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.filter-group {
+  margin-bottom: 12px;
+  text-align: left; /* Align filter groups to the left */
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 500;
+  text-align: left; /* Align labels to the left */
+}
+
+.filter-dropdown {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background-color: white;
+  transition: border-color 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+  padding-right: 30px;
+  text-align: left; /* Ensure dropdown text is left-aligned */
+}
+
+.filter-dropdown:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.filter-dropdown:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-direction: column; /* Stack buttons vertically */
+}
+
+.filter-actions.import-export-buttons {
+  flex-direction: column; /* Stack import/export buttons vertically */
+  margin-bottom: 20px; /* Add margin below import/export buttons */
+}
+
+.filter-actions.filter-buttons {
+  flex-direction: row; /* Keep filter buttons in a row */
+}
+
+
+.control-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: white;
+  background-color: #3498db; /* Default button color */
+  margin-bottom: 5px; /* Add spacing between buttons */
+  width: 100%; /* Make buttons full width */
+  text-align: center; /* Center text inside buttons */
+}
+
+.control-button:hover {
+  background-color: #2980b9; /* Darker shade on hover */
+}
+
+
+.apply-filters-button,
+.reset-filters-button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex: 1;
+}
+
+.apply-filters-button {
+  background-color: #3498db;
+  color: white;
+}
+
+.apply-filters-button:hover {
+  background-color: #2980b9;
+}
+
+.reset-filters-button {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.reset-filters-button:hover {
+  background-color: #c0392b;
+}
+
+.filter-results {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ecf0f1;
+}
+
+.results-count {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .filter-menu-content {
+    width: calc(100% - 20px);
+    max-width: none;
+  }
+
+  .filter-actions {
+    flex-direction: column;
+  }
+
+  .apply-filters-button,
+  .reset-filters-button {
+    width: 100%;
+  }
+}

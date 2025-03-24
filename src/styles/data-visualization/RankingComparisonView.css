@@ -1,0 +1,199 @@
+/* RankingComparisonView.css */
+.ranking-comparison-view {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.comparison-header {
+  margin-bottom: 20px;
+}
+
+.comparison-header h2 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.comparison-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.search-filter {
+  flex: 1;
+  min-width: 200px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.region-filter,
+.state-filter {
+  flex: 1;
+  min-width: 150px;
+}
+
+.region-filter select,
+.state-filter select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 0.9rem;
+}
+
+/* City selection container */
+.ranking-comparison-view .city-selection-container {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.ranking-comparison-view .city-selector {
+  flex: 1;
+}
+
+.ranking-comparison-view .city-selector label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #495057;
+}
+
+.ranking-comparison-view .city-selector select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 0.9rem;
+}
+
+
+/* Side-by-side rankings container */
+.rankings-container {
+  display: flex;
+  gap: 20px;
+}
+
+.ranking-column {
+  flex: 1;
+  min-width: 0; /* Allow columns to shrink below content size */
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ranking-column h3 {
+  margin: 0;
+  padding: 12px 15px;
+  background-color: #f8f9fa;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 1px solid #dee2e6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ranking-table-container {
+  overflow-x: auto;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ranking-table th,
+.ranking-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.ranking-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.ranking-table tr:hover {
+  background-color: #f1f3f5;
+  cursor: pointer;
+}
+
+.ranking-table .position-cell {
+  text-align: center;
+  font-weight: 600;
+  width: 50px;
+}
+
+.ranking-table .value-cell {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+}
+
+/* Highlighted rows */
+.ranking-table tr.highlighted {
+  background-color: rgba(52, 152, 219, 0.2);
+}
+
+/* Common cities in both rankings */
+.ranking-table tr.common-city {
+  font-weight: 500;
+}
+
+.ranking-table tr.common-city.highlighted {
+  background-color: rgba(52, 152, 219, 0.3);
+}
+
+/* Top positions styling */
+.ranking-table tr:nth-child(1) .position-cell {
+  background-color: rgba(255, 215, 0, 0.2);
+}
+
+.ranking-table tr:nth-child(2) .position-cell {
+  background-color: rgba(192, 192, 192, 0.2);
+}
+
+.ranking-table tr:nth-child(3) .position-cell {
+  background-color: rgba(205, 127, 50, 0.2);
+}
+
+.no-data-message {
+  padding: 20px;
+  text-align: center;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px dashed #ced4da;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .rankings-container {
+    flex-direction: column;
+  }
+
+  .ranking-column {
+    width: 100%;
+  }
+}

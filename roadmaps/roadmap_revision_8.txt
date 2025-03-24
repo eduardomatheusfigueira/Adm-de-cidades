@@ -1,0 +1,88 @@
+**Última Atualização:** 08/03/2025 23:06\n# ROADMAP DO JOGO DE ADMINISTRAÇÃO E ELEIÇÕES DO BRASIL - Revisão 8
+**Última Atualização:** 2024-08-09
+
+**Data:** 2024-08-08
+
+**Status:** Em Desenvolvimento
+
+**Objetivo:** Criar um jogo de administração e eleições do Brasil utilizando dados públicos e tecnologias web.
+
+**Etapas Concluídas:**
+
+1. **Setup Inicial do Projeto:**
+    - [x] Criar estrutura básica de pastas e arquivos.
+    - [x] Configurar ambiente de desenvolvimento com Vite e React.
+    - [x] Inicializar repositório Git e configurar ignore de arquivos desnecessários.
+    - [x] Criar README.md inicial com descrição do projeto.
+    - [x] Definir roadmap inicial do projeto.
+
+2. **Implementação do Mapa Base:**
+    - [x] Integrar Mapbox GL JS para visualização do mapa.
+    - [x] Carregar e exibir dados GeoJSON de setores censitários no mapa.
+    - [x] Permitir interação básica com o mapa (zoom, pan).
+    - [x] Configurar token do Mapbox no ambiente de desenvolvimento.
+
+3. **Editor de Cidades (City Editor) - Funcionalidade Inicial:**
+    - [x] Criar componente React `CityEditor` para edição de dados da cidade.
+    - [x] Implementar campos de entrada para nome, população, economia e descrição da cidade.
+    - [x] Adicionar funcionalidade para edição da geometria da cidade através de texto JSON.
+    - [x] Integrar `CityEditor` com o mapa, abrindo ao clicar em um setor.
+    - [x] Permitir salvar as alterações de volta para o estado da aplicação.
+
+4. **Integração de Dados CSV:**
+    - [x] Ler e processar dados de um arquivo CSV simulado.
+    - [x] Exibir dados CSV em formato de tabela dentro do `CityEditor`.
+    - [x] Associar dados CSV com setores/cidades correspondentes (simulado).
+
+5. **Refatoração e Melhorias de UI/UX:**
+    - [x] Refatorar componentes para melhor organização e reutilização.
+    - [x] Melhorar a interface do `CityEditor` para maior clareza e usabilidade.
+    - [x] Corrigir problemas de layout e sobreposição de elementos no `CityEditor` usando CSS Grid (tentativa inicial).
+    - [x] Redesign completo do `CityEditor` para resolver problemas de formatação, garantindo uma janela única e bem organizada com atributos e tabela de dados. **(Layout redesenhado e implementado com sucesso usando CSS Grid. Próximo passo é testar e ajustar o layout)**
+
+**Etapas Atuais e Próximas:**
+
+6. **Finalizar Refinamento do Layout do City Editor:**
+    - [ ] Testar e ajustar o novo layout do `CityEditor` com CSS Grid para garantir que todos os elementos sejam exibidos corretamente e sem sobreposição.
+    - [ ] Garantir responsividade do `CityEditor` para diferentes tamanhos de tela.
+    - [ ] Obter feedback do usuário sobre a usabilidade e clareza do novo design.
+
+7. **Implementação de Regras do Jogo e Lógica de Administração:**
+    - [ ] Definir regras básicas do jogo (economia, eleições, indicadores sociais, etc.).
+    - [ ] Implementar lógica para simulação básica da administração municipal.
+    - [ ] Criar componentes de UI para exibir informações e controles do jogo (painel de administração, indicadores, etc.).
+
+8. **Desenvolvimento do Sistema de Eleições:**
+    - [ ] Projetar o sistema de eleições municipais (candidatos, votação, resultados).
+    - [ ] Implementar a lógica e UI para simular eleições dentro do jogo.
+
+9. **Melhorias Contínuas e Expansão:**
+    - [ ] Adicionar mais dados e indicadores relevantes para o jogo.
+    - [ ] Expandir as funcionalidades de administração e simulação.
+    - [ ] Melhorar a UI/UX com base no feedback dos usuários.
+    - [ ] Otimizar o desempenho e a estabilidade do jogo.
+    - [ ] Considerar a adição de funcionalidades multiplayer (futuro).
+
+**Riscos e Desafios:**
+
+- Complexidade de simulação realista da administração pública e eleições.
+- Necessidade de grande volume de dados públicos e tratamento adequado.
+- Manter o jogo interessante e engajador para os jogadores.
+- Limitações de tempo e recursos de desenvolvimento.
+
+**Notas:**
+
+- Este roadmap é um plano inicial e está sujeito a alterações conforme o desenvolvimento avança e novos requisitos e ideias surgem.
+- A priorização de etapas pode ser ajustada dependendo do progresso e feedback.
+- O foco inicial é na criação de um protótipo funcional com as funcionalidades essenciais do jogo.
+
+**Revisões de Roadmap:**
+
+- Revisão 1: `roadmaps/roadmap_revision_1.txt` (Inicial)
+- Revisão 2: `roadmaps/roadmap_revision_2.txt` (Mapa base e dados GeoJSON)
+- Revisão 3: `roadmaps/roadmap_revision_3.txt` (City Editor inicial)
+- Revisão 4: `roadmaps/roadmap_revision_4.txt` (Integração CSV)
+- Revisão 5: `roadmaps/roadmap_revision_5.txt` (Refatoração e UI/UX)
+- Revisão 6: `roadmaps/roadmap_revision_6.txt` (Correção layout City Editor - tentativa flexbox)
+- Revisão 7: `roadmaps/roadmap_revision_7.txt` (Redesign City Editor - CSS Grid)
+- Revisão 8: `roadmaps/roadmap_revision_8.txt` (Atualização com redesign finalizado do City Editor e próximas etapas)

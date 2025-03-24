@@ -1,0 +1,17 @@
+# ROADMAP DO JOGO DE ADMINISTRAÇÃO E ELEIÇÕES DO BRASIL - Revisão 4 (Kanban)
+
+## Backlog 
+- [ ] Implementar a lógica principal do jogo (regras, pontuação, etc.)
+- [ ] Desenvolver a interface do usuário (UI) para o jogo
+- [ ] Integrar dados do mundo real para tornar o jogo mais preciso
+- [ ] Adicionar funcionalidades extras (multijogador, rankings, etc.)
+- [ ] Refinar a UI/UX com base no feedback dos usuários
+- [ ] Carregar e exibir dados GeoJSON no mapa
+
+## Em Progresso
+- [x] Criar cidades fictícias baseadas em dados GeoJSON
+- [x] Implementar zoom e navegação no mapa
+- [x] Alterar os quadrados do GeoJSON para triângulos
+- [x] Tratar cada GeoJSON como uma cidade fictícia
+
+## Concluído
