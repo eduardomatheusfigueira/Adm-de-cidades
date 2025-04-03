@@ -23,7 +23,6 @@ import React, { useState, useEffect, useRef } from 'react';
       const [searchTerm, setSearchTerm] = useState('');
       const [selectedRegion, setSelectedRegion] = useState('all');
       const [selectedState, setSelectedState] = useState('all');
-      const [colorAttribute, setColorAttribute] = useState('Sigla_Regiao');
       const [activeVisualization, setActiveVisualization] = useState('map');
 
       const uniqueRegions = csvData ? [...new Set(csvData.map(city => city.Sigla_Regiao))].filter(Boolean).sort() : [];
@@ -59,9 +58,6 @@ import React, { useState, useEffect, useRef } from 'react';
         setSearchTerm(event.target.value);
       };
 
-      const handleColorAttributeChange = (event) => {
-        setColorAttribute(event.target.value);
-      };
 
       const handleApplyFilters = () => {
         console.log("Aplicando filtros...");
@@ -103,9 +99,10 @@ import React, { useState, useEffect, useRef } from 'react';
         });
 
         console.log("Dados filtrados finais:", tempData.length);
-        console.log("Atributo de cor selecionado:", colorAttribute);
-
-        onFiltersApplied(tempData, colorAttribute);
+        // Use selectedAttribute for coloring when visualization type is 'attribute'
+        const attributeForColoring = visualizationType === 'attribute' ? selectedAttribute : 'Sigla_Regiao'; // Fallback or decide based on viz type
+        console.log("Atributo de cor selecionado para aplicar:", attributeForColoring);
+        onFiltersApplied(tempData, attributeForColoring);
       };
 
       const handleResetFilters = () => {
@@ -114,8 +111,8 @@ import React, { useState, useEffect, useRef } from 'react';
         setSearchTerm('');
         setSelectedRegion('all');
         setSelectedState('all');
-        setColorAttribute('Sigla_Regiao');
-
+        // Reset selectedAttribute as well, which controls the dropdown
+        setSelectedAttribute('Sigla_Regiao');
         onFiltersApplied(csvData, 'Sigla_Regiao');
       };
 

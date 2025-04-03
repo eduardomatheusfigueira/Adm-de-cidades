@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import Select from 'react-select'; // Import react-select
 import '../styles/DataVisualizationEnvironment.css';
 import RankingView from './data-visualization/RankingView';
 import TimeSeriesView from './data-visualization/TimeSeriesView';
@@ -11,455 +12,399 @@ const DataVisualizationEnvironment = ({ csvData, geoJson, indicadoresData, visua
   const [activeView, setActiveView] = useState('ranking');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedIndicator, setSelectedIndicator] = useState('');
-  const [selectedCity, setSelectedCity] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null); // Holds the full city object
   const [availableYears, setAvailableYears] = useState([]);
-  const [availableIndicators, setAvailableIndicators] = useState([]);
+  const [availableIndicators, setAvailableIndicators] = useState([]); // For Ranking/TimeSeries/Profile Radar Selection
+  const [availableIndicatorsLeft, setAvailableIndicatorsLeft] = useState([]); // For Comparison Left
+  const [availableIndicatorsRight, setAvailableIndicatorsRight] = useState([]); // For Comparison Right
   const [comparisonConfig, setComparisonConfig] = useState({
     leftYear: '',
     leftIndicator: '',
     rightYear: '',
     rightIndicator: ''
   });
-  const [mapData, setMapData] = useState(geoJson);
-  const [tooltipContent, setTooltipContent] = useState(null);
-  const [selectedFeature, setSelectedFeature] = useState(null);
-  const [colorScale, setColorScale] = useState(null);
-  const [indicatorSearchTerm, setIndicatorSearchTerm] = useState(''); // Estado para termo de pesquisa de indicador
+  // Removed mapData, tooltipContent, selectedFeature, colorScale as they seemed unused here
+  const [indicatorSearchTerm, setIndicatorSearchTerm] = useState('');
+  const [selectedRadarIndicators, setSelectedRadarIndicators] = useState([]); // State for selected radar indicators for the primary city
+  const [selectedCitiesCompare, setSelectedCitiesCompare] = useState([]); // State for MULTIPLE comparison city objects
+
+  // Memoize city options for react-select performance
+  const cityOptions = useMemo(() => {
+    if (!csvData || !Array.isArray(csvData) || csvData.length === 0) return [];
+    try {
+      const validData = csvData.filter(city => city && city.Nome_Municipio && city.Codigo_Municipio && city.Sigla_Estado);
+      const sortedCsvData = [...validData].sort((a, b) => a.Nome_Municipio.localeCompare(b.Nome_Municipio));
+      return sortedCsvData.map(city => ({
+        value: city.Codigo_Municipio,
+        label: `${city.Nome_Municipio} (${city.Sigla_Estado})`
+      }));
+    } catch (error) {
+      console.error("Error creating cityOptions:", error); return [];
+    }
+  }, [csvData]);
 
   // Extract available years from indicators data
   useEffect(() => {
     if (indicadoresData && indicadoresData.length > 0) {
-      const years = [...new Set(indicadoresData.map(ind => ind.Ano_Observacao))].sort();
+      const years = [...new Set(indicadoresData.map(ind => ind.Ano_Observacao))].sort((a, b) => b - a); // Sort descending
       setAvailableYears(years);
-
-      // Set default year to most recent
       if (years.length > 0 && !selectedYear) {
-        setSelectedYear(years[years.length - 1]);
+        setSelectedYear(years[0]);
       }
     }
   }, [indicadoresData]);
 
-  // Update available indicators when year changes
+  // Update available indicators for Ranking/TimeSeries/Profile Radar Selection when selectedYear or search term changes
   useEffect(() => {
     if (selectedYear && indicadoresData && indicadoresData.length > 0) {
-      let indicators = [...new Set(
+      let indicatorsForYear = [...new Set(
         indicadoresData
           .filter(ind => ind.Ano_Observacao === selectedYear)
           .map(ind => ind.Nome_Indicador)
       )].sort();
-
-      // Filtrar indicadores com base no termo de pesquisa
       if (indicatorSearchTerm) {
-        const searchTerm = indicatorSearchTerm.toLowerCase();
-        indicators = indicators.filter(indicator =>
-          indicator.toLowerCase().includes(searchTerm)
+        const searchTermLower = indicatorSearchTerm.toLowerCase();
+        indicatorsForYear = indicatorsForYear.filter(indicator =>
+          indicator.toLowerCase().includes(searchTermLower)
         );
       }
-
-      setAvailableIndicators(indicators);
-
-      // Set default indicator if available
-      if (indicators.length > 0 && !selectedIndicator) {
-        setSelectedIndicator(indicators[0]);
+      setAvailableIndicators(indicatorsForYear);
+      // Update main selected indicator only if needed
+      if (indicatorsForYear.length > 0 && (!selectedIndicator || !indicatorsForYear.includes(selectedIndicator))) {
+        setSelectedIndicator(indicatorsForYear[0]);
+      } else if (indicatorsForYear.length === 0) {
+         setSelectedIndicator('');
       }
+      // Also update selected radar indicators if they become unavailable
+      setSelectedRadarIndicators(prev => prev.filter(ind => indicatorsForYear.includes(ind)));
+
+    } else {
+       setAvailableIndicators([]);
+       setSelectedIndicator('');
+       setSelectedRadarIndicators([]); // Clear radar selection if no year/data
     }
-  }, [selectedYear, indicadoresData, indicatorSearchTerm]); // Dependência para indicatorSearchTerm
+  }, [selectedYear, indicadoresData, indicatorSearchTerm]); // Removed selectedIndicator dependency to avoid loops
+
+   // Common function to get indicators for a specific year
+   const getIndicatorsForYear = (year) => {
+    if (!year || !indicadoresData || indicadoresData.length === 0) return [];
+    return [...new Set(
+      indicadoresData
+        .filter(ind => ind.Ano_Observacao === year)
+        .map(ind => ind.Nome_Indicador)
+    )].sort();
+  };
+
+  // Update available indicators for Comparison Left when leftYear changes
+  useEffect(() => {
+    const indicators = getIndicatorsForYear(comparisonConfig.leftYear);
+    setAvailableIndicatorsLeft(indicators);
+    if (!comparisonConfig.leftYear || !indicators.includes(comparisonConfig.leftIndicator)) {
+      handleComparisonConfigChange('leftIndicator', indicators.length > 0 ? indicators[0] : '');
+    }
+  }, [comparisonConfig.leftYear, indicadoresData]);
+
+  // Update available indicators for Comparison Right when rightYear changes
+  useEffect(() => {
+    const indicators = getIndicatorsForYear(comparisonConfig.rightYear);
+    setAvailableIndicatorsRight(indicators);
+    if (!comparisonConfig.rightYear || !indicators.includes(comparisonConfig.rightIndicator)) {
+      handleComparisonConfigChange('rightIndicator', indicators.length > 0 ? indicators[0] : '');
+    }
+  }, [comparisonConfig.rightYear, indicadoresData]);
 
   // Handle view changes
-  const handleViewChange = (view) => {
-    setActiveView(view);
+  const handleViewChange = (view) => setActiveView(view);
+
+  // Handle year selection for Ranking/TimeSeries/Profile
+  const handleYearChange = (e) => setSelectedYear(e.target.value);
+
+  // Handle indicator selection for Ranking/TimeSeries (from list click)
+  const handleIndicatorClick = (indicatorName) => setSelectedIndicator(indicatorName);
+
+  // Handle city selection for profile view using react-select
+  const handleCitySelectForProfile = (selectedOption) => {
+    if (selectedOption && selectedOption.value) {
+      const city = csvData?.find(c => c.Codigo_Municipio === selectedOption.value);
+      setSelectedCity(city || null);
+    } else {
+      setSelectedCity(null);
+    }
   };
 
-  // Handle year selection
-  const handleYearChange = (e) => {
-    setSelectedYear(e.target.value);
-  };
-
-  // Handle indicator selection
-  const handleIndicatorChange = (e) => {
-    setSelectedIndicator(e.target.value);
-  };
-
-  // Handle city selection for profile view and TimeSeriesView
-  const handleCitySelect = (city) => {
+  // Handle city selection from table clicks (Ranking/Comparison)
+  const handleCitySelectFromTable = (city) => {
     setSelectedCity(city);
-    setActiveView('profile');
+    setActiveView('profile'); // Switch to profile view on table click
   };
 
   // Handle comparison configuration changes
   const handleComparisonConfigChange = (field, value) => {
-    setComparisonConfig({
-      ...comparisonConfig,
+    setComparisonConfig(prevConfig => ({
+      ...prevConfig,
       [field]: value
+    }));
+  };
+
+  // Handle checkbox change for radar indicators
+  const handleRadarIndicatorChange = (indicatorName) => {
+    setSelectedRadarIndicators(prevSelected => {
+      if (prevSelected.includes(indicatorName)) {
+        return prevSelected.filter(name => name !== indicatorName);
+      } else {
+        return [...prevSelected, indicatorName];
+      }
     });
   };
 
-  // Function to handle feature hover
-  const handleFeatureHover = (event) => {
-    const feature = event.target.feature;
-    if (feature && feature.properties) {
-      setTooltipContent({
-        name: feature.properties.NAME || feature.properties.Nome_Municipio,
-        attributeValue: feature.properties[visualizationConfig.attribute],
-        indicatorValue: feature.properties[selectedIndicator]
-      });
-    } else {
-      setTooltipContent(null);
-    }
-  };
-
-  // Function to handle feature click
-  const handleFeatureClick = (event) => {
-    const feature = event.target.feature;
-    if (feature) {
-      setSelectedFeature(feature);
-      console.log("Município selecionado:", feature.properties.NAME || feature.properties.Nome_Municipio);
-    }
-  };
-
-  // Atualizar cores do mapa com base na visualizationConfig e csvData
-  useEffect(() => {
-    if (visualizationConfig && visualizationConfig.type === 'attribute' && visualizationConfig.attribute && csvData && geoJson) {
-      const attribute = visualizationConfig.attribute;
-      const attributeValues = csvData.map(city => city[attribute]).filter(value => value !== undefined && value !== null);
-      const currentMapData = { ...geoJson };
-
-      if (attributeValues.length > 0) {
-        const newColorScale = getColorScale(attribute, attributeValues);
-        setColorScale(newColorScale);
-
-        currentMapData.features = currentMapData.features.map(feature => {
-          const cityCode = feature.properties.CD_MUN;
-          const cityData = csvData.find(city => city.Codigo_Municipio === cityCode);
-          let color = '#CCCCCC';
-
-          if (cityData) {
-            const value = cityData[attribute];
-            if (value !== undefined && value !== null) {
-              color = newColorScale(value);
-            }
-          }
-
-          return {
-            ...feature,
-            properties: {
-              ...feature.properties,
-              fillColor: color
-            }
-          };
-        });
-        setMapData(currentMapData);
-      }
-    } else if (visualizationConfig && visualizationConfig.type === 'indicator' && visualizationConfig.indicator && selectedYear && indicadoresData && geoJson) {
-      const indicator = visualizationConfig.indicator;
-      const year = selectedYear;
-
-      // Filtrar dados do indicador para o ano selecionado
-      const indicatorDataForYear = indicadoresData.filter(item =>
-        item.Nome_Indicador === indicator && item.Ano_Observacao === year
-      );
-
-      if (indicatorDataForYear.length > 0 && geoJson) {
-        const indicatorValues = indicatorDataForYear.map(item => parseFloat(item.Valor)).filter(value => !isNaN(value));
-        const newColorScale = getColorScale(indicatorValues);
-        setColorScale(newColorScale);
-
-        const currentMapData = { ...geoJson };
-        currentMapData.features = currentMapData.features.map(feature => {
-          const cityCode = feature.properties.CD_MUN;
-          const indicatorEntry = indicatorDataForYear.find(item => item.Codigo_Municipio === cityCode);
-          let color = '#CCCCCC';
-
-          if (indicatorEntry) {
-            const value = parseFloat(indicatorEntry.Valor);
-            if (!isNaN(value)) {
-              color = newColorScale(value);
-            }
-          }
-
-          return {
-            ...feature,
-            properties: {
-              ...feature.properties,
-              fillColor: color
-            }
-          };
-        });
-        setMapData(currentMapData);
-      }
-    }
-  }, [visualizationConfig, csvData, geoJson, indicadoresData, selectedYear, selectedIndicator]);
-
-  const handleIndicatorClick = (indicatorName) => {
-    setSelectedIndicator(indicatorName); // Define o indicador selecionado
-    onVisualizationChange({ // Notifica o App.jsx para mudar a visualização
-      type: 'indicator',
-      indicator: indicatorName,
-      year: selectedYear, // Mantém o ano selecionado ou usa o padrão
-      valueType: 'value' // Tipo de valor padrão
-    });
-    onEnvironmentChange('map'); // Muda para o ambiente de mapa se necessário
-    setActiveView('ranking'); // Opcional: manter a visualização de ranking ou mudar para outro modo
+  // Handle city selection for MULTI comparison dropdown
+  const handleCitySelectForCompare = (selectedOptions) => {
+     if (!csvData) {
+       setSelectedCitiesCompare([]);
+       return;
+     }
+     const cityObjects = (selectedOptions || []).map(option => {
+         if (option && option.value) {
+             return csvData.find(c => c.Codigo_Municipio === option.value);
+         }
+         return null;
+       }
+     ).filter(Boolean);
+     setSelectedCitiesCompare(cityObjects);
   };
 
 
+  // --- Render Logic ---
   return (
     <div className="data-visualization-environment">
       <div className="data-visualization-header">
         <h1>Ambiente de Visualização de Indicadores</h1>
-
         <div className="view-selector">
-          <button
-            className={`view-button ${activeView === 'ranking' ? 'active' : ''}`}
-            onClick={() => handleViewChange('ranking')}
-          >
-            Rankings
-          </button>
-          <button
-            className={`view-button ${activeView === 'timeSeries' ? 'active' : ''}`}
-            onClick={() => handleViewChange('timeSeries')}
-          >
-            Séries Temporais
-          </button>
-          <button
-            className={`view-button ${activeView === 'comparison' ? 'active' : ''}`}
-            onClick={() => handleViewChange('comparison')}
-          >
-            Comparação de Rankings
-          </button>
-          <button
-            className={`view-button ${activeView === 'profile' ? 'active' : ''}`}
-            onClick={() => handleViewChange('profile')}
-          >
-            Perfil de Município
-          </button>
+          <button className={`view-button ${activeView === 'ranking' ? 'active' : ''}`} onClick={() => handleViewChange('ranking')}>Rankings</button>
+          <button className={`view-button ${activeView === 'timeSeries' ? 'active' : ''}`} onClick={() => handleViewChange('timeSeries')}>Séries Temporais</button>
+          <button className={`view-button ${activeView === 'comparison' ? 'active' : ''}`} onClick={() => handleViewChange('comparison')}>Comparação de Rankings</button>
+          <button className={`view-button ${activeView === 'profile' ? 'active' : ''}`} onClick={() => handleViewChange('profile')}>Perfil de Município</button>
         </div>
       </div>
 
       <div className="data-visualization-container">
+        {/* Sidebar */}
         <div className="data-visualization-sidebar">
+          {/* Ranking Controls */}
           {activeView === 'ranking' && (
             <div className="view-controls">
               <h3 className="control-section-title">Configurações do Ranking</h3>
-
               <div className="control-group">
                 <label>Pesquisar Indicador:</label>
-                <input
-                  type="text"
-                  placeholder="Buscar indicador..."
-                  value={indicatorSearchTerm}
-                  onChange={(e) => setIndicatorSearchTerm(e.target.value)}
-                  className="indicator-search-input"
-                />
+                <input type="text" placeholder="Buscar indicador..." value={indicatorSearchTerm} onChange={(e) => setIndicatorSearchTerm(e.target.value)} className="indicator-search-input"/>
               </div>
-
               <div className="control-group">
                 <label>Ano:</label>
                 <select value={selectedYear} onChange={handleYearChange}>
-                  {availableYears.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
+                  {availableYears.map(year => (<option key={year} value={year}>{year}</option>))}
                 </select>
               </div>
               <div className="control-group">
                 <label>Indicador:</label>
                 <div className="indicator-list">
                   {availableIndicators.map(indicator => (
-                    <p
-                      key={indicator}
-                      className={`indicator-item ${selectedIndicator === indicator ? 'selected' : ''}`}
-                      onClick={() => handleIndicatorClick(indicator)}
-                      style={{ cursor: 'pointer', padding: '5px 0' }} // Adicionado estilo para cursor e padding
-                    >
+                    <p key={indicator} className={`indicator-item ${selectedIndicator === indicator ? 'selected' : ''}`} onClick={() => handleIndicatorClick(indicator)}>
                       {indicator}
                     </p>
                   ))}
+                   {availableIndicators.length === 0 && <p className="no-indicators-message">Nenhum indicador encontrado para o ano/busca.</p>}
                 </div>
               </div>
             </div>
           )}
 
+          {/* TimeSeries Controls */}
           {activeView === 'timeSeries' && (
-            <div className="view-controls">
-              <h3 className="control-section-title">Configurações da Série Temporal</h3>
-
-              <div className="control-group">
-                <label>Pesquisar Indicador:</label>
-                <input
-                  type="text"
-                  placeholder="Buscar indicador..."
-                  value={indicatorSearchTerm}
-                  onChange={(e) => setIndicatorSearchTerm(e.target.value)}
-                  className="indicator-search-input"
-                />
-              </div>
-
-              <div className="control-group">
-                <label>Indicador:</label>
-                <div className="indicator-list">
-                  {availableIndicators.map(indicator => (
-                    <p
-                      key={indicator}
-                      className={`indicator-item ${selectedIndicator === indicator ? 'selected' : ''}`}
-                      onClick={() => handleIndicatorClick(indicator)}
-                      style={{ cursor: 'pointer', padding: '5px 0' }} // Adicionado estilo para cursor e padding
-                    >
-                      {indicator}
-                    </p>
-                  ))}
-                </div>
-              </div>
-              <div className="control-group">
-                <label>Município:</label>
-                <select
-                  value={selectedCity ? selectedCity.Codigo_Municipio : ''}
-                  onChange={(e) => {
-                    const cityCode = e.target.value;
-                    const city = csvData.find(c => c.Codigo_Municipio === cityCode);
-                    setSelectedCity(city);
-                  }}
-                >
-                  <option value="">Selecione um município</option>
-                  {csvData && csvData.map(city => (
-                    <option key={city.Codigo_Municipio} value={city.Codigo_Municipio}>
-                      {city.Nome_Municipio} ({city.Sigla_Estado})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+             <div className="view-controls">
+               <h3 className="control-section-title">Configurações da Série Temporal</h3>
+               <div className="control-group">
+                 <label>Pesquisar Indicador:</label>
+                 <input type="text" placeholder="Buscar indicador..." value={indicatorSearchTerm} onChange={(e) => setIndicatorSearchTerm(e.target.value)} className="indicator-search-input"/>
+               </div>
+               <div className="control-group">
+                 <label>Indicador:</label>
+                 <div className="indicator-list">
+                   {availableIndicators.map(indicator => (
+                     <p key={indicator} className={`indicator-item ${selectedIndicator === indicator ? 'selected' : ''}`} onClick={() => handleIndicatorClick(indicator)}>
+                       {indicator}
+                     </p>
+                   ))}
+                   {availableIndicators.length === 0 && <p className="no-indicators-message">Nenhum indicador encontrado para o ano/busca.</p>}
+                 </div>
+               </div>
+               <div className="control-group">
+                 <label>Município:</label>
+                 <Select
+                   options={cityOptions}
+                   value={cityOptions.find(option => option.value === selectedCity?.Codigo_Municipio) || null}
+                   onChange={handleCitySelectForProfile} // Re-use profile selector logic
+                   isClearable
+                   isSearchable
+                   placeholder="Selecione ou digite..."
+                   styles={{ menu: (provided) => ({ ...provided, zIndex: 5 }) }}
+                 />
+               </div>
+             </div>
           )}
 
+          {/* Comparison Controls */}
           {activeView === 'comparison' && (
             <div className="view-controls comparison-controls">
               <h3 className="control-section-title">Configurações de Comparação</h3>
-
               <div className="control-group">
                 <label>Ano Ranking 1:</label>
-                <select
-                  value={comparisonConfig.leftYear}
-                  onChange={(e) => handleComparisonConfigChange('leftYear', e.target.value)}
-                >
+                <select value={comparisonConfig.leftYear} onChange={(e) => handleComparisonConfigChange('leftYear', e.target.value)}>
                   <option value="">Selecione um ano</option>
-                  {availableYears.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
+                  {availableYears.map(year => (<option key={year} value={year}>{year}</option>))}
                 </select>
               </div>
               <div className="control-group">
                 <label>Indicador Ranking 1:</label>
-                <select
-                  value={comparisonConfig.leftIndicator}
-                  onChange={(e) => handleComparisonConfigChange('leftIndicator', e.target.value)}
-                >
+                <select value={comparisonConfig.leftIndicator} onChange={(e) => handleComparisonConfigChange('leftIndicator', e.target.value)} disabled={!comparisonConfig.leftYear}>
                   <option value="">Selecione um indicador</option>
-                  {availableIndicators.map(indicator => (
-                    <option key={indicator} value={indicator}>{indicator}</option>
-                  ))}
+                  {availableIndicatorsLeft.map(indicator => (<option key={indicator} value={indicator}>{indicator}</option>))}
                 </select>
               </div>
-
               <div className="control-group">
                 <label>Ano Ranking 2:</label>
-                <select
-                  value={comparisonConfig.rightYear}
-                  onChange={(e) => handleComparisonConfigChange('rightYear', e.target.value)}
-                >
-                  <option value="">Selecione um ano</option>
-                  {availableYears.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
+                <select value={comparisonConfig.rightYear} onChange={(e) => handleComparisonConfigChange('rightYear', e.target.value)}>
+                   <option value="">Selecione um ano</option>
+                  {availableYears.map(year => (<option key={year} value={year}>{year}</option>))}
                 </select>
               </div>
               <div className="control-group">
                 <label>Indicador Ranking 2:</label>
-                <select
-                  value={comparisonConfig.rightIndicator}
-                  onChange={(e) => handleComparisonConfigChange('rightIndicator', e.target.value)}
-                >
-                  <option value="">Selecione um indicador</option>
-                  {availableIndicators.map(indicator => (
-                    <option key={indicator} value={indicator}>{indicator}</option>
-                  ))}
+                <select value={comparisonConfig.rightIndicator} onChange={(e) => handleComparisonConfigChange('rightIndicator', e.target.value)} disabled={!comparisonConfig.rightYear}>
+                   <option value="">Selecione um indicador</option>
+                  {availableIndicatorsRight.map(indicator => (<option key={indicator} value={indicator}>{indicator}</option>))}
                 </select>
               </div>
             </div>
           )}
 
+          {/* Profile Controls */}
           {activeView === 'profile' && (
             <div className="view-controls">
               <h3 className="control-section-title">Perfil do Município</h3>
               <div className="control-group">
                 <label>Selecione um município:</label>
-                <select
-                  value={selectedCity ? selectedCity.Codigo_Municipio : ''}
-                  onChange={(e) => {
-                    const cityCode = e.target.value;
-                    const city = csvData.find(c => c.Codigo_Municipio === cityCode);
-                    setSelectedCity(city);
-                  }}
-                >
-                  <option value="">Selecione um município</option>
-                  {csvData && csvData.map(city => (
-                    <option key={city.Codigo_Municipio} value={city.Codigo_Municipio}>
-                      {city.Nome_Municipio} ({city.Sigla_Estado})
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  options={cityOptions}
+                  value={cityOptions.find(option => option.value === selectedCity?.Codigo_Municipio) || null}
+                  onChange={handleCitySelectForProfile}
+                  isClearable
+                  isSearchable
+                  placeholder="Selecione ou digite..."
+                  styles={{
+                     control: (provided) => ({ ...provided, borderColor: '#ced4da' }),
+                     menu: (provided) => ({ ...provided, zIndex: 5 }),
+                     option: (provided, state) => ({
+                       ...provided,
+                       backgroundColor: state.isSelected ? '#007bff' : state.isFocused ? '#e9ecef' : 'white',
+                       color: state.isSelected ? 'white' : '#343a40',
+                     }),
+                   }}
+                />
               </div>
+              {/* Multi-select comparison dropdown */}
+              <div className="control-group">
+                <label>Comparar com Municípios:</label>
+                <Select
+                  isMulti // Enable multi-select
+                  options={cityOptions.filter(option => option.value !== selectedCity?.Codigo_Municipio)} // Exclude primary selected city
+                  value={selectedCitiesCompare.map(city => ({ value: city.Codigo_Municipio, label: `${city.Nome_Municipio} (${city.Sigla_Estado})` }))}
+                  onChange={handleCitySelectForCompare}
+                  isClearable
+                  isSearchable
+                  placeholder="Selecione para comparar..."
+                  closeMenuOnSelect={false} // Keep menu open for multi-select
+                  styles={{
+                     control: (provided) => ({ ...provided, borderColor: '#ced4da', marginTop: '5px' }),
+                     menu: (provided) => ({ ...provided, zIndex: 4 }),
+                     option: (provided, state) => ({
+                       ...provided,
+                       backgroundColor: state.isSelected ? '#007bff' : state.isFocused ? '#e9ecef' : 'white',
+                       color: state.isSelected ? 'white' : '#343a40',
+                     }),
+                     multiValue: (provided) => ({ ...provided, backgroundColor: '#e0e7ff' }),
+                     multiValueLabel: (provided) => ({ ...provided, color: '#333' }),
+                     multiValueRemove: (provided) => ({ ...provided, color: '#555', ':hover': { backgroundColor: '#ffb3b3', color: 'white' } }),
+                   }}
+                />
+              </div>
+               {/* Year Selector for Profile */}
+               <div className="control-group">
+                 <label>Ano:</label>
+                 <select value={selectedYear} onChange={handleYearChange}>
+                   {availableYears.map(year => (<option key={year} value={year}>{year}</option>))}
+                 </select>
+               </div>
+               {/* Indicator Search for Radar */}
+               <div className="control-group">
+                 <label>Pesquisar Indicador (Radar):</label>
+                 <input
+                   type="text"
+                   placeholder="Buscar indicador..."
+                   value={indicatorSearchTerm} // Reuse same search term state
+                   onChange={(e) => setIndicatorSearchTerm(e.target.value)}
+                   className="indicator-search-input"
+                 />
+               </div>
+               {/* Checkbox list for Radar Indicators */}
+               <div className="control-group">
+                  <label>Indicadores para Radar:</label>
+                  <div className="indicator-list checkbox-list">
+                    {availableIndicators.map(indicator => (
+                      <div key={`radar-${indicator}`} className="checkbox-item">
+                        <input
+                          type="checkbox"
+                          id={`radar-${indicator}`}
+                          value={indicator}
+                          checked={selectedRadarIndicators.includes(indicator)}
+                          onChange={() => handleRadarIndicatorChange(indicator)}
+                        />
+                        <label htmlFor={`radar-${indicator}`}>{indicator}</label>
+                      </div>
+                    ))}
+                    {availableIndicators.length === 0 && <p className="no-indicators-message">Nenhum indicador encontrado para o ano/busca.</p>}
+                  </div>
+               </div>
             </div>
           )}
+        </div> {/* End Sidebar */}
 
-          {/* Legend */}
-          {colorScale && (
-            <div className="legend-container">
-              <Legend colorScale={colorScale} attributeName={visualizationConfig.attribute || selectedIndicator} />
-            </div>
-          )}
-        </div>
-
+        {/* Main Content Area */}
         <div className="data-visualization-content">
           {activeView === 'ranking' && (
-            <RankingView
-              csvData={csvData}
-              indicadoresData={indicadoresData}
-              year={selectedYear}
-              indicator={selectedIndicator}
-              onCitySelect={handleCitySelect}
-            />
+            <RankingView csvData={csvData} indicadoresData={indicadoresData} year={selectedYear} indicator={selectedIndicator} onCitySelect={handleCitySelectFromTable} />
           )}
-
           {activeView === 'timeSeries' && (
-            <TimeSeriesView
-              csvData={csvData}
-              indicadoresData={indicadoresData}
-              indicator={selectedIndicator}
-              selectedCity={selectedCity}
-              onCitySelect={handleCitySelect}
-            />
+            <TimeSeriesView csvData={csvData} indicadoresData={indicadoresData} indicator={selectedIndicator} selectedCity={selectedCity} onCitySelect={handleCitySelectFromTable} />
           )}
-
           {activeView === 'comparison' && (
-            <RankingComparisonView
-              csvData={csvData}
-              indicadoresData={indicadoresData}
-              leftYear={comparisonConfig.leftYear}
-              leftIndicator={comparisonConfig.leftIndicator}
-              rightYear={comparisonConfig.rightYear}
-              rightIndicator={comparisonConfig.rightIndicator}
-              onCitySelect={handleCitySelect}
-            />
+            <RankingComparisonView csvData={csvData} indicadoresData={indicadoresData} leftYear={comparisonConfig.leftYear} leftIndicator={comparisonConfig.leftIndicator} rightYear={comparisonConfig.rightYear} rightIndicator={comparisonConfig.rightIndicator} onCitySelect={handleCitySelectFromTable} cities={csvData} />
           )}
-
-          {activeView === 'profile' && selectedCity && (
+          {/* Ensure selectedCity is truthy before rendering CityProfileView */}
+          {activeView === 'profile' && selectedCity ? (
             <CityProfileView
               city={selectedCity}
               indicadoresData={indicadoresData}
+              selectedRadarIndicatorNames={selectedRadarIndicators}
+              selectedYearForProfile={selectedYear}
+              citiesCompare={selectedCitiesCompare} // Pass array of comparison city objects
             />
-          )}
-        </div>
-      </div>
-    </div>
+          ) : activeView === 'profile' ? ( // Show message only if profile view is active but no city selected
+            <div className="no-data-message full-width"><p>Selecione um município na barra lateral para ver o perfil.</p></div>
+          ) : null /* Render nothing if not profile view */}
+        </div> {/* End Content */}
+
+      </div> {/* End Container */}
+    </div> // End Environment
   );
 };
 

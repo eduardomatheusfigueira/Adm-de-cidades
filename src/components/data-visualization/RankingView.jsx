@@ -44,9 +44,11 @@ const RankingView = ({ csvData, indicadoresData, year, indicator, onCitySelect }
         nome: city.Nome_Municipio,
         estado: city.Sigla_Estado,
         regiao: city.Sigla_Regiao,
-        capital: city.Capital === 'true',
+        // Make capital check less strict (case-insensitive 'true' or '1')
+        capital: city.Capital?.toLowerCase() === 'true' || city.Capital === '1',
         valor: parseFloat(ind.Valor),
-        position: parseInt(ind.Indice_Posicional, 10),
+        // Keep original position if needed for sorting, but don't rely on it for display
+        original_position: parseInt(ind.Indice_Posicional, 10),
         city: city // Store the full city object for reference
       };
     }).filter(Boolean);
@@ -75,10 +77,11 @@ const RankingView = ({ csvData, indicadoresData, year, indicator, onCitySelect }
 
     // Sort the data
     filteredRanking.sort((a, b) => {
-      if (sortConfig.key === 'position') {
-        return sortConfig.direction === 'asc' 
-          ? a.position - b.position 
-          : b.position - a.position;
+      // Allow sorting by the original index if needed, but default sort should be by value
+      if (sortConfig.key === 'original_position') {
+        return sortConfig.direction === 'asc'
+          ? a.original_position - b.original_position
+          : b.original_position - a.original_position;
       } else if (sortConfig.key === 'valor') {
         return sortConfig.direction === 'asc' 
           ? a.valor - b.valor 
@@ -95,7 +98,13 @@ const RankingView = ({ csvData, indicadoresData, year, indicator, onCitySelect }
       return 0;
     });
 
-    setRankingData(filteredRanking);
+    // Add dynamic rank based on the current sort order AFTER sorting
+    const rankedData = filteredRanking.map((item, index) => ({
+      ...item,
+      displayRank: index + 1 // Calculate rank based on index in the sorted array
+    }));
+
+    setRankingData(rankedData);
   }, [csvData, indicadoresData, year, indicator, sortConfig, searchTerm, selectedRegion, selectedState]);
 
   // Handle sort request
@@ -181,8 +190,9 @@ const RankingView = ({ csvData, indicadoresData, year, indicator, onCitySelect }
           <table className="ranking-table">
             <thead>
               <tr>
-                <th onClick={() => requestSort('position')} className="sortable">
-                  Posição {getSortDirectionIndicator('position')}
+                {/* Change sorting key if needed, or remove sortability if rank is always 1, 2, 3... */}
+                <th onClick={() => requestSort('valor')} className="sortable">
+                  Posição {getSortDirectionIndicator('valor')} {/* Sort by value to determine position */}
                 </th>
                 <th onClick={() => requestSort('nome')} className="sortable">
                   Município {getSortDirectionIndicator('nome')}
@@ -204,7 +214,8 @@ const RankingView = ({ csvData, indicadoresData, year, indicator, onCitySelect }
                   className={index < 3 ? `top-${index + 1}` : ''}
                   onClick={() => handleCityClick(item.city)}
                 >
-                  <td className="position-cell">{item.position}</td>
+                  {/* Display the dynamically calculated rank */}
+                  <td className="position-cell">{item.displayRank}</td>
                   <td>{item.nome}</td>
                   <td>{item.estado}</td>
                   <td>{item.regiao}</td>

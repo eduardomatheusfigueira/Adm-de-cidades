@@ -116,15 +116,20 @@
   overflow-y: auto; /* Enable scroll if list is long */
 }
 
-.indicator-item {
+/* Target the p tag specifically for text color */
+.data-visualization-sidebar .indicator-list p.indicator-item {
   padding: 5px 0;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
+  color: #212529; /* Use a standard dark text color */
+  margin: 0;
 }
 
-.indicator-item:hover,
-.indicator-item.selected {
-  background-color: #e0e7ec;
+/* Target the p tag for hover/selected states as well */
+.data-visualization-sidebar .indicator-list p.indicator-item:hover,
+.data-visualization-sidebar .indicator-list p.indicator-item.selected {
+  background-color: #e9ecef; /* Slightly different background for hover/select */
+  color: #212529; /* Ensure text remains dark */
 }
 
 

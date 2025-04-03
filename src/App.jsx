@@ -111,12 +111,18 @@ import React, { useRef, useEffect, useState } from 'react';
         // Only load data when the map and style are fully loaded
         if (mapLoaded) {
           console.log("useEffect [mapLoaded, filteredCsvData, colorAttribute, visualizationConfig] triggered");
-          const currentAttribute = visualizationConfig && visualizationConfig.type === 'indicator'
-            ? 'visualization_value'
-            : colorAttribute;
+          let currentAttribute = colorAttribute; // Default to the state set by filters
+          if (visualizationConfig) {
+            if (visualizationConfig.type === 'indicator') {
+              currentAttribute = 'visualization_value'; // Use special value for indicators
+            } else if (visualizationConfig.type === 'attribute') {
+              currentAttribute = visualizationConfig.attribute; // Use the attribute from the visualization config
+            }
+          }
+          console.log("Determined currentAttribute for map load:", currentAttribute);
           loadMapData(filteredCsvData, currentAttribute);
         }
-      }, [mapLoaded, filteredCsvData, colorAttribute, visualizationConfig]);
+      }, [mapLoaded, filteredCsvData, colorAttribute, visualizationConfig]); // Dependencies remain the same
 
 
       const loadMapData = (currentCsvData, currentAttribute) => {
