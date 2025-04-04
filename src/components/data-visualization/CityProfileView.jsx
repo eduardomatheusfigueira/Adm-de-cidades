@@ -15,7 +15,8 @@ const CityProfileView = ({
   const [radarChartDataPrimary, setRadarChartDataPrimary] = useState([]); // Data for the primary city radar chart
   const [radarChartIndicators, setRadarChartIndicators] = useState([]); // Labels for the radar chart (based on primary selection)
   // Store comparison data as an array of objects { label, color, data }
-  const [compareRadarDatasets, setCompareRadarDatasets] = useState([]);
+  const [compareRadarDatasets, setCompareRadarDatasets] = useState([]); // For radar chart comparison lines
+  const [comparisonIndicatorDetails, setComparisonIndicatorDetails] = useState({}); // { indicatorName: { cityCode: { value, position, cityName }, ... }, ... }
 
   // Effect 1: Filter all indicators just for the primary city
   useEffect(() => {
@@ -59,37 +60,53 @@ const CityProfileView = ({
     }
   }, [cityIndicators, selectedYearForProfile, selectedRadarIndicatorNames]);
 
-  // Effect 3: Prepare comparison radar data
+  // Effect 3: Prepare comparison data (Radar + Detailed Indicators)
   useEffect(() => {
-    // Ensure we have comparison cities, a valid year, indicator data, AND indicators defined for the primary chart
-    if (!citiesCompare || citiesCompare.length === 0 || !selectedYearForProfile || !indicadoresData || !radarChartIndicators || radarChartIndicators.length === 0) {
+    if (!citiesCompare || citiesCompare.length === 0 || !selectedYearForProfile || !indicadoresData) {
       setCompareRadarDatasets([]);
+      setComparisonIndicatorDetails({}); // Reset detailed comparison data
       return;
     }
 
-    const comparisonDataSets = citiesCompare.map((compareCity, index) => {
-      // Fetch all indicators for this comparison city and selected year
+    const newComparisonDetails = {}; // To store { indicatorName: { cityCode: { value, position, cityName }, ... } }
+    const newRadarDatasets = [];
+    const colors = ['#ff6347', '#4682b4', '#32cd32', '#ffc400', '#9370db']; // Example palette
+
+    citiesCompare.forEach((compareCity, index) => {
       const compareYearIndicators = indicadoresData.filter(ind =>
         ind.Codigo_Municipio === compareCity.Codigo_Municipio &&
         ind.Ano_Observacao === selectedYearForProfile
       );
 
-      // Map comparison data based on the indicators selected for the *primary* city
-      const chartDataCompare = radarChartIndicators.map(indicatorName => {
-        const compareIndicatorData = compareYearIndicators.find(ind => ind.Nome_Indicador === indicatorName);
-        return compareIndicatorData ? (parseFloat(compareIndicatorData.Indice_Posicional) || 0) : 0; // Default to 0 if missing
+      // Populate detailed comparison data
+      compareYearIndicators.forEach(ind => {
+        if (!newComparisonDetails[ind.Nome_Indicador]) {
+          newComparisonDetails[ind.Nome_Indicador] = {};
+        }
+        newComparisonDetails[ind.Nome_Indicador][compareCity.Codigo_Municipio] = {
+          value: !isNaN(parseFloat(ind.Valor)) ? parseFloat(ind.Valor) : null,
+          position: !isNaN(parseFloat(ind.Indice_Posicional)) ? parseFloat(ind.Indice_Posicional) : null,
+          cityName: compareCity.Nome_Municipio // Store city name for display
+        };
       });
 
-      // Assign colors dynamically or use a predefined palette
-      const colors = ['#ff6347', '#4682b4', '#32cd32', '#ffc400', '#9370db']; // Example palette
-      return {
-        label: compareCity.Nome_Municipio,
-        color: colors[index % colors.length], // Cycle through colors
-        data: chartDataCompare
-      };
+      // Prepare radar data (only if primary radar indicators are set)
+      if (radarChartIndicators && radarChartIndicators.length > 0) {
+        const chartDataCompare = radarChartIndicators.map(indicatorName => {
+          const compareIndicatorData = compareYearIndicators.find(ind => ind.Nome_Indicador === indicatorName);
+          return compareIndicatorData ? (parseFloat(compareIndicatorData.Indice_Posicional) || 0) : 0;
+        });
+
+        newRadarDatasets.push({
+          label: compareCity.Nome_Municipio,
+          color: colors[index % colors.length],
+          data: chartDataCompare
+        });
+      }
     });
 
-    setCompareRadarDatasets(comparisonDataSets);
+    setCompareRadarDatasets(newRadarDatasets);
+    setComparisonIndicatorDetails(newComparisonDetails);
 
   }, [citiesCompare, selectedYearForProfile, indicadoresData, radarChartIndicators]); // Dependencies
 
@@ -114,7 +131,7 @@ const CityProfileView = ({
       });
     }
     return datasets;
-  }, [city, radarChartDataPrimary, radarChartIndicators, compareRadarDatasets]); // Dependencies for memoization
+  }, [city, radarChartDataPrimary, radarChartIndicators, compareRadarDatasets]);
 
 
   // --- Render Logic ---
@@ -161,20 +178,68 @@ const CityProfileView = ({
           )}
         </div>
 
-        {/* Indicators Grid Section */}
+        {/* Indicators Comparison Section */}
         {recentIndicators.length > 0 ? (
-          <div className="indicators-section city-card">
-            <h3>Indicadores ({selectedYearForProfile})</h3>
-            <div className="indicators-grid">
-              {recentIndicators.map(indicator => (
-                <div key={indicator.Nome_Indicador} className="indicator-card-item">
-                  <h4>{indicator.Nome_Indicador}</h4>
-                  <div className="indicator-values">
-                    <div className="indicator-value"><span className="value-label">Valor</span><span className="value-number">{!isNaN(parseFloat(indicator.Valor)) ? parseFloat(indicator.Valor).toLocaleString('pt-BR') : '-'}</span></div>
-                    <div className="indicator-position"><span className="position-label">Posição</span><span className="position-number">{!isNaN(parseFloat(indicator.Indice_Posicional)) ? parseFloat(indicator.Indice_Posicional).toLocaleString('pt-BR', {minimumFractionDigits: 3, maximumFractionDigits: 3}) : '-'}</span></div>
-                  </div>
-                </div>
-              ))}
+          <div className="indicators-comparison-section city-card">
+            <h3>Comparativo de Indicadores ({selectedYearForProfile})</h3>
+            <div className="table-container"> {/* Added container for potential horizontal scroll */}
+              <table className="indicators-comparison-table">
+                <thead>
+                  <tr className="header-row">
+                    <th className="indicator-name-header">Indicador</th>
+                    {/* Primary City Header */}
+                    <th className="city-data-header primary-city-header">
+                      <div>{city.Nome_Municipio}</div>
+                      <div className="value-position-headers">
+                        <span>Valor</span>
+                        <span>Posição</span>
+                      </div>
+                    </th>
+                    {/* Comparison Cities Headers */}
+                    {citiesCompare.map(compCity => (
+                      <th key={compCity.Codigo_Municipio} className="city-data-header">
+                        <div>{compCity.Nome_Municipio}</div>
+                        <div className="value-position-headers">
+                          <span>Valor</span>
+                          <span>Posição</span>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentIndicators.map(primaryIndicator => {
+                    const indicatorName = primaryIndicator.Nome_Indicador;
+                    const comparisonDataForIndicator = comparisonIndicatorDetails[indicatorName] || {};
+
+                    return (
+                      <tr key={indicatorName} className="data-row">
+                        {/* Indicator Name */}
+                        <td className="indicator-name-cell">{indicatorName}</td>
+
+                        {/* Primary City Data */}
+                        <td className="city-data-cell primary-city-data">
+                          {/* Render both spans within the same TD */}
+                          <span className="value-number">{!isNaN(parseFloat(primaryIndicator.Valor)) ? parseFloat(primaryIndicator.Valor).toLocaleString('pt-BR') : '-'}</span>
+                          <span className="position-number">{!isNaN(parseFloat(primaryIndicator.Indice_Posicional)) ? parseFloat(primaryIndicator.Indice_Posicional).toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '-'}</span>
+                        </td>
+
+                        {/* Comparison Cities Data */}
+                        {citiesCompare.map(compCity => {
+                          const compData = comparisonDataForIndicator[compCity.Codigo_Municipio];
+                          return (
+                            <td key={compCity.Codigo_Municipio} className="city-data-cell">
+                              {/* Render both spans within the same TD */}
+                              <span className="value-number">{compData && compData.value !== null ? compData.value.toLocaleString('pt-BR') : '-'}</span>
+                              <span className="position-number">{compData && compData.position !== null ? compData.position.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) : '-'}</span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         ) : (
