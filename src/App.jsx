@@ -45,7 +45,7 @@ import React, { useRef, useEffect, useState } from 'react';
       const [lng, setLng] = useState(-54.57);
       const [lat, setLat] = useState(-25.53);
       const [zoom, setZoom] = useState(12);
-      const [geojsonData, setGeojsonData] = useState(municipiosGeoJson);
+      const [geojsonData, setGeojsonData] = useState({ type: 'FeatureCollection', features: [] }); // Initialize empty
       const [selectedCityInfo, setSelectedCityInfo] = useState(null); // Use selectedCityInfo instead of selectedCity and isEditorOpen
       const [csvData, setCsvData] = useState(initialCsvData);
       const [filteredCsvData, setFilteredCsvData] = useState(initialCsvData);
@@ -57,7 +57,7 @@ import React, { useRef, useEffect, useState } from 'react';
       const [showGeometryImportModal, setShowGeometryImportModal] = useState(false);
       const [geometryImportData, setGeometryImportData] = useState(null);
       const [municipalityCodeField, setMunicipalityCodeField] = useState('');
-      const [geometryField, setGeometryField] = useState('');
+      // const [geometryField, setGeometryField] = useState(''); // Removed: Unnecessary for standard GeoJSON
       const [visualizationConfig, setVisualizationConfig] = useState(null);
       const [activeEnvironment, setActiveEnvironment] = useState('map'); // 'map', 'data', or 'etl'
 
@@ -69,10 +69,10 @@ import React, { useRef, useEffect, useState } from 'react';
         }
       };
 
-      // Update map when geojsonData changes
-      useEffect(() => {
-        updateMapData();
-      }, [geojsonData]);
+      // Update map when geojsonData changes - REMOVED - Let loadMapData handle updates
+      // useEffect(() => {
+      //   updateMapData();
+      // }, [geojsonData]);
 
       useEffect(() => {
         // Set the access token
@@ -138,95 +138,211 @@ import React, { useRef, useEffect, useState } from 'react';
           return;
         }
 
-        // Verificar se as coordenadas são válidas
-        const validCities = currentCsvData.filter(city => {
-          const lon = parseFloat(city.Longitude_Municipio);
-          const lat = parseFloat(city.Latitude_Municipio);
-          return !isNaN(lon) && !isNaN(lat) && lon !== 0 && lat !== 0;
+        // Create a map of current CSV data for efficient lookup
+        const csvDataMap = new Map(currentCsvData.map(city => [String(city.Codigo_Municipio), city]));
+
+        // Filter existing features based on currentCsvData and update properties
+        let polygonCount = 0;
+        let pointCount = 0;
+        const updatedExistingFeatures = geojsonData.features
+          .map(feature => {
+            // Ensure properties and CD_MUN exist
+            if (!feature.properties || feature.properties.CD_MUN === undefined || feature.properties.CD_MUN === null) {
+              console.warn("Feature missing properties or CD_MUN:", feature);
+              return null; // Skip features without a code
+            }
+            // Ensure geometry exists
+            if (!feature.geometry) {
+              console.warn("Feature missing geometry:", feature);
+              return null; // Skip features without geometry
+            }
+            const cdMun = String(feature.properties.CD_MUN);
+            const cityData = csvDataMap.get(cdMun);
+
+            if (!cityData) {
+              // console.log(`Feature ${cdMun} not in current CSV data, removing.`);
+              return null; // Remove feature if not in current CSV data (filtered out)
+            }
+
+            // Update properties from CSV, keeping existing geometry
+            const lon = parseFloat(cityData.Longitude_Municipio);
+            const lat = parseFloat(cityData.Latitude_Municipio);
+
+            const properties = {
+              ...feature.properties, // Keep existing properties (like NAME from GeoJSON if needed)
+              ...cityData, // Overwrite with potentially updated CSV data
+              CD_MUN: cdMun, // Ensure consistent key
+              NAME: cityData.Nome_Municipio, // Prioritize CSV name
+              LEVEL: 'Municípios',
+              AREA: parseFloat(cityData.Area_Municipio),
+              CAPITAL: cityData.Capital === 'true',
+              ESTADO: cityData.Sigla_Estado,
+              ALTITUDE: parseFloat(cityData.Altitude_Municipio),
+              LONGITUDE: lon,
+              LATITUDE: lat,
+              REGIAO: cityData.Sigla_Regiao,
+              custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`
+            };
+
+            // Add indicator data if visualization config is for indicators
+            if (visualizationConfig && visualizationConfig.type === 'indicator') {
+              const { year, indicator, valueType } = visualizationConfig;
+              const cityIndicator = indicadoresData.find(ind =>
+                String(ind.Codigo_Municipio) === cdMun && // Use cdMun (string) for matching
+                ind.Ano_Observacao === year &&
+                ind.Nome_Indicador === indicator
+              );
+
+              if (cityIndicator) {
+                properties.indicator_value = parseFloat(cityIndicator.Valor);
+                properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
+                properties.indicator_name = indicator;
+                properties.indicator_year = year;
+                properties.visualization_value = valueType === 'value'
+                  ? properties.indicator_value
+                  : properties.indicator_position;
+              } else {
+                properties.visualization_value = null; // Ensure reset if indicator not found
+              }
+            } else if (currentAttribute !== 'visualization_value') {
+               // Ensure visualization_value is cleared if not visualizing indicators
+               delete properties.visualization_value;
+            }
+
+            // Log geometry type for debugging
+            if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
+              polygonCount++;
+            } else if (feature.geometry.type === 'Point') {
+              pointCount++;
+            }
+
+            return {
+              ...feature, // Keep existing feature structure (including geometry)
+              properties: properties
+            };
+          })
+          .filter(Boolean); // Remove null entries (features not in currentCsvData or missing code)
+
+        // Identify new cities from CSV data that are not in existing features
+        const existingFeatureCodes = new Set(updatedExistingFeatures.map(f => String(f.properties.CD_MUN)));
+        const newCitiesFeatures = currentCsvData
+          .filter(city => {
+            const cdMun = String(city.Codigo_Municipio);
+            return !existingFeatureCodes.has(cdMun); // Filter cities already processed
+          })
+          .map(city => {
+            const lon = parseFloat(city.Longitude_Municipio);
+            const lat = parseFloat(city.Latitude_Municipio);
+
+            if (isNaN(lon) || isNaN(lat) || lon === 0 || lat === 0) {
+              return null; // Skip cities with invalid coordinates
+            }
+
+            const properties = {
+              CD_MUN: String(city.Codigo_Municipio),
+              NAME: city.Nome_Municipio,
+              LEVEL: 'Municípios',
+              AREA: parseFloat(city.Area_Municipio),
+              CAPITAL: city.Capital === 'true',
+              ESTADO: city.Sigla_Estado,
+              ALTITUDE: parseFloat(city.Altitude_Municipio),
+              LONGITUDE: lon,
+              LATITUDE: lat,
+              REGIAO: city.Sigla_Regiao,
+              ...city, // Include other CSV properties
+              custom_description: `Dados CSV: ${city.Nome_Municipio}, Estado: ${city.Sigla_Estado}`
+            };
+
+            // Add indicator data for new cities as well
+            if (visualizationConfig && visualizationConfig.type === 'indicator') {
+              const { year, indicator, valueType } = visualizationConfig;
+              const cityIndicator = indicadoresData.find(ind =>
+                ind.Codigo_Municipio === properties.CD_MUN &&
+                ind.Ano_Observacao === year &&
+                ind.Nome_Indicador === indicator
+              );
+              if (cityIndicator) {
+                properties.indicator_value = parseFloat(cityIndicator.Valor);
+                properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
+                properties.indicator_name = indicator;
+                properties.indicator_year = year;
+                properties.visualization_value = valueType === 'value' ? properties.indicator_value : properties.indicator_position;
+              } else {
+                properties.visualization_value = null;
+              }
+            }
+
+            return {
+              type: 'Feature',
+              properties,
+              geometry: {
+                type: 'Point', // New cities are always points initially
+                coordinates: [lon, lat]
+              }
+            };
+          })
+          .filter(Boolean); // Remove null entries (invalid coordinates)
+
+        // Combine updated existing features and new features
+        console.log(`Processed existing features - Polygons: ${polygonCount}, Points: ${pointCount}`);
+        const finalFeatures = [...updatedExistingFeatures, ...newCitiesFeatures];
+        console.log("Final features count for map:", finalFeatures.length);
+
+        // Convert CSV data to GeoJSON Features (OLD LOGIC - REMOVED)
+        /*
         });
 
-        // Convert CSV data to GeoJSON Features
-        const csvFeatures = validCities.map(city => {
-          const lon = parseFloat(city.Longitude_Municipio);
-          const lat = parseFloat(city.Latitude_Municipio);
+        */
 
-          // Prepare properties object
-          const properties = {
-            NAME: city.Nome_Municipio,
-            LEVEL: 'Municípios',
-            AREA: parseFloat(city.Area_Municipio),
-            CAPITAL: city.Capital === 'true',
-            ESTADO: city.Sigla_Estado,
-            ALTITUDE: parseFloat(city.Altitude_Municipio),
-            LONGITUDE: lon,
-            LATITUDE: lat,
-            REGIAO: city.Sigla_Regiao,
-            CD_MUN: city.Codigo_Municipio,
-            ...city,
-            custom_description: `Dados CSV: ${city.Nome_Municipio}, Estado: ${city.Sigla_Estado}`
-          };
-
-          // Add indicator data if visualization config is for indicators
-          if (visualizationConfig && visualizationConfig.type === 'indicator') {
-            const { year, indicator, valueType } = visualizationConfig;
-
-            // Find matching indicator for this city
-            const cityIndicator = indicadoresData.find(ind =>
-              ind.Codigo_Municipio === city.Codigo_Municipio &&
-              ind.Ano_Observacao === year &&
-              ind.Nome_Indicador === indicator
-            );
-
-            if (cityIndicator) {
-              properties.indicator_value = parseFloat(cityIndicator.Valor);
-              properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
-              properties.indicator_name = indicator;
-              properties.indicator_year = year;
-
-              // Set the visualization value based on valueType
-              properties.visualization_value = valueType === 'value'
-                ? properties.indicator_value
-                : properties.indicator_position;
-            } else {
-              properties.visualization_value = null;
-            }
-          }
-
-          return {
-            type: 'Feature',
-            properties,
-            geometry: {
-              type: 'Point',
-              coordinates: [lon, lat]
-            }
-          };
-        });
-
-        // Combine CSV features with existing GeoJSON features
         const combinedGeoJson = {
           type: 'FeatureCollection',
-          features: csvFeatures
+          features: finalFeatures // Use the merged features list
         };
 
-        setGeojsonData(combinedGeoJson);
+        // setGeojsonData(combinedGeoJson); // State update should happen before calling loadMapData - NO, state is updated elsewhere (on import, on filter)
+        // This function just PREPARES the data for the map source based on current state
 
-        const attributeValues = csvFeatures.map(feature => feature.properties[currentAttribute]).filter(value => value !== undefined);
+        const attributeValues = finalFeatures.map(feature => feature.properties[currentAttribute]).filter(value => value !== undefined && value !== null);
         const colorScale = getColorScale(currentAttribute, attributeValues);
 
         if (map.current.getSource('sectors')) {
-          map.current.getSource('sectors').setData(combinedGeoJson);
-          map.current.setPaintProperty('sectors-layer', 'circle-color', colorScale);
+          // Source exists, update its data and paint properties
+          map.current.getSource('sectors').setData(combinedGeoJson); // ALWAYS update data
+
+          // Update paint property for the fill layer
+          if (map.current.getLayer('sectors-fill-layer')) {
+            map.current.setPaintProperty('sectors-fill-layer', 'fill-color', colorScale);
+          }
+          // Also update the point layer if it exists (for fallback)
+          if (map.current.getLayer('sectors-point-layer')) {
+            map.current.setPaintProperty('sectors-point-layer', 'circle-color', colorScale);
+          }
         } else {
           map.current.addSource('sectors', {
             type: 'geojson',
             data: combinedGeoJson
           });
 
-          // Add a circle layer for cities - simplified paint properties
+          // Add a fill layer for polygons/multipolygons
           map.current.addLayer({
-            id: 'sectors-layer',
+            id: 'sectors-fill-layer',
+            type: 'fill',
+            source: 'sectors',
+            filter: ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']], // Only apply to polygons
+            layout: {},
+            paint: {
+              'fill-color': colorScale, // Apply color scale here
+              'fill-opacity': 0.6,
+              'fill-outline-color': '#000', // Add an outline
+            }
+          });
+
+          // Add a circle layer as fallback for points (cities without imported geometry)
+          map.current.addLayer({
+            id: 'sectors-point-layer',
             type: 'circle',
             source: 'sectors',
+            filter: ['==', ['geometry-type'], 'Point'], // Only apply to points
             layout: {},
             paint: {
               'circle-radius': 5,
@@ -235,22 +351,30 @@ import React, { useRef, useEffect, useState } from 'react';
             }
           });
 
-          map.current.on('mouseenter', 'sectors-layer', () => {
-            map.current.getCanvas().style.cursor = 'pointer';
-          });
+          // Event listeners for both layers
+          const layers = ['sectors-fill-layer', 'sectors-point-layer'];
 
-          map.current.on('mouseleave', 'sectors-layer', () => {
-            map.current.getCanvas().style.cursor = '';
-          });
-
-          map.current.on('click', 'sectors-layer', (e) => {
-            const features = map.current.queryRenderedFeatures(e.point, {
-              layers: ['sectors-layer']
+          layers.forEach(layerId => {
+            map.current.on('mouseenter', layerId, () => {
+              map.current.getCanvas().style.cursor = 'pointer';
             });
-            if (!features.length) return;
 
-            const feature = features[0];
-            setSelectedCityInfo(feature); // Set selectedCityInfo instead of selectedCity and setIsEditorOpen
+            map.current.on('mouseleave', layerId, () => {
+              map.current.getCanvas().style.cursor = '';
+            });
+
+            map.current.on('click', layerId, (e) => {
+              // Prevent click event from firing multiple times if layers overlap
+              e.preventDefault();
+
+              const features = map.current.queryRenderedFeatures(e.point, {
+                layers: [layerId]
+              });
+              if (!features.length) return;
+
+              const feature = features[0];
+              setSelectedCityInfo(feature);
+            });
           });
         }
       };
@@ -541,27 +665,31 @@ import React, { useRef, useEffect, useState } from 'react';
       };
 
       const processGeometryImport = () => {
-        if (!geometryImportData || !municipalityCodeField || !geometryField) {
-          alert('Por favor, selecione os campos de código do município e geometria.');
+        if (!geometryImportData || !municipalityCodeField) {
+          alert('Por favor, selecione o campo de código do município.');
           return;
         }
-
         let features;
-
+    
         // Check if the data is a FeatureCollection or a simple array
         if (geometryImportData.type === 'FeatureCollection') {
           features = geometryImportData.features;
         } else if (Array.isArray(geometryImportData)) {
           features = geometryImportData;
-        } else {
-          alert('Formato de dados inválido. Esperado um FeatureCollection ou um array.');
+        } else { // Assume FeatureCollection as primary format
+          alert('Formato de dados inválido. Esperado um GeoJSON FeatureCollection.');
           return;
         }
-
+    
         const processedFeatures = features.map(feature => {
-          let cdMun = '';
-          let geometry = null;
-
+          // Standard GeoJSON structure assumed
+          const properties = feature.properties;
+          const geometry = feature.geometry;
+          const cdMun = properties?.[municipalityCodeField];
+    
+          // Original logic for non-standard features (kept for potential fallback, but less likely needed)
+          /*
+    
           // Check if it's a feature or a simple object
           if (feature.type === 'Feature') {
             cdMun = feature.properties?.[municipalityCodeField];
@@ -570,39 +698,36 @@ import React, { useRef, useEffect, useState } from 'react';
             cdMun = feature[municipalityCodeField];
             geometry = feature[geometryField];
           }
-
-          console.log("Feature processing:", feature); // LOG: Inspect feature
-          console.log("Extracted Geometry:", geometry); // LOG: Inspect geometry
-          if (geometry) {
-            console.log("Geometry Type:", geometry.type); // LOG: Geometry Type
-            console.log("Geometry Coordinates:", geometry.coordinates); // LOG: Geometry Coordinates
-          }
-
-
+          */
+    
+          // console.log("Feature processing:", feature); // LOG: Inspect feature
+          // console.log("Extracted Geometry:", geometry); // LOG: Inspect geometry
           if (!cdMun || !geometry) {
             console.warn('Feature sem código de município ou geometria encontrada:', feature);
             return null;
           }
-
+    
           return {
             type: 'Feature',
             properties: {
-              CD_MUN: cdMun,
-              NAME: feature.properties?.NM_MUN || feature.properties?.NAME || `Município ${cdMun}`
+              CD_MUN: String(cdMun), // Ensure code is string for consistent matching
+              // Keep original properties, but ensure CD_MUN is present
+              ...properties
             },
             geometry: geometry
           };
         }).filter(Boolean);
 
-        const existingFeaturesMap = new Map(geojsonData.features.map(f => [f.properties.CD_MUN, f]));
+        // Ensure existing feature codes are also strings for matching
+        const existingFeaturesMap = new Map(geojsonData.features.map(f => [String(f.properties.CD_MUN), f]));
         const updatedFeatures = [...geojsonData.features];
         let updatedCount = 0;
         let newCount = 0;
-
+    
         processedFeatures.forEach(newFeature => {
-          const cdMun = newFeature.properties.CD_MUN;
+          const cdMun = String(newFeature.properties.CD_MUN); // Ensure string for matching
           if (existingFeaturesMap.has(cdMun)) {
-            const existingFeatureIndex = updatedFeatures.findIndex(f => f.properties.CD_MUN === cdMun);
+            const existingFeatureIndex = updatedFeatures.findIndex(f => String(f.properties.CD_MUN) === cdMun);
             updatedFeatures[existingFeatureIndex] = {
               ...updatedFeatures[existingFeatureIndex],
               geometry: newFeature.geometry
@@ -614,31 +739,19 @@ import React, { useRef, useEffect, useState } from 'react';
           }
         });
 
-        setGeojsonData({ type: 'FeatureCollection', features: updatedFeatures });
+        const newGeoJsonData = { type: 'FeatureCollection', features: updatedFeatures };
+        setGeojsonData(newGeoJsonData); // Update state first
         setShowGeometryImportModal(false);
         setGeometryImportData(null);
-        setMunicipalityCodeField('');
-        setGeometryField('');
-        alert(`Geometria dos municípios importada com sucesso!\n\n${updatedCount} municípios atualizados\n${newCount} novos municípios adicionados`);
+        setMunicipalityCodeField(''); // Reset code field
+        // setGeometryField(''); // Removed
+        alert(`Geometria importada!\n${updatedCount} municípios atualizados.\n${newCount} novos adicionados (como pontos).`);
+
+        // Trigger map update via state change. The useEffect watching geojsonData will handle it.
+        // Removing explicit call: loadMapData(filteredCsvData, colorAttribute);
       };
 
-      const getGeometryFields = () => {
-        if (!geometryImportData) return [];
-
-        // Check if it's a FeatureCollection or a simple array
-        if (geometryImportData.type === 'FeatureCollection') {
-          const firstFeature = geometryImportData.features[0];
-          if (firstFeature && firstFeature.geometry) {
-            return ['geometry']; // If it's a standard GeoJSON, geometry is at the root
-          }
-        } else if (Array.isArray(geometryImportData)) {
-          const firstObject = geometryImportData[0];
-          if (firstObject) {
-            return Object.keys(firstObject); // Return all keys from the first object
-          }
-        }
-        return [];
-      };
+      // Removed getGeometryFields function as it's no longer needed
 
       const getPopupCoordinates = (feature) => {
         if (!feature || !feature.geometry) return [0, 0];
@@ -763,19 +876,7 @@ import React, { useRef, useEffect, useState } from 'react';
                       ))}
                     </select>
                   </div>
-                  <div className="form-group">
-                    <label htmlFor="geometry-field">Campo da Geometria:</label>
-                    <select
-                      id="geometry-field"
-                      value={geometryField}
-                      onChange={(e) => setGeometryField(e.target.value)}
-                    >
-                      <option value="">Selecione...</option>
-                      {getGeometryFields().map(key => (
-                        <option key={key} value={key}>{key}</option>
-                      ))}
-                    </select>
-                  </div>
+                  {/* Geometry field selection removed */}
                   <div className="button-group">
                     <button className="import-button" onClick={processGeometryImport}>Importar</button>
                     <button className="cancel-button" onClick={() => {
