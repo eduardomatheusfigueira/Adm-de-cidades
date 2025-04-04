@@ -101,11 +101,7 @@ const RadarChart = ({ datasets, indicators }) => {
       .attr("fill", "#666"); // Dark grey for axis numbers
 
     // --- Draw Data Polygons and Value Labels ---
-    const radarLineGenerator = d3.lineRadial()
-      .curve(d3.curveLinearClosed)
-      .radius(d => rScale(d))
-      // Use consistent angle calculation
-      .angle((d, i) => angleSlice * i + angleOffset); 
+    // Removed d3.lineRadial generator to calculate points manually for precision
 
     const defaultColors = d3.scaleOrdinal(d3.schemeCategory10); // Fallback colors
 
@@ -115,12 +111,23 @@ const RadarChart = ({ datasets, indicators }) => {
 
       const color = dataset.color || defaultColors(datasetIndex);
 
-      // Draw the polygon
+      // Calculate polygon points manually using the exact same angle logic as axes
+      const points = dataset.data.map((d, i) => {
+        const angle = angleSlice * i + angleOffset; // Identical angle calculation
+        const radius = rScale(d);
+        // Handle potential non-numeric data gracefully, defaulting to radius 0
+        const safeRadius = typeof radius === 'number' && isFinite(radius) ? radius : 0;
+        return [safeRadius * Math.cos(angle), safeRadius * Math.sin(angle)];
+      });
+
+      // Create SVG path data string (e.g., "M x0,y0 L x1,y1 L x2,y2 Z")
+      const pathData = "M" + points.map(p => p.join(",")).join("L") + "Z";
+
+      // Draw the polygon using the manually generated path data
       svg.append("path")
-        .datum(dataset.data)
-        .attr("d", radarLineGenerator)
+        .attr("d", pathData)
         .style("fill", color)
-        .style("fill-opacity", datasets.length > 1 ? 0.3 : 0.6) 
+        .style("fill-opacity", datasets.length > 1 ? 0.3 : 0.6)
         .style("stroke-width", 2)
         .style("stroke", color);
 
@@ -134,15 +141,21 @@ const RadarChart = ({ datasets, indicators }) => {
         .attr("fill", color) // Use dataset color for values
         // Use consistent angle calculation and position slightly OUTSIDE the vertex,
         // adding a small perpendicular offset based on dataset index to reduce overlap.
+        // Position data labels using the same consistent angle calculation
         .attr("x", (d, i) => {
-          const angle = angleSlice * i + angleOffset;
-          const baseRadius = rScale(d * 1.02); // Slightly outside vertex
+          const angle = angleSlice * i + angleOffset; // Identical angle calculation
+          const radiusValue = rScale(d);
+          // Handle potential non-numeric data for labels as well
+          const safeRadiusValue = typeof radiusValue === 'number' && isFinite(radiusValue) ? radiusValue : 0;
+          const baseRadius = safeRadiusValue * 1.02; // Slightly outside vertex
           const offsetAmount = 5; // Pixels offset per dataset index
           return baseRadius * Math.cos(angle) + offsetAmount * datasetIndex * Math.sin(angle);
         })
         .attr("y", (d, i) => {
-          const angle = angleSlice * i + angleOffset;
-          const baseRadius = rScale(d * 1.02); // Slightly outside vertex
+          const angle = angleSlice * i + angleOffset; // Identical angle calculation
+          const radiusValue = rScale(d);
+          const safeRadiusValue = typeof radiusValue === 'number' && isFinite(radiusValue) ? radiusValue : 0;
+          const baseRadius = safeRadiusValue * 1.02; // Slightly outside vertex
           const offsetAmount = 5; // Pixels offset per dataset index
           return baseRadius * Math.sin(angle) - offsetAmount * datasetIndex * Math.cos(angle);
         })
