@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import useMemo
     import mapboxgl from 'mapbox-gl';
     import FilterMenu from './components/FilterMenu';
     import VisualizationMenu from './components/VisualizationMenu';
@@ -17,6 +17,7 @@ import React, { useRef, useEffect, useState } from 'react';
     import CityInfoBottomBar from './components/CityInfoBottomBar'; // Import CityInfoBottomBar
     import CityProfileSummary from './components/CityProfileSummary';
     import ETLEnvironment from './components/ETLEnvironment'; // Import the new ETL environment
+    import CitySearch from './components/CitySearch'; // Import the new CitySearch component
 
     function parseCSVData(csvText) {
       const lines = csvText.split('\n');
@@ -34,12 +35,29 @@ import React, { useRef, useEffect, useState } from 'react';
       };
     }
 
-    const csvDataResult = parseCSVData(municipiosCsvData);
-    const initialCsvData = csvDataResult.data;
-    const csvHeaders = csvDataResult.headers;
-    const initialIndicadoresData = parseCSVData(indicadoresCsvData).data;
+    // Remove initial parsing from outside the component
 
     function App() {
+      // Calculate headers and initial data inside the component using useMemo
+      const { headers: csvHeaders, data: initialCsvData } = useMemo(() => {
+        console.log("Parsing initial municipios CSV...");
+        return parseCSVData(municipiosCsvData);
+      }, []); // Empty dependency array ensures this runs only once
+
+      const { headers: indicadoresHeaders = [], data: initialIndicadoresData = [] } = useMemo(() => {
+        console.log("Parsing initial indicadores CSV...");
+        const result = parseCSVData(indicadoresCsvData);
+        // Ensure result and headers exist before returning, provide defaults
+        return { headers: result?.headers || [], data: result?.data || [] };
+      }, []); // Empty dependency array ensures this runs only once
+
+      // Log initial parsed data (now inside the component)
+      useEffect(() => {
+        console.log("App.jsx Initial Parse: csvHeaders", csvHeaders);
+        console.log("App.jsx Initial Parse: initialCsvData", initialCsvData?.length); // Log length only initially
+        console.log("App.jsx Initial Parse: indicadoresHeaders", indicadoresHeaders);
+        console.log("App.jsx Initial Parse: initialIndicadoresData", initialIndicadoresData?.length); // Log length only initially
+      }, [csvHeaders, initialCsvData, indicadoresHeaders, initialIndicadoresData]); // Run log when these values are calculated
       const mapContainer = useRef(null);
       const map = useRef(null);
       const [lng, setLng] = useState(-54.57);
@@ -49,7 +67,7 @@ import React, { useRef, useEffect, useState } from 'react';
       const [selectedCityInfo, setSelectedCityInfo] = useState(null); // Use selectedCityInfo instead of selectedCity and isEditorOpen
       const [csvData, setCsvData] = useState(initialCsvData);
       const [filteredCsvData, setFilteredCsvData] = useState(initialCsvData);
-      const [indicadoresData, setIndicadoresData] = useState(initialIndicadoresData);
+      const [indicadoresData, setIndicadoresData] = useState(initialIndicadoresData || []); // Initialize state with parsed data
       const [mapLoaded, setMapLoaded] = useState(false);
       const [isMapLoading, setIsMapLoading] = useState(true);
       const [colorAttribute, setColorAttribute] = useState('Sigla_Regiao'); // Default color attribute
@@ -109,17 +127,24 @@ import React, { useRef, useEffect, useState } from 'react';
 
       useEffect(() => {
         // Only load data when the map and style are fully loaded
-        if (mapLoaded) {
-          console.log("useEffect [mapLoaded, filteredCsvData, colorAttribute, visualizationConfig] triggered");
+        if (mapLoaded && filteredCsvData) { // Ensure filteredCsvData is also available
+          console.log("[App.jsx] useEffect [mapLoaded, filteredCsvData, colorAttribute, visualizationConfig] triggered"); // Log trigger
           let currentAttribute = colorAttribute; // Default to the state set by filters
+          console.log(`[App.jsx] Initial currentAttribute (from state): ${currentAttribute}`);
+
           if (visualizationConfig) {
+            console.log("[App.jsx] visualizationConfig exists:", visualizationConfig); // Log visualizationConfig content
             if (visualizationConfig.type === 'indicator') {
               currentAttribute = 'visualization_value'; // Use special value for indicators
+              console.log(`[App.jsx] Changed currentAttribute to 'visualization_value' for indicator`);
             } else if (visualizationConfig.type === 'attribute') {
               currentAttribute = visualizationConfig.attribute; // Use the attribute from the visualization config
+              console.log(`[App.jsx] Changed currentAttribute to '${currentAttribute}' from visualizationConfig`);
             }
+          } else {
+            console.log("[App.jsx] visualizationConfig is null, using colorAttribute from state.");
           }
-          console.log("Determined currentAttribute for map load:", currentAttribute);
+          console.log("[App.jsx] Final currentAttribute for loadMapData:", currentAttribute); // Log final attribute before calling loadMapData
           loadMapData(filteredCsvData, currentAttribute);
         }
       }, [mapLoaded, filteredCsvData, colorAttribute, visualizationConfig]); // Dependencies remain the same
@@ -787,6 +812,32 @@ import React, { useRef, useEffect, useState } from 'react';
         }
       };
 
+      // Handler for when a city is selected in the search box
+      const handleCitySearchSelect = (city) => {
+        console.log("City selected via search:", city);
+        if (map.current && city.lat && city.lng) {
+          map.current.flyTo({
+            center: [city.lng, city.lat],
+            zoom: 12, // Zoom level after flying to the city
+            essential: true // this animation is considered essential with respect to prefers-reduced-motion
+          });
+          // Optionally, select the city to show its info (using existing handler)
+          // Find the full feature if needed, or create a minimal one
+          const minimalFeature = {
+            properties: {
+              CD_MUN: city.code,
+              NAME: city.name,
+              // Add other properties if CityInfoBottomBar expects them
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: [city.lng, city.lat]
+            }
+          };
+          // setSelectedCityInfo(minimalFeature); // Uncomment if you want the bottom bar to open
+        }
+      };
+
       // Effect to handle clicks outside the bottom bar
       useEffect(() => {
         const handleClickOutsideBar = (event) => {
@@ -826,6 +877,13 @@ import React, { useRef, useEffect, useState } from 'react';
               />
             </div>
 
+            {/* City Search Component - Rendered only when map is active */}
+            {activeEnvironment === 'map' && (
+              <CitySearch
+                cities={csvData} // Pass all cities for searching (or filteredCsvData if preferred)
+                onCitySelect={handleCitySearchSelect} // Use the new handler
+              />
+            )}
 
             <div ref={mapContainer} className="map-container">
               {isMapLoading && (
@@ -851,7 +909,12 @@ import React, { useRef, useEffect, useState } from 'react';
                 />
               )}
               {activeEnvironment === 'etl' && (
-                <ETLEnvironment />
+                <ETLEnvironment
+                  initialMunicipalitiesData={filteredCsvData} // Pass filtered data
+                  initialIndicatorsData={indicadoresData}     // Pass indicator data
+                  municipalitiesHeaders={csvHeaders}          // Pass municipality headers
+                  indicatorsHeaders={indicatorsHeaders}      // Pass indicator headers
+                />
               )}
             </div>
 

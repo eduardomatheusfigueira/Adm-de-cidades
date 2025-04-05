@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
+import ETLEditData from './ETLEditData'; // Import the new component
 import '../styles/DataVisualizationEnvironment.css';
 import '../styles/ETLEnvironment.css';
 
-const ETLEnvironment = () => {
-  const [selectedETL, setSelectedETL] = useState('municipios');
+const ETLEnvironment = ({
+  initialMunicipalitiesData,
+  initialIndicatorsData,
+  municipalitiesHeaders,
+  indicatorsHeaders
+}) => {
+  const [selectedETL, setSelectedETL] = useState('municipios'); // 'municipios', 'indicadores', 'editar'
   const [etlStatus, setEtlStatus] = useState('idle');
   const [logMessages, setLogMessages] = useState([]);
   const [inputFiles, setInputFiles] = useState({
@@ -121,165 +127,184 @@ const ETLEnvironment = () => {
           >
             ETL Indicadores
           </button>
+          <button
+            className={`view-button ${selectedETL === 'editar' ? 'active' : ''}`}
+            onClick={() => setSelectedETL('editar')}
+          >
+            Editar Dados
+          </button>
         </div>
       </div>
 
       <div className="data-visualization-container">
-        <div className="data-visualization-sidebar">
-          <h3>Configuração ETL</h3>
+        {(selectedETL === 'municipios' || selectedETL === 'indicadores') && (
+          <>
+            <div className="data-visualization-sidebar">
+              <h3>Configuração ETL</h3>
 
-          {selectedETL === 'municipios' && (
-            <div className="etl-config-section">
-              <h4>ETL de Municípios</h4>
-              <p>Esta função processa dados de municípios brasileiros, combinando informações geográficas e administrativas, incluindo dados do SNIS.</p>
+              {selectedETL === 'municipios' && (
+                <div className="etl-config-section">
+                  <h4>ETL de Municípios</h4>
+                  <p>Esta função processa dados de municípios brasileiros, combinando informações geográficas e administrativas, incluindo dados do SNIS.</p>
 
-              <div className="file-input-group">
-                <label>Arquivo de População:</label>
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={(e) => handleFileChange('populacao', e)}
-                />
-                <span className="file-status">
-                  {inputFiles.populacao ? '✓' : '⨯'}
-                </span>
-              </div>
-
-              <div className="file-input-group">
-                <label>Arquivo de Altitude:</label>
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={(e) => handleFileChange('altitude', e)}
-                />
-                <span className="file-status">
-                  {inputFiles.altitude ? '✓' : '⨯'}
-                </span>
-              </div>
-
-              <div className="file-input-group">
-                <label>Arquivo de Longitude:</label>
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={(e) => handleFileChange('longitude', e)}
-                />
-                <span className="file-status">
-                  {inputFiles.longitude ? '✓' : '⨯'}
-                </span>
-              </div>
-
-              <div className="file-input-group">
-                <label>Arquivo de Latitude:</label>
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={(e) => handleFileChange('latitude', e)}
-                />
-                <span className="file-status">
-                  {inputFiles.latitude ? '✓' : '⨯'}
-                </span>
-              </div>
-
-              <div className="file-input-group">
-                <label>Arquivo de Geometria (GeoJSON):</label>
-                <input
-                  type="file"
-                  accept=".geojson,.json"
-                  onChange={(e) => handleFileChange('geometria', e)}
-                />
-                <span className="file-status">
-                  {inputFiles.geometria ? '✓' : '⨯'}
-                </span>
-              </div>
-
-              {/* Campo de entrada para o arquivo SNIS */}
-              <div className="file-input-group">
-                <label>Arquivo SNIS:</label>
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={handleSNISFileChange}
-                />
-                <span className="file-status">
-                  {inputFiles.snis ? '✓' : '⨯'}
-                </span>
-              </div>
-
-              <div className="output-path-group">
-                <label>Diretório de Saída:</label>
-                <input
-                  type="text"
-                  value={outputFolder}
-                  onChange={(e) => setOutputFolder(e.target.value)}
-                />
-              </div>
-
-              <div className="output-path-group">
-                <label>Nome do Arquivo de Saída (sem extensão):</label>
-                <input
-                  type="text"
-                  value={outputFilename}
-                  onChange={(e) => setOutputFilename(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-
-          {selectedETL === 'indicadores' && (
-            <div className="etl-config-section">
-              <h4>ETL de Indicadores</h4>
-              <p>Funcionalidade em desenvolvimento. Esta função processará dados de indicadores para municípios.</p>
-            </div>
-          )}
-
-          <div className="etl-actions">
-            <button
-              onClick={handleRunETL}
-              disabled={etlStatus === 'running'}
-              className={etlStatus === 'running' ? 'running' : ''}
-            >
-              {etlStatus === 'running' ? 'Executando...' : 'Executar ETL'}
-            </button>
-            <button onClick={handleClearLog}>Limpar Log</button>
-          </div>
-        </div>
-
-        <div className="data-visualization-content">
-          <div className="etl-content">
-            <h2>Log de Execução ETL</h2>
-
-            <div className="etl-status-bar">
-              <span className="status-label">Status:</span>
-              <span className={`status-value status-${etlStatus}`}>
-                {etlStatus === 'idle' ? 'Pronto' :
-                  etlStatus === 'running' ? 'Em execução' :
-                    'Concluído'}
-              </span>
-            </div>
-
-            <div className="etl-log">
-              {logMessages.length === 0 ? (
-                <p className="empty-log">Nenhuma atividade registrada. Clique em "Executar ETL" para iniciar o processo.</p>
-              ) : (
-                logMessages.map((log, index) => (
-                  <div key={index} className="log-entry">
-                    <span className="log-time">[{log.time}]</span>
-                    <span className="log-message">{log.message}</span>
+                  <div className="file-input-group">
+                    <label>Arquivo de População:</label>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => handleFileChange('populacao', e)}
+                    />
+                    <span className="file-status">
+                      {inputFiles.populacao ? '✓' : '⨯'}
+                    </span>
                   </div>
-                ))
+
+                  <div className="file-input-group">
+                    <label>Arquivo de Altitude:</label>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => handleFileChange('altitude', e)}
+                    />
+                    <span className="file-status">
+                      {inputFiles.altitude ? '✓' : '⨯'}
+                    </span>
+                  </div>
+
+                  <div className="file-input-group">
+                    <label>Arquivo de Longitude:</label>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => handleFileChange('longitude', e)}
+                    />
+                    <span className="file-status">
+                      {inputFiles.longitude ? '✓' : '⨯'}
+                    </span>
+                  </div>
+
+                  <div className="file-input-group">
+                    <label>Arquivo de Latitude:</label>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => handleFileChange('latitude', e)}
+                    />
+                    <span className="file-status">
+                      {inputFiles.latitude ? '✓' : '⨯'}
+                    </span>
+                  </div>
+
+                  <div className="file-input-group">
+                    <label>Arquivo de Geometria (GeoJSON):</label>
+                    <input
+                      type="file"
+                      accept=".geojson,.json"
+                      onChange={(e) => handleFileChange('geometria', e)}
+                    />
+                    <span className="file-status">
+                      {inputFiles.geometria ? '✓' : '⨯'}
+                    </span>
+                  </div>
+
+                  {/* Campo de entrada para o arquivo SNIS */}
+                  <div className="file-input-group">
+                    <label>Arquivo SNIS:</label>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleSNISFileChange}
+                    />
+                    <span className="file-status">
+                      {inputFiles.snis ? '✓' : '⨯'}
+                    </span>
+                  </div>
+
+                  <div className="output-path-group">
+                    <label>Diretório de Saída:</label>
+                    <input
+                      type="text"
+                      value={outputFolder}
+                      onChange={(e) => setOutputFolder(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="output-path-group">
+                    <label>Nome do Arquivo de Saída (sem extensão):</label>
+                    <input
+                      type="text"
+                      value={outputFilename}
+                      onChange={(e) => setOutputFilename(e.target.value)}
+                    />
+                  </div>
+                </div>
               )}
+
+              {selectedETL === 'indicadores' && (
+                <div className="etl-config-section">
+                  <h4>ETL de Indicadores</h4>
+                  <p>Funcionalidade em desenvolvimento. Esta função processará dados de indicadores para municípios.</p>
+                </div>
+              )}
+
+              <div className="etl-actions">
+                <button
+                  onClick={handleRunETL}
+                  disabled={etlStatus === 'running' || selectedETL === 'indicadores'} // Disable run for indicators for now
+                  className={etlStatus === 'running' ? 'running' : ''}
+                >
+                  {etlStatus === 'running' ? 'Executando...' : 'Executar ETL'}
+                </button>
+                <button onClick={handleClearLog}>Limpar Log</button>
+              </div>
             </div>
 
-            <div className="etl-note">
-              <p>
-                <b>Observação:</b> Esta é uma simulação do processo ETL. No ambiente real, o script Python
-                utilizaria bibliotecas como <code>pandas</code>, <code>geopandas</code> e <code>ipeadatapy</code>
-                para processar os dados, incluindo a padronização dos dados do SNIS. Devido às limitações do WebContainer, estamos simulando o fluxo de trabalho.
-              </p>
+            <div className="data-visualization-content">
+              <div className="etl-content">
+                <h2>Log de Execução ETL</h2>
+
+                <div className="etl-status-bar">
+                  <span className="status-label">Status:</span>
+                  <span className={`status-value status-${etlStatus}`}>
+                    {etlStatus === 'idle' ? 'Pronto' :
+                      etlStatus === 'running' ? 'Em execução' :
+                        'Concluído'}
+                  </span>
+                </div>
+
+                <div className="etl-log">
+                  {logMessages.length === 0 ? (
+                    <p className="empty-log">Nenhuma atividade registrada. Clique em "Executar ETL" para iniciar o processo.</p>
+                  ) : (
+                    logMessages.map((log, index) => (
+                      <div key={index} className="log-entry">
+                        <span className="log-time">[{log.time}]</span>
+                        <span className="log-message">{log.message}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="etl-note">
+                  <p>
+                    <b>Observação:</b> Esta é uma simulação do processo ETL. No ambiente real, o script Python
+                    utilizaria bibliotecas como <code>pandas</code>, <code>geopandas</code> e <code>ipeadatapy</code>
+                    para processar os dados, incluindo a padronização dos dados do SNIS. Devido às limitações do WebContainer, estamos simulando o fluxo de trabalho.
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
+
+        {selectedETL === 'editar' && (
+          <ETLEditData
+            initialMunicipalitiesData={initialMunicipalitiesData}
+            initialIndicatorsData={initialIndicatorsData}
+            municipalitiesHeaders={municipalitiesHeaders}
+            indicatorsHeaders={indicatorsHeaders}
+          /> // Render the new component with props
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,115 @@
+.etl-edit-data-container {
+  padding: 20px;
+  background-color: #f9f9f9; /* Light background for the edit area */
+  border-radius: 5px;
+  margin: 10px;
+  height: calc(100% - 40px); /* Adjust height */
+  overflow-y: auto; /* Allow scrolling if content overflows */
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.etl-edit-data-container h2 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.etl-edit-data-container h3 {
+  margin-top: 25px;
+  color: #555;
+}
+
+.etl-edit-data-container p {
+  color: #666;
+  line-height: 1.5;
+}
+
+.loading, .error {
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.error {
+  color: #d9534f; /* Bootstrap danger color */
+}
+
+.editable-table-placeholder {
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px dashed #ccc;
+  background-color: #fff;
+  border-radius: 4px;
+  overflow-x: auto; /* Allow horizontal scrolling for wide tables */
+}
+
+.editable-table-placeholder table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.editable-table-placeholder th,
+.editable-table-placeholder td {
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.editable-table-placeholder th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.editable-table-placeholder input[type="text"],
+.editable-table-placeholder input[type="number"] {
+  width: 95%; /* Adjust width as needed */
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+.editable-table-placeholder input:focus {
+  outline: none;
+  border-color: #66afe9;
+  box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+}
+
+
+.edit-actions {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+  text-align: right;
+}
+
+.save-button, .delete-button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 10px;
+}
+
+.save-button {
+  background-color: #5cb85c; /* Bootstrap success color */
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #4cae4c;
+}
+
+.delete-button {
+  background-color: #d9534f; /* Bootstrap danger color */
+  color: white;
+  padding: 4px 8px; /* Smaller padding for delete */
+  font-size: 12px;
+}
+
+.delete-button:hover {
+  background-color: #c9302c;
+}
