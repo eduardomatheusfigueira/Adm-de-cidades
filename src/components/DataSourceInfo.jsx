@@ -5,6 +5,8 @@ import TransformacaoSNIS from './ETL/TransformacaoSNIS'; // Import the SNIS tran
 import TransformacaoIndicePosicional from './ETL/TransformacaoIndicePosicional'; // Import the Positional Index component
 import TransformacaoIPEADATA from './ETL/TransformacaoIPEADATA'; // Import the IPEADATA transformation component
 import TransformacaoDATASUS from './ETL/TransformacaoDATASUS'; // Import the DATASUS transformation component
+import TransformacaoFINBRA from './ETL/TransformacaoFINBRA'; // Import the FINBRA transformation component
+import TransformacaoIBGE from './ETL/TransformacaoIBGE'; // Import the IBGE transformation component
 import TransformacaoCodigoMunicipio from './ETL/TransformacaoCodigoMunicipio'; // Import the Code Correction component
 
 // --- Catalog Component ---
@@ -1987,7 +1989,7 @@ const ImportFormatsView = () => {
 
 // --- Transformation Process View Component ---
 const TransformationView = () => {
-  const [selectedTransformation, setSelectedTransformation] = useState('municipios'); // 'municipios', 'snis', 'ipeadata', 'datasus', 'codigomun', 'indice'
+  const [selectedTransformation, setSelectedTransformation] = useState('municipios'); // 'municipios', 'snis', 'ipeadata', 'datasus', 'finbra', 'ibge', 'codigomun', 'indice'
 
   return (
     <div className="transformation-process-section"> {/* Reuse styles from ETLEnvironment.css or add specific ones */}
@@ -2017,6 +2019,18 @@ const TransformationView = () => {
         >
           Indicadores DATASUS
         </button>
+        <button
+          className={`sub-nav-button ${selectedTransformation === 'finbra' ? 'active' : ''}`}
+          onClick={() => setSelectedTransformation('finbra')}
+        >
+          Indicadores FINBRA
+        </button>
+        <button
+          className={`sub-nav-button ${selectedTransformation === 'ibge' ? 'active' : ''}`}
+          onClick={() => setSelectedTransformation('ibge')}
+        >
+          Indicadores IBGE/SIDRA
+        </button>
          <button
           className={`sub-nav-button ${selectedTransformation === 'codigomun' ? 'active' : ''}`}
           onClick={() => setSelectedTransformation('codigomun')}
@@ -2036,6 +2050,8 @@ const TransformationView = () => {
         {selectedTransformation === 'snis' && <TransformacaoSNIS />}
         {selectedTransformation === 'ipeadata' && <TransformacaoIPEADATA />}
         {selectedTransformation === 'datasus' && <TransformacaoDATASUS />}
+        {selectedTransformation === 'finbra' && <TransformacaoFINBRA />}
+        {selectedTransformation === 'ibge' && <TransformacaoIBGE />}
         {selectedTransformation === 'codigomun' && <TransformacaoCodigoMunicipio />}
         {selectedTransformation === 'indice' && <TransformacaoIndicePosicional />}
         {/* Add conditional rendering for other transformation components */}

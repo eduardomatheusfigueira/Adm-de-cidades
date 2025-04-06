@@ -32,7 +32,7 @@ const TransformacaoDATASUS = () => {
       <ol>
         <li>
           <strong>Passo 1: Exportação e Limpeza Inicial:</strong>
-          <p>Exporte os dados desejados do TABNET, geralmente um arquivo por indicador ou grupo de indicadores. Configure a exportação para ter "Município" nas linhas e "Ano" (ou outra categoria) nas colunas. Salve como CSV.</p>
+          <p>Exporte os dados desejados do <a href="https://datasus.saude.gov.br/informacoes-de-saude-tabnet/" target="_blank" rel="noopener noreferrer">DATASUS/TABNET</a>, geralmente um arquivo por indicador ou grupo de indicadores. Configure a exportação para ter "Município" nas linhas e "Ano" (ou outra categoria) nas colunas. Salve como CSV.</p>
           <p>Carregue o CSV em sua ferramenta de análise (ex: pandas). Esteja atento à codificação (pode ser 'latin1' ou 'utf-8') e trate valores que representam "não disponível" ou "zero" (frequentemente <code>-</code> no TABNET), substituindo-os por <code>0</code> ou <code>NaN</code> conforme apropriado.</p>
            <CodeBlock>{`# Exemplo Conceitual (pandas)
 # Tentar ler com UTF-8, se falhar, tentar latin1

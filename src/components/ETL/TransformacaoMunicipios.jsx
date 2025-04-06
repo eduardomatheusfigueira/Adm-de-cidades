@@ -51,11 +51,11 @@ const TransformacaoMunicipios = () => {
       <ol>
         <li>
           <strong>Passo 1: Obter a Lista Base de Municípios:</strong>
-          <p>Utilize uma fonte oficial (como IBGE ou IPEADATA) para obter a lista completa e atualizada de municípios brasileiros, garantindo que você tenha o <strong>Código IBGE de 7 dígitos</strong> e o <strong>Nome Oficial</strong> de cada um.</p>
+          <p>Utilize uma fonte oficial (como <a href="https://sidra.ibge.gov.br/" target="_blank" rel="noopener noreferrer">IBGE/SIDRA</a> ou <a href="http://www.ipeadata.gov.br/" target="_blank" rel="noopener noreferrer">IPEADATA</a>) para obter a lista completa e atualizada de municípios brasileiros, garantindo que você tenha o <strong>Código IBGE de 7 dígitos</strong> e o <strong>Nome Oficial</strong> de cada um.</p>
         </li>
         <li>
           <strong>Passo 2: Coletar Dados Adicionais:</strong>
-          <p>Para cada município na sua lista base, busque as seguintes informações em fontes confiáveis (IBGE, IPEADATA, portais estaduais):</p>
+          <p>Para cada município na sua lista base, busque as seguintes informações em fontes confiáveis (<a href="https://sidra.ibge.gov.br/" target="_blank" rel="noopener noreferrer">IBGE</a>, <a href="http://www.ipeadata.gov.br/" target="_blank" rel="noopener noreferrer">IPEADATA</a>, portais estaduais):</p>
           <ul>
             <li>Sigla do Estado (UF)</li>
             <li>Área Territorial (km²)</li>

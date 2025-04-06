@@ -34,7 +34,7 @@ const TransformacaoIPEADATA = () => {
       <ol>
         <li>
           <strong>Listar Códigos de Séries do Tema:</strong>
-          <p>Use <code>ipeadatapy.metadata(big_theme='SeuTema')</code> para obter a lista de todos os códigos de séries (`SERCODIGO`) dentro de um tema (ex: 'Regional').</p>
+          <p>Use <code>ipeadatapy.metadata(big_theme='SeuTema')</code> para obter a lista de todos os códigos de séries (`SERCODIGO`) dentro de um tema (ex: 'Regional'). Você pode explorar os temas e séries disponíveis no <a href="http://www.ipeadata.gov.br/" target="_blank" rel="noopener noreferrer">portal IPEADATA</a>.</p>
           <CodeBlock>{`import ipeadatapy
 # Exemplo para tema Regional
 metadados_tema = ipeadatapy.metadata(big_theme='Regional')
@@ -43,7 +43,7 @@ lista_codigos = metadados_tema['CODE'].tolist()
         </li>
         <li>
           <strong>Baixar Dados em Lotes:</strong>
-          <p>Para cada código de série na lista, faça uma requisição à API OData do IPEA (<code>http://www.ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='CODIGO_DA_SERIE')</code>). É recomendado fazer isso em lotes e usar processamento paralelo (como `ThreadPoolExecutor` em Python) para eficiência.</p>
+          <p>Para cada código de série na lista, faça uma requisição à API OData do IPEA (<code>http://www.ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='CODIGO_DA_SERIE')</code>). É recomendado fazer isso em lotes e usar processamento paralelo (como <code>ThreadPoolExecutor</code> em Python) para eficiência.</p>
           <CodeBlock>{`import requests
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor

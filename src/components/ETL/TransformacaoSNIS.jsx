@@ -43,7 +43,7 @@ const TransformacaoSNIS = () => {
       <ol>
         <li>
           <strong>Passo 1: Limpeza e Carregamento dos Dados de Origem:</strong>
-          <p>Obtenha os dados da fonte (ex: exportação do SNIS). Verifique a codificação do arquivo (frequentemente 'latin1' para SNIS) e limpe quaisquer caracteres inválidos (bytes nulos, BOMs) que possam impedir o carregamento correto em uma ferramenta de análise (como pandas em Python).</p>
+          <p>Obtenha os dados da fonte (ex: exportação do SNIS - Sistema Nacional de Informações sobre Saneamento). A série histórica pode ser acessada através do portal <a href="https://app4.cidades.gov.br/serieHistorica/" target="_blank" rel="noopener noreferrer">SNIS - Série Histórica</a>. Verifique a codificação do arquivo (frequentemente 'latin1' para exportações mais antigas) e limpe quaisquer caracteres inválidos (bytes nulos, BOMs) que possam impedir o carregamento correto.</p>
           <p>Carregue os dados limpos em uma estrutura tabular (ex: DataFrame).</p>
         </li>
         <li>
