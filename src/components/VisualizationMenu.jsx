@@ -7,7 +7,6 @@ import React, { useState, useEffect, useRef } from 'react';
       onVisualizationChange,
       csvHeaders,
       onFiltersApplied,
-      onEnvironmentChange
     }) => {
       const [isOpen, setIsOpen] = useState(false);
       const [visualizationType, setVisualizationType] = useState('attribute');
@@ -221,10 +220,6 @@ import React, { useState, useEffect, useRef } from 'react';
         setIsOpen(false);
       };
 
-      const handleShowETLEnvironment = () => {
-        onEnvironmentChange('etl');
-        setIsOpen(false);
-      }
 
       useEffect(() => {
         function handleClickOutside(event) {
@@ -427,13 +422,6 @@ import React, { useState, useEffect, useRef } from 'react';
                   onClick={handleShowMapVisualization}
                 >
                   Mostrar Visualização de Municípios
-                </button>
-                {/* New ETL Environment Button */}
-                <button
-                  className="show-etl-environment-button"
-                  onClick={handleShowETLEnvironment}
-                >
-                  Mostrar Ambiente de ETL
                 </button>
               </div>
             </div>
