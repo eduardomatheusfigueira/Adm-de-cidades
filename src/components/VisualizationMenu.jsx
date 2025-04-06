@@ -7,7 +7,9 @@ import React, { useState, useEffect, useRef } from 'react';
       onVisualizationChange,
       csvHeaders,
       onFiltersApplied,
-      onEnvironmentChange
+      onEnvironmentChange,
+      mapStyle, // Receive current map style
+      onMapStyleChange // Receive handler for style change
     }) => {
       const [isOpen, setIsOpen] = useState(false);
       const [visualizationType, setVisualizationType] = useState('attribute');
@@ -207,6 +209,11 @@ import React, { useState, useEffect, useRef } from 'react';
         setIsOpen(false);
       };
 
+      const handleMapStyleSelectChange = (e) => {
+        onMapStyleChange(e.target.value); // Call the handler passed from App.jsx
+        // No need to close the menu here, let the user decide
+      };
+
       const handleShowDataVisualization = () => {
         console.log("Changing to data visualization environment");
         setActiveVisualization('data');
@@ -402,6 +409,21 @@ import React, { useState, useEffect, useRef } from 'react';
                   </>
                 )}
 
+                {/* Map Style Selection */}
+                <div className="visualization-group">
+                  <label>Estilo do Mapa:</label>
+                  <select
+                    className="visualization-dropdown"
+                    value={mapStyle}
+                    onChange={handleMapStyleSelectChange}
+                  >
+                    <option value="mapbox://styles/mapbox/light-v11">Claro</option>
+                    <option value="mapbox://styles/mapbox/dark-v11">Escuro</option>
+                    <option value="mapbox://styles/mapbox/streets-v12">Ruas</option>
+                    <option value="mapbox://styles/mapbox/outdoors-v12">Exterior</option>
+                    <option value="mapbox://styles/mapbox/satellite-streets-v12">Satélite com Ruas</option>
+                  </select>
+                </div>
                 <div className="visualization-actions">
                   <button
                     className="apply-visualization-button"

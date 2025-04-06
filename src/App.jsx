@@ -94,6 +94,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
       const [municipalityCodeField, setMunicipalityCodeField] = useState('');
       // const [geometryField, setGeometryField] = useState(''); // Removed: Unnecessary for standard GeoJSON
       const [visualizationConfig, setVisualizationConfig] = useState(null);
+      const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/light-v11'); // Add state for map style
       const [activeEnvironment, setActiveEnvironment] = useState('map'); // 'map', 'data', or 'etl'
 
 
@@ -119,7 +120,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
 
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
-          style: 'mapbox://styles/mapbox/light-v11', // Updated to a lighter style
+          style: mapStyle, // Use state for initial style
           center: [lng, lat],
           zoom: zoom
         });
@@ -141,6 +142,16 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
       }, []);
+
+      // Effect to update map style when mapStyle state changes
+      useEffect(() => {
+        if (map.current && mapLoaded) { // Ensure map exists and is loaded
+          console.log(`[App.jsx] Changing map style to: ${mapStyle}`);
+          map.current.setStyle(mapStyle);
+          // Note: setStyle triggers 'style.load', so the data loading effect will run again
+          // We might need to adjust data loading logic if this causes issues.
+        }
+      }, [mapStyle, mapLoaded]); // Depend on mapStyle and mapLoaded
 
       useEffect(() => {
         // Only load data when the map and style are fully loaded
@@ -666,6 +677,11 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
         setVisualizationConfig(null);
       };
 
+      // Handler for map style changes from VisualizationMenu
+      const handleMapStyleChange = (newStyle) => {
+        setMapStyle(newStyle);
+      };
+
       const handleVisualizationChange = (config) => {
         console.log("Configuração de visualização aplicada:", config);
         setVisualizationConfig(config);
@@ -888,6 +904,8 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
                 csvData={csvData}
                 indicadoresData={indicadoresData}
                 onVisualizationChange={handleVisualizationChange}
+                mapStyle={mapStyle} // Pass current style
+                onMapStyleChange={handleMapStyleChange} // Pass handler
                 csvHeaders={csvHeaders}
                 onFiltersApplied={handleFiltersApplied}
                 onEnvironmentChange={handleEnvironmentChange} // Passa a função para mudar o ambiente
