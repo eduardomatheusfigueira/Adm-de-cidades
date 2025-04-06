@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import ETLEditData from './ETLEditData'; // Import the new component
+import ETLEditData from './ETLEditData'; // Import the data editing component
+import ETLProcessor from './ETL/ETLProcessor'; // Import the new indicator ETL component
 import '../styles/DataVisualizationEnvironment.css';
 import '../styles/ETLEnvironment.css';
 
@@ -242,8 +243,8 @@ const ETLEnvironment = ({
 
               {selectedETL === 'indicadores' && (
                 <div className="etl-config-section">
-                  <h4>ETL de Indicadores</h4>
-                  <p>Funcionalidade em desenvolvimento. Esta função processará dados de indicadores para municípios.</p>
+                  {/* Render the new ETLProcessor component here */}
+                  <ETLProcessor />
                 </div>
               )}
 
@@ -297,13 +298,13 @@ const ETLEnvironment = ({
           </>
         )}
 
-        {selectedETL === 'editar' && (
+        {selectedETL === 'editar' && Array.isArray(indicatorsHeaders) && indicatorsHeaders.length > 0 && ( // Add robust check here too
           <ETLEditData
             initialMunicipalitiesData={initialMunicipalitiesData}
             initialIndicatorsData={initialIndicatorsData}
             municipalitiesHeaders={municipalitiesHeaders}
-            indicatorsHeaders={indicatorsHeaders}
-          /> // Render the new component with props
+            indicatorsHeaders={indicatorsHeaders} // Pass only if valid
+          />
         )}
       </div>
     </div>

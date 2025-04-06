@@ -44,20 +44,37 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
         return parseCSVData(municipiosCsvData);
       }, []); // Empty dependency array ensures this runs only once
 
-      const { headers: indicadoresHeaders = [], data: initialIndicadoresData = [] } = useMemo(() => {
-        console.log("Parsing initial indicadores CSV...");
-        const result = parseCSVData(indicadoresCsvData);
-        // Ensure result and headers exist before returning, provide defaults
-        return { headers: result?.headers || [], data: result?.data || [] };
-      }, []); // Empty dependency array ensures this runs only once
+      // State for indicators data and headers
+      const [indicatorsHeaders, setIndicatorsHeaders] = useState([]);
+      // const [initialIndicadoresData, setInitialIndicadoresData] = useState([]); // Remove this state
+
+      // Parse indicators CSV data using useEffect
+      useEffect(() => {
+        console.log("Parsing initial indicadores CSV via useEffect...");
+        try {
+          if (!indicadoresCsvData) {
+            console.warn("indicadoresCsvData is not available for parsing.");
+            setIndicatorsHeaders([]);
+            // setInitialIndicadoresData([]); // Remove update for removed state
+            return;
+          }
+          const result = parseCSVData(indicadoresCsvData);
+          setIndicatorsHeaders(result?.headers || []);
+          setIndicadoresData(result?.data || []); // Update indicadoresData directly
+          console.log("Finished parsing initial indicadores CSV.");
+        } catch (error) {
+          console.error("Error parsing initial indicadores CSV:", error);
+          setIndicatorsHeaders([]);
+          setIndicadoresData([]); // Update indicadoresData directly
+        }
+      }, []); // Empty dependency array ensures this runs only once on mount
 
       // Log initial parsed data (now inside the component)
       useEffect(() => {
         console.log("App.jsx Initial Parse: csvHeaders", csvHeaders);
         console.log("App.jsx Initial Parse: initialCsvData", initialCsvData?.length); // Log length only initially
-        console.log("App.jsx Initial Parse: indicadoresHeaders", indicadoresHeaders);
-        console.log("App.jsx Initial Parse: initialIndicadoresData", initialIndicadoresData?.length); // Log length only initially
-      }, [csvHeaders, initialCsvData, indicadoresHeaders, initialIndicadoresData]); // Run log when these values are calculated
+        // Removed indicator logs from here, they are logged in the parsing effect
+      }, [csvHeaders, initialCsvData]); // Only depend on municipio data
       const mapContainer = useRef(null);
       const map = useRef(null);
       const [lng, setLng] = useState(-54.57);
@@ -67,7 +84,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
       const [selectedCityInfo, setSelectedCityInfo] = useState(null); // Use selectedCityInfo instead of selectedCity and isEditorOpen
       const [csvData, setCsvData] = useState(initialCsvData);
       const [filteredCsvData, setFilteredCsvData] = useState(initialCsvData);
-      const [indicadoresData, setIndicadoresData] = useState(initialIndicadoresData || []); // Initialize state with parsed data
+      const [indicadoresData, setIndicadoresData] = useState([]); // Initialize directly with empty array
       const [mapLoaded, setMapLoaded] = useState(false);
       const [isMapLoading, setIsMapLoading] = useState(true);
       const [colorAttribute, setColorAttribute] = useState('Sigla_Regiao'); // Default color attribute
@@ -908,14 +925,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
                   indicadoresData={indicadoresData}
                 />
               )}
-              {activeEnvironment === 'etl' && (
-                <ETLEnvironment
-                  initialMunicipalitiesData={filteredCsvData} // Pass filtered data
-                  initialIndicatorsData={indicadoresData}     // Pass indicator data
-                  municipalitiesHeaders={csvHeaders}          // Pass municipality headers
-                  indicatorsHeaders={indicatorsHeaders}      // Pass indicator headers
-                />
-              )}
+              {/* Removed ETL Environment rendering */}
             </div>
 
             {showGeometryImportModal && (

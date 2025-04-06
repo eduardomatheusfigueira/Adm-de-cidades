@@ -95,6 +95,7 @@
 
 .indicator-value {
   margin-top: 5px;
+  color: #f0f0f0; /* Increased contrast for index value */
 }
 
 .city-selector select,
