@@ -236,6 +236,14 @@
   background-color: #e67e22;
 }
 
+.show-data-source-info-button {
+  background-color: #1abc9c; /* Teal color */
+}
+
+.show-data-source-info-button:hover {
+  background-color: #16a085; /* Darker teal on hover */
+}
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

@@ -18,6 +18,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
     import CityProfileSummary from './components/CityProfileSummary';
     import ETLEnvironment from './components/ETLEnvironment'; // Import the new ETL environment
     import CitySearch from './components/CitySearch'; // Import the new CitySearch component
+    import DataSourceInfo from './components/DataSourceInfo'; // Import the new data source info component
 
     function parseCSVData(csvText) {
       const lines = csvText.split('\n');
@@ -884,6 +885,18 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
           document.removeEventListener('mousedown', handleClickOutsideBar);
         };
       }, [selectedCityInfo]);
+ 
+      // Effect to resize map when switching back to map view
+      useEffect(() => {
+        if (activeEnvironment === 'map' && map.current && mapLoaded) {
+          // Delay resize slightly to ensure container is visible and ready
+          const timer = setTimeout(() => {
+            map.current.resize();
+            console.log("Map resized after switching environment.");
+          }, 50); // Slightly longer delay
+          return () => clearTimeout(timer); // Cleanup timer
+        }
+      }, [activeEnvironment, mapLoaded]); // Keep dependencies minimal for resize
 
 
       return (
@@ -920,14 +933,22 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
               />
             )}
 
-            <div ref={mapContainer} className="map-container">
+            {/* Conditionally render map container */}
+            {/* Always render map container, hide with CSS */}
+            {/* Conditionally render map container */}
+            {/* Always render map container, hide with CSS */}
+            <div
+              ref={mapContainer}
+              className={`map-container ${activeEnvironment !== 'map' ? 'hidden-map' : ''}`} // Use specific class 'hidden-map'
+            >
               {isMapLoading && (
                 <div className="map-loading">
                   <div className="loading-spinner"></div>
                   <p>Carregando mapa...</p>
                 </div>
               )}
-              {activeEnvironment === 'map' && ( // Renderiza o mapa apenas se o ambiente ativo for 'map'
+              {/* Conditionally render Legend inside map container */}
+              {activeEnvironment === 'map' && (
                 <Legend
                   colorAttribute={
                     visualizationConfig && visualizationConfig.type === 'indicator'
@@ -937,14 +958,19 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
                   colorStops={legendColorStops}
                 />
               )}
-              {activeEnvironment === 'data' && (
-                <DataVisualizationEnvironment
-                  csvData={csvData}
-                  indicadoresData={indicadoresData}
-                />
-              )}
-              {/* Removed ETL Environment rendering */}
             </div>
+
+            {/* Conditionally render other environments */}
+            {activeEnvironment === 'data' && (
+              <DataVisualizationEnvironment
+                csvData={csvData}
+                indicadoresData={indicadoresData}
+              />
+            )}
+            {activeEnvironment === 'dataSourceInfo' && (
+              <DataSourceInfo />
+            )}
+            {/* Removed ETL Environment rendering */}
 
             {showGeometryImportModal && (
               <div className="modal-overlay">

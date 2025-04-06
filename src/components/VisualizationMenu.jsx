@@ -233,6 +233,12 @@ import React, { useState, useEffect, useRef } from 'react';
         setIsOpen(false);
       }
 
+      const handleShowDataSourceInfo = () => {
+        console.log("Changing to data source info environment");
+        onEnvironmentChange('dataSourceInfo');
+        setIsOpen(false);
+      };
+
       useEffect(() => {
         function handleClickOutside(event) {
           if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -449,6 +455,12 @@ import React, { useState, useEffect, useRef } from 'react';
                   onClick={handleShowMapVisualization}
                 >
                   Mostrar Visualização de Municípios
+                </button>
+                <button
+                  className="show-data-source-info-button" // Add a class for potential styling
+                  onClick={handleShowDataSourceInfo}
+                >
+                  Onde encontrar dados?
                 </button>
               </div>
             </div>

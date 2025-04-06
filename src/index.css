@@ -263,3 +263,15 @@ code {
 .city-search-suggestions li:hover {
   background-color: #f0f0f0;
 }
+
+/* Style to hide map container without removing it from layout */
+.map-container.hidden-map {
+  visibility: hidden;
+  position: absolute; /* Take it out of flow */
+  top: -9999px; /* Move it off-screen */
+  left: -9999px;
+  width: 1px; /* Minimize size */
+  height: 1px;
+  overflow: hidden; /* Prevent accidental visibility */
+  z-index: -1; /* Ensure it's behind other content */
+}
