@@ -19,7 +19,7 @@ const TimeSeriesView = ({ indicadoresData, selectedCity }) => {
     // Get all unique indicators for the selected city
     const uniqueIndicators = [...new Set(
       indicadoresData
-        .filter(item => item.Codigo_Municipio === selectedCity.Codigo_Municipio) // Correct access
+        .filter(item => item.Codigo_Municipio === selectedCity.properties.CD_MUN) // Correct access using properties
         .map(item => item.Nome_Indicador)
     )];
 
@@ -43,7 +43,7 @@ const TimeSeriesView = ({ indicadoresData, selectedCity }) => {
       for (const indicator of selectedIndicators) {
         const filteredData = indicadoresData.filter(
           item => item.Nome_Indicador === indicator &&
-                  item.Codigo_Municipio === selectedCity.Codigo_Municipio // Correct access
+                  item.Codigo_Municipio === selectedCity.properties.CD_MUN // Correct access using properties
         );
         if (filteredData.length > 0) {
           // Sort data by year
