@@ -245,6 +245,7 @@ const TimeSeriesView = ({ indicadoresData, selectedCity }) => {
             onChange={handleIndicatorChange}
             className="visualization-dropdown"
             multiple // Allow multiple selections
+            size="5" // Display as a list box
           >
             {availableIndicators.map(indicator => (
               <option key={indicator} value={indicator}>

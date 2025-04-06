@@ -16,6 +16,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
     import DataVisualizationEnvironment from './components/DataVisualizationEnvironment'; // Import do novo ambiente
     import CityInfoBottomBar from './components/CityInfoBottomBar'; // Import CityInfoBottomBar
     import CityProfileSummary from './components/CityProfileSummary';
+    import ETLEnvironment from './components/ETLEnvironment'; // Import the new ETL environment
     import CitySearch from './components/CitySearch'; // Import the new CitySearch component
 
     function parseCSVData(csvText) {
@@ -812,6 +813,9 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
         }
       };
 
+      const handleEnvironmentChange = (env) => {
+        setActiveEnvironment(() => env); // Use functional update form
+      };
 
       const handleCitySelectBottomBar = (selectedCity) => {
         if (selectedCity) {
@@ -886,6 +890,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
                 onVisualizationChange={handleVisualizationChange}
                 csvHeaders={csvHeaders}
                 onFiltersApplied={handleFiltersApplied}
+                onEnvironmentChange={handleEnvironmentChange} // Passa a função para mudar o ambiente
               />
             </div>
 

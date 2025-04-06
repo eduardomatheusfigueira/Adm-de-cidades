@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
       onVisualizationChange,
       csvHeaders,
       onFiltersApplied,
+      onEnvironmentChange
     }) => {
       const [isOpen, setIsOpen] = useState(false);
       const [visualizationType, setVisualizationType] = useState('attribute');
@@ -220,6 +221,10 @@ import React, { useState, useEffect, useRef } from 'react';
         setIsOpen(false);
       };
 
+      const handleShowETLEnvironment = () => {
+        onEnvironmentChange('etl');
+        setIsOpen(false);
+      }
 
       useEffect(() => {
         function handleClickOutside(event) {
