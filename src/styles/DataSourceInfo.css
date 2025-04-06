@@ -11,7 +11,7 @@
 
 /* Header Styling */
 .data-source-info-header {
-  padding: 25px 20px;
+  padding: 20px 20px 15px 20px; /* Reduced bottom padding */
   text-align: center;
   background-color: #2c3e50; /* Dark blue-gray */
   color: white;
@@ -19,26 +19,51 @@
 }
 
 .data-source-info-header h1 {
-  margin: 0 0 10px 0;
+  margin: 0 0 15px 0; /* Space below title */
   color: white;
-  font-size: 2rem; /* Larger title */
+  font-size: 1.8rem; /* Slightly smaller title */
   font-weight: bold;
 }
 
-.data-source-info-header p {
-  font-size: 1.1rem;
-  color: #ecf0f1; /* Lighter text */
-  max-width: 800px;
-  margin: 0 auto;
+/* Sub-view Selector Buttons (Mimics .view-selector from DataVisualizationEnvironment.css) */
+.sub-view-selector {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px; /* Space above buttons */
 }
+
+.sub-view-button {
+  padding: 10px 18px;
+  margin: 0 8px;
+  border: none;
+  border-radius: 5px;
+  background-color: #e0e7ec;
+  color: #495057;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.sub-view-button.active {
+  background-color: #3498db; /* Blue for active */
+  color: white;
+}
+
+.sub-view-button:hover:not(.active) {
+  background-color: #cdd4da;
+}
+
 
 /* Main Content Area */
 .data-source-info-content {
   flex: 1;
-  padding: 30px; /* More padding */
+  padding: 25px; /* Consistent padding */
   overflow-y: auto;
   scroll-behavior: smooth;
 }
+
+/* --- Catalog View Specific Styles --- */
 
 /* Index Styling */
 .data-source-index {
@@ -46,7 +71,7 @@
   padding: 25px;
   background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Softer shadow */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .data-source-index h2 {
@@ -63,7 +88,7 @@
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 15px;
 }
 
@@ -71,7 +96,7 @@
   display: flex;
   align-items: center;
   padding: 10px;
-  color: #3498db; /* Blue link color */
+  color: #3498db;
   text-decoration: none;
   border-radius: 4px;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -79,20 +104,20 @@
 }
 
 .index-link:hover {
-  background-color: #ecf0f1; /* Light gray background on hover */
-  color: #2980b9; /* Darker blue on hover */
+  background-color: #ecf0f1;
+  color: #2980b9;
 }
 
 .index-icon {
   margin-right: 10px;
-  width: 18px; /* Fixed width for icons */
+  width: 18px;
   text-align: center;
-  color: #3498db; /* Match link color */
+  color: #3498db;
 }
 
 /* Section Styling */
 .data-source-section {
-  margin-bottom: 50px; /* More space between sections */
+  margin-bottom: 50px;
 }
 
 .section-header {
@@ -100,7 +125,7 @@
   align-items: center;
   margin-bottom: 25px;
   padding-bottom: 10px;
-  border-bottom: 2px solid #3498db; /* Blue underline for section titles */
+  border-bottom: 2px solid #3498db;
 }
 
 .section-icon-wrapper {
@@ -114,7 +139,7 @@
   font-size: 1.2rem;
 }
 
-/* Icon background/text colors (mimicking Tailwind classes) */
+/* Icon background/text colors */
 .bg-blue-100 { background-color: #e0f2fe; }
 .text-blue-500 { color: #3b82f6; }
 .bg-green-100 { background-color: #dcfce7; }
@@ -138,14 +163,14 @@
 .section-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: #2c3e50; /* Dark blue-gray */
+  color: #2c3e50;
   margin: 0;
 }
 
 /* Card Grid */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Responsive grid for cards */
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 25px;
 }
 
@@ -153,10 +178,12 @@
 .base-card {
   background-color: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* Slightly stronger shadow */
-  border: 1px solid #e5e7eb; /* Light border */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex; /* Use flexbox for card content */
+  flex-direction: column;
 }
 
 .base-card:hover {
@@ -166,33 +193,36 @@
 
 .card-content {
   padding: 25px;
+  flex-grow: 1; /* Allow content to grow */
+  display: flex;
+  flex-direction: column;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start; /* Align items to the top */
+  align-items: flex-start;
   margin-bottom: 15px;
 }
 
 .card-title {
   font-size: 1.3rem;
   font-weight: bold;
-  color: #1d4ed8; /* Darker blue for title */
+  color: #1d4ed8;
   margin: 0;
-  flex: 1; /* Allow title to take space */
-  padding-right: 10px; /* Space before type */
+  flex: 1;
+  padding-right: 10px;
 }
 
 .card-type {
-  font-size: 0.75rem; /* Smaller text for type */
+  font-size: 0.75rem;
   font-weight: 500;
   padding: 4px 10px;
-  border-radius: 9999px; /* Pill shape */
+  border-radius: 9999px;
   white-space: nowrap;
 }
 
-/* Type background/text colors (mimicking Tailwind classes) */
+/* Type background/text colors */
 .bg-blue-100 { background-color: #dbeafe; }
 .text-blue-800 { color: #1e40af; }
 .bg-green-100 { background-color: #dcfce7; }
@@ -214,7 +244,7 @@
 
 
 .card-description {
-  color: #4b5563; /* Gray text */
+  color: #4b5563;
   margin-bottom: 20px;
   line-height: 1.6;
 }
@@ -224,8 +254,8 @@
 }
 
 .details-title {
-  font-weight: 600; /* Semibold */
-  color: #374151; /* Darker gray */
+  font-weight: 600;
+  color: #374151;
   margin-bottom: 8px;
   font-size: 1rem;
 }
@@ -240,41 +270,42 @@
 .details-list li {
   margin-bottom: 5px;
   position: relative;
-  padding-left: 20px; /* Space for bullet */
+  padding-left: 20px;
 }
 
 .details-list li::before {
-  content: '•'; /* Bullet point */
+  content: '•';
   position: absolute;
   left: 0;
-  color: #3498db; /* Blue bullet */
+  color: #3498db;
   font-weight: bold;
 }
 
 .details-list.ordered {
   list-style: decimal;
-  padding-left: 20px; /* Indent for numbers */
+  padding-left: 20px;
 }
 
 .details-list.ordered li::before {
-  content: ''; /* Remove default bullet */
+  content: '';
 }
 
 .card-link-button {
-  display: inline-flex; /* Align icon and text */
+  display: inline-flex;
   align-items: center;
-  background-color: #3b82f6; /* Blue button */
+  background-color: #3b82f6;
   color: white;
   padding: 10px 18px;
   border-radius: 6px;
   text-decoration: none;
   font-weight: 500;
   transition: background-color 0.3s ease;
-  margin-top: 10px;
+  margin-top: auto; /* Push button to bottom */
+  align-self: flex-start; /* Align button to the left */
 }
 
 .card-link-button:hover {
-  background-color: #2563eb; /* Darker blue on hover */
+  background-color: #2563eb;
 }
 
 .link-icon {
@@ -286,7 +317,105 @@
   margin-top: 40px;
   text-align: center;
   font-size: 0.9em;
-  color: #6b7280; /* Gray text */
+  color: #6b7280;
   padding-top: 20px;
   border-top: 1px solid #e5e7eb;
+}
+
+/* --- Import Formats View Specific Styles --- */
+
+.import-formats-view {
+  /* Add padding or margins if needed */
+}
+
+.import-formats-view h2 {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 10px;
+}
+
+.import-formats-view > p {
+  font-size: 1.1rem;
+  color: #4b5563;
+  margin-bottom: 30px;
+  line-height: 1.6;
+}
+
+.format-section {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+.format-section h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #34495e;
+  margin: 0 0 15px 0;
+}
+
+.format-section p {
+  color: #4b5563;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.column-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 15px;
+}
+
+.column-list li {
+  margin-bottom: 8px;
+  position: relative;
+  padding-left: 25px;
+  color: #374151;
+}
+
+.column-list li::before {
+  content: '✓'; /* Check mark */
+  position: absolute;
+  left: 0;
+  color: #27ae60; /* Green check */
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.column-list code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  background-color: #ecf0f1;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  color: #c0392b; /* Reddish color for code */
+}
+
+.format-section pre {
+  background-color: #2c3e50; /* Dark background for code block */
+  color: #ecf0f1; /* Light text */
+  padding: 15px;
+  border-radius: 5px;
+  overflow-x: auto; /* Enable horizontal scroll */
+  margin-top: 10px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.format-section code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+.format-section strong {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.format-section p > strong { /* Style strong within paragraph */
+   color: #e67e22; /* Orange color for emphasis */
 }
