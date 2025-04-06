@@ -1,79 +1,66 @@
-# Jogo de Administração e Eleições do Brasil
+# Adm-de-Cidades: Plataforma de Visualização e Análise de Dados Municipais Brasileiros
 
-## Descrição
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) <!-- Exemplo de Badge -->
 
-Este projeto visa criar um jogo de simulação da administração pública e eleições no Brasil. O jogo utilizará dados públicos para modelar cidades, estados e o país, permitindo aos jogadores tomar decisões administrativas e participar de eleições simuladas.
+## Visão Geral
 
-## Funcionalidades Atuais
+O **Adm-de-Cidades** é uma plataforma web interativa focada na visualização, análise e (futuramente) simulação da administração de municípios brasileiros. Utilizando dados públicos, o projeto oferece ferramentas para explorar informações geográficas, demográficas e socioeconômicas das cidades, com o objetivo de facilitar o entendimento e a gestão urbana.
 
-- **Mapa Interativo:** Visualização do mapa do Brasil com setores censitários, utilizando Mapbox GL JS.
-- **Editor de Cidades:** Interface para editar atributos de cidades diretamente no mapa.
-  - Edição de nome, população, economia, descrição e geometria (JSON).
-  - **Layout do Editor de Cidades Refatorado:** Interface de usuário redesenhada com layout aprimorado utilizando CSS Grid para melhor organização e usabilidade. Exibição de atributos e dados em tabela em uma única janela formatada.
-- **Dados CSV:** Integração de dados de arquivos CSV para enriquecer as informações das cidades.
+<!-- Opcional: Adicionar um screenshot ou GIF aqui -->
+<!-- ![Screenshot do Adm-de-Cidades](link_para_imagem.png) -->
 
-## Próximos Passos
+## Funcionalidades Principais
 
-- Finalizar ajustes no layout do Editor de Cidades e garantir responsividade.
-- Implementar regras básicas do jogo e lógica de administração municipal.
-- Desenvolver sistema de eleições simuladas.
-- Adicionar mais dados e indicadores ao jogo.
-
-## Roadmap Detalhado
-
-O roadmap completo e atualizado do projeto pode ser encontrado em [roadmaps/roadmap_revision_8.txt](roadmaps/roadmap_revision_8.txt). As revisões anteriores do roadmap também estão disponíveis na pasta `roadmaps/`.
+*   **Mapa Interativo do Brasil:** Navegue pelo mapa do Brasil, visualize limites municipais e explore dados georreferenciados (utilizando Mapbox GL JS).
+*   **Visualização de Dados:** Explore diversos indicadores e dados municipais através de gráficos e tabelas interativas (ex: séries temporais, rankings).
+*   **Pesquisa de Cidades:** Encontre facilmente municípios específicos e acesse suas informações detalhadas.
+*   **Editor de Dados (Funcionalidade em Desenvolvimento):** Interface para visualizar e potencialmente editar atributos das cidades diretamente no mapa (nome, população, etc.).
+*   **Processamento ETL:** Ferramentas integradas para Extração, Transformação e Carga de dados de diversas fontes públicas (IBGE, FINBRA, etc.).
 
 ## Tecnologias Utilizadas
 
-- **Frontend:** React, Mapbox GL JS, HTML, CSS, JavaScript, Vite
-- **Backend:** (A definir, possivelmente Node.js ou Python para etapas futuras, dependendo da necessidade de processamento de dados mais complexo - atualmente frontend-centric)
-- **Dados:** Dados públicos do governo brasileiro (IBGE, TSE, etc.), GeoJSON, CSV
+*   **Frontend:** React, Vite, Mapbox GL JS, JavaScript, CSS
+*   **Visualização de Dados:** (Especificar bibliotecas, ex: Chart.js, D3.js - se usadas)
+*   **Dados:** GeoJSON, CSV, Dados públicos (IBGE, TSE, FINBRA, SNIS, etc.)
 
-## Como Contribuir
+## Roadmap
 
-Contribuições são bem-vindas! Se você tiver ideias, sugestões de melhorias ou quiser ajudar no desenvolvimento, por favor, entre em contato ou envie um pull request.
+O planejamento e os próximos passos do projeto estão documentados na pasta [`roadmaps/`](./roadmaps/). Consulte os arquivos para detalhes sobre funcionalidades futuras e o cronograma de desenvolvimento.
 
-## Instalação e Execução
+## Começando (Getting Started)
 
-Para executar o jogo localmente, siga os seguintes passos:
+Siga os passos abaixo para configurar e executar o projeto localmente:
 
-1.  **Clone o repositório:** (Este passo assume que você já tem o código no seu ambiente WebContainer)
-
+1.  **Clone o Repositório:**
     ```bash
-    git clone [URL do repositório]
-    cd brazil-game-frontend
+    git clone <URL_DO_REPOSITORIO>
+    cd Adm-de-cidades
     ```
 
-2.  **Instale as dependências:** Utilize o npm para instalar as dependências listadas no arquivo `package.json`.
-
+2.  **Instale as Dependências:**
     ```bash
     npm install
     ```
 
-3.  **Execute o servidor de desenvolvimento:** Inicie o servidor de desenvolvimento Vite para rodar o jogo no seu navegador.
-
+3.  **Execute o Servidor de Desenvolvimento:**
     ```bash
     npm run dev
     ```
 
-4.  **Acesse o jogo no navegador:** O Vite iniciará um servidor de desenvolvimento local. Abra o URL fornecido no seu navegador (geralmente `http://localhost:5173`) para visualizar e interagir com o Jogo de Administração e Eleições do Brasil.
+4.  **Acesse a Aplicação:** Abra o navegador e acesse o endereço fornecido (geralmente `http://localhost:5173`).
 
-### Observações sobre o Ambiente WebContainer
+## Como Contribuir
 
-Este projeto foi desenvolvido para rodar em um ambiente WebContainer, que possui algumas características importantes:
+Contribuições são muito bem-vindas! Se você tem ideias, sugestões ou quer ajudar no desenvolvimento:
 
--   **Ambiente emulador:** O WebContainer emula um sistema Linux no navegador, mas não é um sistema Linux completo.
--   **Restrições de bibliotecas Python:**  A execução de Python é limitada à biblioteca padrão. Não é possível instalar bibliotecas de terceiros com `pip`.
--   **Ausência de compiladores C/C++:** Não há compiladores C/C++ disponíveis, o que impede a execução de binários nativos ou compilação de código C/C++.
--   **Servidor web:** O WebContainer pode executar servidores web utilizando Node.js e npm packages como Vite.
--   **Git não disponível:** O Git não está disponível no ambiente WebContainer.
--   **Scripts Node.js preferíveis:** Para tarefas de script, prefira Node.js em vez de shell scripts devido a limitações no suporte a shell scripts.
+1.  Faça um Fork do projeto.
+2.  Crie uma Branch para sua feature (`git checkout -b feature/MinhaNovaFeature`).
+3.  Faça o Commit de suas mudanças (`git commit -m 'Adiciona MinhaNovaFeature'`).
+4.  Faça o Push para a Branch (`git push origin feature/MinhaNovaFeature`).
+5.  Abra um Pull Request.
 
-Certifique-se de seguir estas instruções para configurar e executar o ambiente de desenvolvimento corretamente.
+Alternativamente, abra uma *Issue* para discutir sua ideia ou relatar um problema.
 
 ## Licença
 
-[MIT License](LICENSE)
-
----
-**Última atualização:** 2024-08-08
+Este projeto é licenciado sob a Licença MIT. Veja o arquivo `LICENSE` (se existir) para mais detalhes.
