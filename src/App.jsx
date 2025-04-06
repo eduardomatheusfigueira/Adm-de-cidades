@@ -512,35 +512,67 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.csv';
+        input.multiple = true; // Allow multiple file selection
+
         input.onchange = (event) => {
-          const file = event.target.files[0];
-          if (file) {
+          const files = event.target.files; // Get the FileList
+          if (!files || files.length === 0) {
+            return; // No files selected
+          }
+
+          let allNewIndicators = [];
+          let filesProcessed = 0;
+          let errors = [];
+
+          Array.from(files).forEach(file => {
             Papa.parse(file, {
               header: true,
               delimiter: ';',
+              skipEmptyLines: true,
               complete: (results) => {
+                filesProcessed++;
                 if (results.data && results.data.length > 0) {
-                  const newIndicators = results.data.filter(row => row.Codigo_Municipio && row.Nome_Indicador && row.Ano_Observacao && row.Valor && row.Indice_Posicional);
-
-                  if (newIndicators.length > 0) {
-                    const updatedIndicadoresData = [...indicadoresData, ...newIndicators];
-                    setIndicadoresData(updatedIndicadoresData);
-
-                    // No need to save to CSV file here, profile file will handle persistence
-                    alert(`${newIndicators.length} indicadores importados com sucesso!`);
-                  } else {
-                    alert('Nenhum indicador válido encontrado no arquivo CSV.');
-                  }
+                  // Basic validation - adjust as needed
+                  const validIndicators = results.data.filter(row =>
+                    row.Codigo_Municipio && row.Nome_Indicador && row.Ano_Observacao && row.Valor // Indice_Posicional might not always be present on import
+                  );
+                  allNewIndicators = allNewIndicators.concat(validIndicators);
                 } else {
-                  alert('Nenhum dado encontrado no arquivo CSV.');
+                  console.warn(`Nenhum dado encontrado no arquivo: ${file.name}`);
+                }
+
+                // Check if all files have been processed
+                if (filesProcessed === files.length) {
+                  if (allNewIndicators.length > 0) {
+                    // Combine with existing data, potentially removing duplicates if necessary
+                    // For simplicity, we'll just append here. Consider adding duplicate checks.
+                    const updatedIndicadoresData = [...indicadoresData, ...allNewIndicators];
+                    setIndicadoresData(updatedIndicadoresData);
+                    alert(`${allNewIndicators.length} indicadores importados de ${files.length} arquivo(s). ${errors.length > 0 ? `Erros: ${errors.join(', ')}` : ''}`);
+                  } else {
+                    alert(`Nenhum indicador válido encontrado nos arquivos selecionados. ${errors.length > 0 ? `Erros: ${errors.join(', ')}` : ''}`);
+                  }
+                  if (errors.length > 0) {
+                     console.error("Erros durante a importação:", errors);
+                  }
                 }
               },
               error: (error) => {
-                console.error('Erro ao processar CSV:', error);
-                alert('Erro ao processar o arquivo CSV.');
+                filesProcessed++;
+                const errorMsg = `Erro ao processar ${file.name}: ${error.message}`;
+                console.error(errorMsg);
+                errors.push(errorMsg);
+                // Check if all files have been processed even on error
+                if (filesProcessed === files.length) {
+                   alert(`Processamento concluído com erros. ${allNewIndicators.length} indicadores importados. Erros: ${errors.join(', ')}`);
+                   if (allNewIndicators.length > 0) {
+                       const updatedIndicadoresData = [...indicadoresData, ...allNewIndicators];
+                       setIndicadoresData(updatedIndicadoresData);
+                   }
+                }
               }
             });
-          }
+          });
         };
         input.click();
       };
