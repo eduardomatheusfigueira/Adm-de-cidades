@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ETLEditData from './ETLEditData'; // Import the data editing component
 import ETLProcessor from './ETL/ETLProcessor'; // Import the new indicator ETL component
+import TransformacaoMunicipios from './ETL/TransformacaoMunicipios'; // Import the new transformation component
 import '../styles/DataVisualizationEnvironment.css';
 import '../styles/ETLEnvironment.css';
 
@@ -10,8 +11,9 @@ const ETLEnvironment = ({
   municipalitiesHeaders,
   indicatorsHeaders
 }) => {
-  const [selectedETL, setSelectedETL] = useState('municipios'); // 'municipios', 'indicadores', 'editar'
+  const [selectedETL, setSelectedETL] = useState('municipios'); // 'municipios', 'indicadores', 'editar', 'transformacao'
   const [etlStatus, setEtlStatus] = useState('idle');
+  const [selectedTransformation, setSelectedTransformation] = useState('municipios'); // 'municipios', etc.
   const [logMessages, setLogMessages] = useState([]);
   const [inputFiles, setInputFiles] = useState({
     populacao: null,
@@ -134,11 +136,18 @@ const ETLEnvironment = ({
           >
             Editar Dados
           </button>
+          <button
+            className={`view-button ${selectedETL === 'transformacao' ? 'active' : ''}`}
+            onClick={() => setSelectedETL('transformacao')}
+          >
+            Processos de Transformação
+          </button>
         </div>
       </div>
 
       <div className="data-visualization-container">
-        {(selectedETL === 'municipios' || selectedETL === 'indicadores') && (
+        {/* Render ETL Config/Log for 'municipios' and 'indicadores' */}
+        {(selectedETL === 'municipios' || selectedETL === 'indicadores') && ! (selectedETL === 'transformacao') && (
           <>
             <div className="data-visualization-sidebar">
               <h3>Configuração ETL</h3>
@@ -298,13 +307,34 @@ const ETLEnvironment = ({
           </>
         )}
 
-        {selectedETL === 'editar' && Array.isArray(indicatorsHeaders) && indicatorsHeaders.length > 0 && ( // Add robust check here too
+        {/* Render Data Editor */}
+        {selectedETL === 'editar' && Array.isArray(indicatorsHeaders) && indicatorsHeaders.length > 0 && (
           <ETLEditData
             initialMunicipalitiesData={initialMunicipalitiesData}
             initialIndicatorsData={initialIndicatorsData}
             municipalitiesHeaders={municipalitiesHeaders}
             indicatorsHeaders={indicatorsHeaders} // Pass only if valid
           />
+        )}
+
+        {/* Render Transformation Processes Section */}
+        {selectedETL === 'transformacao' && (
+          <div className="transformation-process-section">
+            <div className="data-visualization-sidebar transformation-sidebar">
+              <h3>Processos</h3>
+              <button
+                className={`sub-nav-button ${selectedTransformation === 'municipios' ? 'active' : ''}`}
+                onClick={() => setSelectedTransformation('municipios')}
+              >
+                Municípios
+              </button>
+              {/* Add more buttons here for other transformation processes */}
+            </div>
+            <div className="data-visualization-content transformation-content">
+              {selectedTransformation === 'municipios' && <TransformacaoMunicipios />}
+              {/* Add conditional rendering for other transformation components */}
+            </div>
+          </div>
         )}
       </div>
     </div>

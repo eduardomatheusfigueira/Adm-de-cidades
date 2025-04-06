@@ -176,6 +176,78 @@
   font-family: monospace;
 }
 
+/* Transformation Process Section Styles */
+
+.transformation-process-section {
+  display: flex;
+  flex: 1; /* Allow it to take remaining space */
+  height: 100%; /* Ensure it fills the container height */
+  overflow: hidden; /* Prevent internal scrolling issues */
+}
+
+.transformation-sidebar {
+  width: 250px; /* Adjust width as needed */
+  padding: 15px;
+  background-color: #f8f9fa; /* Light background for the sidebar */
+  border-right: 1px solid #dee2e6;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Space between buttons */
+}
+
+.transformation-sidebar h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #495057;
+}
+
+.sub-nav-button {
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #495057;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.sub-nav-button.active, .sub-nav-button:hover {
+  background-color: #e9ecef;
+  color: #007bff; /* Highlight color */
+  border-color: #adb5bd;
+}
+
+.transformation-content {
+  flex: 1; /* Take remaining horizontal space */
+  padding: 20px;
+  overflow-y: auto; /* Allow scrolling if content overflows */
+  background-color: #fff; /* White background for content */
+}
+
+.transformation-details {
+  /* Add specific styles for the content if needed */
+  line-height: 1.6;
+}
+
+.transformation-details h2 {
+  margin-top: 0;
+  color: #343a40;
+}
+
+.transformation-details code {
+  background-color: #e9ecef;
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  border-radius: 3px;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.transformation-details ul {
+  padding-left: 20px;
+}
+
 .view-button.active {
   background-color: #4CAF50;
   color: white;

@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import '../styles/DataSourceInfo.css'; // Styles will be applied
+import TransformacaoMunicipios from './ETL/TransformacaoMunicipios'; // Import the transformation component
+import TransformacaoSNIS from './ETL/TransformacaoSNIS'; // Import the SNIS transformation component
+import TransformacaoIndicePosicional from './ETL/TransformacaoIndicePosicional'; // Import the Positional Index component
+import TransformacaoIPEADATA from './ETL/TransformacaoIPEADATA'; // Import the IPEADATA transformation component
+import TransformacaoDATASUS from './ETL/TransformacaoDATASUS'; // Import the DATASUS transformation component
+import TransformacaoCodigoMunicipio from './ETL/TransformacaoCodigoMunicipio'; // Import the Code Correction component
 
 // --- Catalog Component ---
 const CatalogView = () => {
@@ -1979,10 +1985,69 @@ const ImportFormatsView = () => {
   );
 };
 
+// --- Transformation Process View Component ---
+const TransformationView = () => {
+  const [selectedTransformation, setSelectedTransformation] = useState('municipios'); // 'municipios', 'snis', 'ipeadata', 'datasus', 'codigomun', 'indice'
+
+  return (
+    <div className="transformation-process-section"> {/* Reuse styles from ETLEnvironment.css or add specific ones */}
+      <div className="transformation-sidebar">
+        <h3>Processos</h3>
+        <button
+          className={`sub-nav-button ${selectedTransformation === 'municipios' ? 'active' : ''}`}
+          onClick={() => setSelectedTransformation('municipios')}
+        >
+          Municípios
+        </button>
+        <button
+          className={`sub-nav-button ${selectedTransformation === 'snis' ? 'active' : ''}`}
+          onClick={() => setSelectedTransformation('snis')}
+        >
+          Indicadores SNIS
+        </button>
+        <button
+          className={`sub-nav-button ${selectedTransformation === 'ipeadata' ? 'active' : ''}`}
+          onClick={() => setSelectedTransformation('ipeadata')}
+        >
+          Indicadores IPEADATA
+        </button>
+        <button
+          className={`sub-nav-button ${selectedTransformation === 'datasus' ? 'active' : ''}`}
+          onClick={() => setSelectedTransformation('datasus')}
+        >
+          Indicadores DATASUS
+        </button>
+         <button
+          className={`sub-nav-button ${selectedTransformation === 'codigomun' ? 'active' : ''}`}
+          onClick={() => setSelectedTransformation('codigomun')}
+        >
+          Correção Código Município (6{'->'}7)
+        </button>
+        <button
+          className={`sub-nav-button ${selectedTransformation === 'indice' ? 'active' : ''}`}
+          onClick={() => setSelectedTransformation('indice')}
+        >
+          Índice Posicional
+        </button>
+        {/* Add more buttons here for other transformation processes */}
+      </div>
+      <div className="transformation-content">
+        {selectedTransformation === 'municipios' && <TransformacaoMunicipios />}
+        {selectedTransformation === 'snis' && <TransformacaoSNIS />}
+        {selectedTransformation === 'ipeadata' && <TransformacaoIPEADATA />}
+        {selectedTransformation === 'datasus' && <TransformacaoDATASUS />}
+        {selectedTransformation === 'codigomun' && <TransformacaoCodigoMunicipio />}
+        {selectedTransformation === 'indice' && <TransformacaoIndicePosicional />}
+        {/* Add conditional rendering for other transformation components */}
+      </div>
+    </div>
+  );
+};
+
 
 // --- Main Component ---
 const DataSourceInfo = () => {
-  const [activeSubView, setActiveSubView] = useState('catalog'); // 'catalog' or 'importFormats'
+  const [activeSubView, setActiveSubView] = useState('catalog'); // 'catalog', 'importFormats', or 'transformation'
 
   return (
     <div className="data-source-info-environment">
@@ -2003,6 +2068,12 @@ const DataSourceInfo = () => {
           >
             Formatos de Importação
           </button>
+          <button
+            className={`sub-view-button ${activeSubView === 'transformation' ? 'active' : ''}`}
+            onClick={() => setActiveSubView('transformation')}
+          >
+            Processos de Transformação
+          </button>
         </div>
       </div>
 
@@ -2010,6 +2081,7 @@ const DataSourceInfo = () => {
       <div className="data-source-info-content">
         {activeSubView === 'catalog' && <CatalogView />}
         {activeSubView === 'importFormats' && <ImportFormatsView />}
+        {activeSubView === 'transformation' && <TransformationView />}
       </div>
     </div>
   );
