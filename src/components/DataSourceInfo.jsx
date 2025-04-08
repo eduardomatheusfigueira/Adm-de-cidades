@@ -1784,6 +1784,45 @@ const CatalogView = () => {
 
   return (
     <>
+      {/* Example Data Card */}
+      <div className="base-card example-data-card" style={{ marginBottom: '2rem', borderLeft: '4px solid #2563eb', padding: '1.5rem' }}>
+        <div className="card-content">
+          <h3 className="card-title" style={{ marginTop: '0', marginBottom: '1rem' }}>Dados de Exemplo</h3>
+          <p style={{ marginBottom: '1rem' }}>
+            Não tem seus próprios dados ainda? Sem problemas! Disponibilizamos um conjunto de dados de exemplo para você explorar as funcionalidades do aplicativo. Faça o download abaixo:
+          </p>
+          <a
+            href="https://drive.google.com/drive/folders/1cRH2xw-bqfP7na9tE8l7DRPCjS4wM4cf?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card-link-button"
+            style={{ display: 'inline-block', textDecoration: 'none', marginBottom: '1.5rem' }}
+          >
+            <i className="fas fa-download link-icon"></i> Baixar Dados de Exemplo (Google Drive)
+          </a>
+          <h4 style={{ marginBottom: '0.5rem', fontSize: '1.1em' }}>O que você encontrará:</h4>
+          <ul style={{ listStyle: 'disc', marginLeft: '20px', marginBottom: '1rem', lineHeight: '1.6' }}>
+            <li><strong>Indicadores (<code>indicadores.csv</code>):</strong> Arquivo CSV contendo os valores numéricos dos indicadores (ex: IDH, Taxa de Mortalidade) para cada município e ano específico. Inclui também o Índice Posicional calculado. Essencial para as visualizações temáticas.</li>
+            <li><strong>Municípios (<code>municipios.csv</code>):</strong> Arquivo CSV com informações cadastrais de cada município, como nome, código IBGE, estado, região, área, coordenadas geográficas (latitude/longitude) e se é capital. Forma a base de dados sobre as localidades.</li>
+            <li><strong>Geometrias (<code>municipios-geo.json</code>):</strong> Arquivo GeoJSON que define os limites geográficos (polígonos) de cada município. É usado para desenhar os contornos dos municípios no mapa. Sem ele, os municípios são representados apenas por pontos.</li>
+            <li><strong>Perfis (<code>exemplo_perfil.json</code>):</strong> Arquivo JSON que agrupa os dados de municípios e indicadores em um único arquivo. Carregar um perfil substitui todos os dados existentes no aplicativo, sendo útil para configurar rapidamente um cenário completo.</li>
+          </ul>
+          <h4 style={{ marginBottom: '0.5rem', fontSize: '1.1em' }}>Como importar:</h4>
+          <p>
+            Utilize os botões no menu superior esquerdo (ícone <i className="fas fa-filter"></i>) para importar os arquivos:
+          </p>
+           <ul style={{ listStyle: 'none', paddingLeft: '0', marginBottom: '1rem' }}>
+              <li style={{ marginBottom: '0.5rem' }}><i className="fas fa-file-csv" style={{ marginRight: '8px', color: '#10B981' }}></i> Use <strong>"Importar Indicadores"</strong> para carregar o arquivo <code>indicadores.csv</code>.</li>
+              <li style={{ marginBottom: '0.5rem' }}><i className="fas fa-file-csv" style={{ marginRight: '8px', color: '#10B981' }}></i> Use <strong>"Importar Municípios"</strong> para carregar o arquivo <code>municipios.csv</code>.</li>
+              <li style={{ marginBottom: '0.5rem' }}><i className="fas fa-map-marked-alt" style={{ marginRight: '8px', color: '#3B82F6' }}></i> Use <strong>"Importar Geometria"</strong> para carregar o arquivo <code>municipios-geo.json</code>.</li>
+              <li style={{ marginBottom: '0.5rem' }}><i className="fas fa-file-code" style={{ marginRight: '8px', color: '#F59E0B' }}></i> Use <strong>"Carregar Perfil"</strong> para carregar um arquivo <code>.json</code> de perfil completo.</li>
+           </ul>
+          <p>
+            Certifique-se de que os arquivos seguem os formatos detalhados na aba <strong>"Formatos de Importação"</strong> aqui nesta página para garantir uma importação bem-sucedida.
+          </p>
+        </div>
+      </div>
+
       {/* Index */}
       <nav className="data-source-index">
         <h2>Índice de Conteúdo</h2>

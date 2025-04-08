@@ -1,0 +1,111 @@
+/* Global Styles - Scoped to avoid conflicts if possible, or review */
+/* Consider prefixing classes if needed, e.g., .calculadora-bse-body */
+/* body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+} */
+
+/* Bootstrap Overrides - These might affect Adm-de-cidades if not scoped */
+.calculadora-bse-scope .btn-primary { /* Standard Bootstrap Blue */
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  color: white; /* Ensure text is visible */
+}
+
+.calculadora-bse-scope .btn-primary:hover {
+  background-color: #0b5ed7;
+  border-color: #0a58ca;
+  color: white;
+}
+
+.calculadora-bse-scope .btn-success { /* Standard Bootstrap Green */
+    background-color: #198754;
+    border-color: #198754;
+    color: white;
+}
+
+.calculadora-bse-scope .btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+    color: white;
+}
+
+.calculadora-bse-scope .btn-info { /* Standard Bootstrap Cyan */
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #000; /* Dark text for light background */
+}
+
+.calculadora-bse-scope .btn-info:hover {
+    background-color: #31d2f2;
+    border-color: #25cff2;
+    color: #000;
+}
+
+.calculadora-bse-scope .btn-danger { /* Standard Bootstrap Red */
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.calculadora-bse-scope .btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+    color: white;
+}
+
+.calculadora-bse-scope .card {
+  border-radius: 8px; /* Slightly rounded corners */
+  border: none; /* Remove borders */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow */
+}
+
+.calculadora-bse-scope .table-responsive {
+  overflow-x: auto;
+}
+
+/* Custom Styles - Apply scoping */
+.calculadora-bse-scope h1 {
+  font-size: 2.2rem; /* Slightly larger heading */
+  margin-bottom: 1.5rem;
+  color: #0d6efd; /* Match primary button color */
+}
+
+.calculadora-bse-scope .result-card {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.calculadora-bse-scope .result-card.positive {
+  border-left: 5px solid #198754; /* Match success button color */
+  background-color: #e8f5e9; /* Light Green background */
+}
+
+.calculadora-bse-scope .result-card.negative {
+  border-left: 5px solid #dc3545; /* Match danger button color */
+  background-color: #ffebee; /* Light Red background */
+}
+
+/* Modal styles might need careful review if Adm-de-cidades uses modals */
+.calculadora-bse-scope .modal-content {
+    border-radius: 8px;
+}
+
+.calculadora-bse-scope .modal-header { /* Match primary button color */
+    background-color: #0d6efd;
+    color: white;
+    border-bottom: none;
+}
+
+.calculadora-bse-scope .modal-footer {
+    border-top: none;
+}
+
+/* Add a wrapper class for scoping */
+.calculadora-bse-scope {
+  /* You might add specific base styles for this scope if needed */
+  /* For example, font-family if it shouldn't inherit from Adm-de-cidades body */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}

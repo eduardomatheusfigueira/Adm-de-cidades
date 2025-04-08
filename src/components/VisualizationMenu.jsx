@@ -257,6 +257,11 @@ import React, { useState, useEffect, useRef } from 'react';
         setIsOpen(false);
       };
 
+      const handleShowCalculadoraBSE = () => {
+        console.log("Changing to Calculadora BSE environment");
+        onEnvironmentChange('calculadora-bse'); // Use 'calculadora-bse' as the identifier
+        setIsOpen(false);
+      };
       // Close main menu if clicking outside
       useEffect(() => {
         function handleClickOutside(event) {
@@ -524,10 +529,10 @@ import React, { useState, useEffect, useRef } from 'react';
               <h3>Ambiente de Visualização</h3>
               <div className="visualization-actions">
                 <button
-                  className="show-data-visualization-button"
-                  onClick={handleShowDataVisualization}
+                  className="show-data-source-info-button" // Add a class for potential styling
+                  onClick={handleShowDataSourceInfo}
                 >
-                  Mostrar Visualização de Indicadores
+                  Onde encontrar dados?
                 </button>
                 <button
                   className="show-map-visualization-button"
@@ -536,11 +541,25 @@ import React, { useState, useEffect, useRef } from 'react';
                   Mostrar Visualização de Municípios
                 </button>
                 <button
-                  className="show-data-source-info-button" // Add a class for potential styling
-                  onClick={handleShowDataSourceInfo}
+                  className="show-data-visualization-button"
+                  onClick={handleShowDataVisualization}
                 >
-                  Onde encontrar dados?
+                  Mostrar Visualização de Indicadores
                 </button>
+
+                <button
+                  className="show-calculadora-bse-button menu-button" // Added menu-button for base styling
+                  onClick={handleShowCalculadoraBSE}
+                  style={{ // Inline style for contrast
+                    backgroundColor: '#343a40', // Dark grey
+                    color: 'white',
+                    borderColor: '#343a40',
+                    marginTop: '5px' // Add some spacing
+                  }}
+                >
+                  Calculadora BSE
+                </button>
+                {/* Removed duplicate button */}
               </div>
             </div>
 

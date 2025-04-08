@@ -19,6 +19,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
     import ETLEnvironment from './components/ETLEnvironment'; // Import the new ETL environment
     import CitySearch from './components/CitySearch'; // Import the new CitySearch component
     import DataSourceInfo from './components/DataSourceInfo'; // Import the new data source info component
+    import CalculadoraBSEPlaceholder from './components/CalculadoraBSEPlaceholder'; // Import the placeholder
 
     function parseCSVData(csvText) {
       const lines = csvText.split('\n');
@@ -96,7 +97,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
       // const [geometryField, setGeometryField] = useState(''); // Removed: Unnecessary for standard GeoJSON
       const [visualizationConfig, setVisualizationConfig] = useState(null);
       const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/light-v11'); // Add state for map style
-      const [activeEnvironment, setActiveEnvironment] = useState('map'); // 'map', 'data', or 'etl'
+      const [activeEnvironment, setActiveEnvironment] = useState('dataSourceInfo'); // 'map', 'data', 'etl', 'dataSourceInfo', 'calculadora-bse'
 
 
       // Function to update the map when geojsonData changes
@@ -111,38 +112,53 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
       //   updateMapData();
       // }, [geojsonData]);
 
+      // Effect to set Mapbox access token (runs only once)
       useEffect(() => {
-        // Set the access token
         mapboxgl.accessToken = 'pk.eyJ1IjoiZWR1YXJkb21hdGhldXNmaWd1ZWlyYSIsImEiOiJjbTgwd2tqbzYwemRrMmpwdGVka2FrMG5nIn0.NfOWy2a0J-YHP4mdKs_TAQ';
-
-        if (map.current) return; // Initialize map only once
-
-        setIsMapLoading(true);
-
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current,
-          style: mapStyle, // Use state for initial style
-          center: [lng, lat],
-          zoom: zoom
-        });
-
-        map.current.on('move', () => {
-          setLng(map.current.getCenter().lng.toFixed(4));
-          setLat(map.current.getCenter().lat.toFixed(4));
-          setZoom(map.current.getZoom().toFixed(2));
-        });
-
-        // Use 'style.load' event to ensure style is fully loaded
-        map.current.on('style.load', () => {
-          setMapLoaded(true);
-          setIsMapLoading(false);
-          loadMapData(filteredCsvData, colorAttribute);
-        });
-
-        // Add navigation controls
-        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
       }, []);
+
+      // Effect to initialize and clean up the map based on activeEnvironment
+      useEffect(() => {
+        if (activeEnvironment === 'map' && mapContainer.current) {
+          // Only initialize if environment is 'map' and container exists
+          if (!map.current) { // Initialize map only once per 'map' activation
+            console.log("Initializing Mapbox map...");
+            setIsMapLoading(true);
+            map.current = new mapboxgl.Map({
+              container: mapContainer.current, // Now guaranteed to exist (mostly)
+              style: mapStyle,
+              center: [lng, lat],
+              zoom: zoom
+            });
+
+            map.current.on('move', () => {
+              setLng(map.current.getCenter().lng.toFixed(4));
+              setLat(map.current.getCenter().lat.toFixed(4));
+              setZoom(map.current.getZoom().toFixed(2));
+            });
+
+            map.current.on('style.load', () => {
+              console.log("Map style loaded.");
+              setMapLoaded(true);
+              setIsMapLoading(false);
+              // Initial data load is handled by the other useEffect depending on mapLoaded
+            });
+
+            map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+          }
+        }
+
+        // Cleanup function: Remove map when environment changes away from 'map' or component unmounts
+        return () => {
+          if (map.current) {
+            console.log("Removing Mapbox map instance.");
+            map.current.remove();
+            map.current = null;
+            setMapLoaded(false); // Reset map loaded state
+            setIsMapLoading(true); // Reset loading state for next time
+          }
+        };
+      }, [activeEnvironment]); // Re-run this effect when activeEnvironment changes
 
       // Effect to update map style when mapStyle state changes
       useEffect(() => {
@@ -931,6 +947,8 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
       }, [activeEnvironment, mapLoaded]); // Keep dependencies minimal for resize
 
 
+      // console.log('[App.jsx] Rendering with activeEnvironment:', activeEnvironment); // Keep this log for now
+      // console.log('[App.jsx] Rendering with activeEnvironment:', activeEnvironment); // Keep this log for now
       return (
         <div className="app-container">
           <div className="main-content">
@@ -965,44 +983,44 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
               />
             )}
 
-            {/* Conditionally render map container */}
-            {/* Always render map container, hide with CSS */}
-            {/* Conditionally render map container */}
-            {/* Always render map container, hide with CSS */}
-            <div
-              ref={mapContainer}
-              className={`map-container ${activeEnvironment !== 'map' ? 'hidden-map' : ''}`} // Use specific class 'hidden-map'
-            >
-              {isMapLoading && (
-                <div className="map-loading">
-                  <div className="loading-spinner"></div>
-                  <p>Carregando mapa...</p>
+            {/* Main Content Area - Render Map or Other Environment */}
+            <div className="main-content-area"> {/* Added a wrapper */}
+              {activeEnvironment === 'map' ? (
+                <div
+                  ref={mapContainer}
+                  className="map-container" // No need for hidden-map class here
+                >
+                  {isMapLoading && (
+                    <div className="map-loading">
+                      <div className="loading-spinner"></div>
+                      <p>Carregando mapa...</p>
+                    </div>
+                  )}
+                  <Legend
+                    colorAttribute={
+                      visualizationConfig && visualizationConfig.type === 'indicator'
+                        ? `${visualizationConfig.indicator} (${visualizationConfig.year}) - ${visualizationConfig.valueType === 'value' ? 'Valor' : 'Posição'}`
+                        : colorAttribute
+                    }
+                    colorStops={legendColorStops}
+                  />
                 </div>
-              )}
-              {/* Conditionally render Legend inside map container */}
-              {activeEnvironment === 'map' && (
-                <Legend
-                  colorAttribute={
-                    visualizationConfig && visualizationConfig.type === 'indicator'
-                      ? `${visualizationConfig.indicator} (${visualizationConfig.year}) - ${visualizationConfig.valueType === 'value' ? 'Valor' : 'Posição'}`
-                      : colorAttribute
-                  }
-                  colorStops={legendColorStops}
+              ) : activeEnvironment === 'data' ? (
+                <DataVisualizationEnvironment
+                  csvData={csvData}
+                  indicadoresData={indicadoresData}
                 />
-              )}
+              ) : activeEnvironment === 'dataSourceInfo' ? (
+                <DataSourceInfo />
+              ) : activeEnvironment === 'calculadora-bse' ? (
+                <CalculadoraBSEPlaceholder /> // Render the placeholder
+              ) : activeEnvironment === 'etl' ? (
+                 <ETLEnvironment /> // Added ETL back for completeness
+              ) : null /* Render nothing if environment is unknown */}
             </div>
-
-            {/* Conditionally render other environments */}
-            {activeEnvironment === 'data' && (
-              <DataVisualizationEnvironment
-                csvData={csvData}
-                indicadoresData={indicadoresData}
-              />
+            {activeEnvironment === 'calculadora-bse' && (
+              <CalculadoraBSEPlaceholder /> // Render the placeholder
             )}
-            {activeEnvironment === 'dataSourceInfo' && (
-              <DataSourceInfo />
-            )}
-            {/* Removed ETL Environment rendering */}
 
             {showGeometryImportModal && (
               <div className="modal-overlay">
@@ -1052,7 +1070,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
               </div>
             </div>
             <div className="footer-copyright">
-              © {new Date().getFullYear()} Sistema de Informações de Muicípios
+              © {new Date().getFullYear()} Sistema de Informações de Muicípios por Eduardo Matheus Figueira
             </div>
           </div>
         </div>
