@@ -26,7 +26,13 @@ import React, { useState, useEffect, useRef } from 'react';
       const [selectedRegion, setSelectedRegion] = useState('all');
       const [selectedState, setSelectedState] = useState('all');
       const [activeVisualization, setActiveVisualization] = useState('map');
-
+      const [selectedMunicipalities, setSelectedMunicipalities] = useState(new Set()); // State for multi-select
+      // const [isMunicipalitySelectorOpen, setIsMunicipalitySelectorOpen] = useState(false); // REMOVED
+      const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Reintroduce state for dropdown visibility
+      const [dropdownSearchTerm, setDropdownSearchTerm] = useState(''); // State for dropdown search
+      const dropdownRef = useRef(null); // Reintroduce ref for the dropdown panel
+      const triggerRef = useRef(null); // Reintroduce ref for the trigger button
+ 
       const uniqueRegions = csvData ? [...new Set(csvData.map(city => city.Sigla_Regiao))].filter(Boolean).sort() : [];
       const uniqueStates = csvData ? [...new Set(csvData.map(city => city.Sigla_Estado))].filter(Boolean).sort() : [];
 
@@ -56,10 +62,24 @@ import React, { useState, useEffect, useRef } from 'react';
         setSelectedState(event.target.value);
       };
 
-      const handleSearchChange = (event) => {
-        setSearchTerm(event.target.value);
+      // Remove handleSearchChange as the text input is being replaced
+      // const handleSearchChange = (event) => {
+      //   setSearchTerm(event.target.value);
+      // };
+ 
+      const handleMunicipalitySelectionChange = (event) => {
+        const { value, checked } = event.target;
+        setSelectedMunicipalities(prevSelected => {
+          const newSelected = new Set(prevSelected);
+          if (checked) {
+            newSelected.add(value);
+          } else {
+            newSelected.delete(value);
+          }
+          return newSelected;
+        });
       };
-
+ 
 
       const handleApplyFilters = () => {
         console.log("Aplicando filtros...");
@@ -84,13 +104,10 @@ import React, { useState, useEffect, useRef } from 'react';
           console.log("Após filtro de estado:", tempData.length);
         }
 
-        if (searchTerm.trim() !== '') {
-          const normalizedSearchTerm = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          tempData = tempData.filter(city => {
-            const normalizedCityName = (city.Nome_Municipio || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            return normalizedCityName.includes(normalizedSearchTerm);
-          });
-          console.log("Após filtro de busca:", tempData.length);
+        // Filter by selected municipalities instead of search term
+        if (selectedMunicipalities.size > 0) {
+          tempData = tempData.filter(city => selectedMunicipalities.has(city.Codigo_Municipio));
+          console.log("Após filtro por municípios selecionados:", tempData.length);
         }
 
         Object.keys(currentFilters).forEach(filterKey => {
@@ -110,9 +127,10 @@ import React, { useState, useEffect, useRef } from 'react';
       const handleResetFilters = () => {
         setCityFilter('all');
         setCurrentFilters({});
-        setSearchTerm('');
+        setSearchTerm(''); // Keep resetting searchTerm state even if input is removed for now
         setSelectedRegion('all');
         setSelectedState('all');
+        setSelectedMunicipalities(new Set()); // Reset selected municipalities
         // Reset selectedAttribute as well, which controls the dropdown
         setSelectedAttribute('Sigla_Regiao');
         onFiltersApplied(csvData, 'Sigla_Regiao');
@@ -239,19 +257,36 @@ import React, { useState, useEffect, useRef } from 'react';
         setIsOpen(false);
       };
 
+      // Close main menu if clicking outside
       useEffect(() => {
         function handleClickOutside(event) {
           if (menuRef.current && !menuRef.current.contains(event.target)) {
             setIsOpen(false);
           }
         }
-
         document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+      }, [menuRef]); // Removed isOpen/setIsOpen dependency as it's handled internally now? Check if needed.
+ 
+      // Reintroduce useEffect for closing dropdown
+      useEffect(() => {
+        function handleClickOutsideDropdown(event) {
+          if (
+            dropdownRef.current &&
+            !dropdownRef.current.contains(event.target) &&
+            triggerRef.current && // Also check if the click was on the button itself
+            !triggerRef.current.contains(event.target)
+          ) {
+            setIsDropdownOpen(false);
+          }
+        }
+        if (isDropdownOpen) {
+          document.addEventListener("mousedown", handleClickOutsideDropdown);
+        }
         return () => {
-          document.removeEventListener("mousedown", handleClickOutside);
+          document.removeEventListener("mousedown", handleClickOutsideDropdown);
         };
-      }, [menuRef, isOpen, setIsOpen]);
-
+      }, [isDropdownOpen]);
       const availableStates = selectedRegion === 'all'
         ? uniqueStates
         : csvData ? [...new Set(csvData
@@ -276,14 +311,58 @@ import React, { useState, useEffect, useRef } from 'react';
               <div className="filter-section">
                 <h4>Filtros</h4>
 
-                <div className="search-box">
-                  <input
-                    type="text"
-                    placeholder="Buscar por nome de município..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    className="search-input"
-                  />
+                {/* Replace text input with a placeholder button for multi-select */}
+                {/* Reintroduce Dropdown Trigger and Panel */}
+                <div className="filter-group" style={{ position: 'relative' }}>
+                  <label>Municípios:</label>
+                  <button
+                    ref={triggerRef} // Assign ref to trigger
+                    className="select-municipalities-button" // Use a specific class if needed
+                    onClick={() => setIsDropdownOpen(prev => !prev)} // Toggle dropdown
+                  >
+                    Selecionar Municípios ({selectedMunicipalities.size})
+                  </button>
+                  {isDropdownOpen && (
+                    <div ref={dropdownRef} style={dropdownStyles.dropdownContainer}>
+                      <input
+                        type="text"
+                        placeholder="Buscar município..."
+                        value={dropdownSearchTerm}
+                        onChange={(e) => setDropdownSearchTerm(e.target.value)}
+                        style={dropdownStyles.searchInput}
+                        autoFocus
+                      />
+                      <div style={dropdownStyles.listContainer}>
+                        {(csvData || [])
+                          .filter(city => {
+                            // Corrected filter logic for dropdown search
+                            const normalizedSearch = dropdownSearchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                            const normalizedCityName = (city.Nome_Municipio || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                            if (dropdownSearchTerm.trim() === '') {
+                              return true; // Show all if dropdown search is empty
+                            } else {
+                              return normalizedCityName.includes(normalizedSearch); // Filter otherwise
+                            }
+                          })
+                          .sort((a, b) => a.Nome_Municipio.localeCompare(b.Nome_Municipio))
+                          .map(city => (
+                            <div key={city.Codigo_Municipio} style={dropdownStyles.listItem}>
+                              <input
+                                type="checkbox"
+                                id={`city-dd-${city.Codigo_Municipio}`} // Unique ID for dropdown
+                                value={city.Codigo_Municipio}
+                                checked={selectedMunicipalities.has(city.Codigo_Municipio)}
+                                onChange={handleMunicipalitySelectionChange}
+                                style={{ marginRight: '8px' }}
+                              />
+                              <label htmlFor={`city-dd-${city.Codigo_Municipio}`}>
+                                {city.Nome_Municipio} ({city.Sigla_Estado})
+                              </label>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="filter-group">
@@ -471,8 +550,46 @@ import React, { useState, useEffect, useRef } from 'react';
               </p>
             </div>
           </div>
+
         </div>
       );
+    };
+
+    // Reintroduce dropdown styles
+    const dropdownStyles = {
+      dropdownContainer: {
+        position: 'absolute',
+        top: '100%', // Position below the button
+        left: 0,
+        backgroundColor: '#fff',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.15)',
+        zIndex: 1001, // Ensure it's above map controls etc.
+        width: '300px', // Adjust width as needed
+        maxHeight: '300px', // Limit height
+        display: 'flex',
+        flexDirection: 'column',
+        color: '#333',
+      },
+      searchInput: {
+        padding: '8px 10px',
+        margin: '5px',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+      },
+      listContainer: {
+        overflowY: 'auto',
+        flexGrow: 1,
+        padding: '0 5px 5px 5px',
+      },
+      listItem: {
+        padding: '5px 5px',
+        display: 'flex',
+        alignItems: 'center',
+        fontSize: '0.9em',
+        // cursor: 'pointer', // Optional: makes the whole item look clickable
+      },
     };
 
     export default VisualizationMenu;
