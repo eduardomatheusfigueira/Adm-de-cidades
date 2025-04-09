@@ -97,7 +97,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
       // const [geometryField, setGeometryField] = useState(''); // Removed: Unnecessary for standard GeoJSON
       const [visualizationConfig, setVisualizationConfig] = useState(null);
       const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/light-v11'); // Add state for map style
-      const [activeEnvironment, setActiveEnvironment] = useState('dataSourceInfo'); // 'map', 'data', 'etl', 'dataSourceInfo', 'calculadora-bse'
+      const [activeEnvironment, setActiveEnvironment] = useState('dataSourceInfo'); // Default to Início environment
 
 
       // Function to update the map when geojsonData changes

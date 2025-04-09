@@ -2102,15 +2102,21 @@ const TransformationView = () => {
 
 // --- Main Component ---
 const DataSourceInfo = () => {
-  const [activeSubView, setActiveSubView] = useState('catalog'); // 'catalog', 'importFormats', or 'transformation'
+  const [activeSubView, setActiveSubView] = useState('welcome'); // default to welcome tab
 
   return (
     <div className="data-source-info-environment">
       {/* Header */}
       <div className="data-source-info-header">
-        <h1>Onde Encontrar Dados & Formatos</h1>
+        <h1>Sistema de Informações de Municípios</h1>
         {/* Sub-view Selector Buttons */}
         <div className="sub-view-selector">
+          <button
+            className={`sub-view-button ${activeSubView === 'welcome' ? 'active' : ''}`}
+            onClick={() => setActiveSubView('welcome')}
+          >
+            Boas-vindas
+          </button>
           <button
             className={`sub-view-button ${activeSubView === 'catalog' ? 'active' : ''}`}
             onClick={() => setActiveSubView('catalog')}
@@ -2134,6 +2140,78 @@ const DataSourceInfo = () => {
 
       {/* Main Content Area - Renders based on activeSubView */}
       <div className="data-source-info-content">
+        {activeSubView === 'welcome' && (
+          <div className="data-source-info-content">
+            <h2>Sistema de Informações de Municípios</h2>
+            <p>
+              Esta plataforma foi desenvolvida para facilitar a análise, visualização e gestão de dados municipais brasileiros.
+              Ela permite importar dados, explorar indicadores, visualizar mapas temáticos e preparar dados para apoiar estudos, planejamento e gestão pública.
+            </p>
+
+            <h3>O que você pode fazer com esta ferramenta?</h3>
+            <ul>
+              <li><strong>Importar dados municipais e indicadores</strong> em formato CSV ou GeoJSON.</li>
+              <li><strong>Visualizar mapas temáticos</strong> com dados municipais e indicadores.</li>
+              <li><strong>Explorar tabelas e gráficos</strong> com indicadores sociais, econômicos, ambientais e outros.</li>
+              <li><strong>Calcular indicadores específicos</strong> (Calculadora BSE - <em>em construção</em>).</li>
+              <li><strong>Salvar e carregar perfis</strong> com seus dados para continuar o trabalho depois.</li>
+            </ul>
+
+            <h3>Onde encontrar dados para usar no sistema?</h3>
+            <p>
+              A aba <strong>Catálogo de Bases</strong> reúne links para portais oficiais como IBGE, IPEADATA, DATASUS, Portal da Transparência, entre outros.
+              Além disso, há um link para uma <strong>pasta no Google Drive</strong> com dados prontos para uso no sistema.
+              Você pode baixar dados dessas fontes para importar aqui.
+            </p>
+
+            <h3>Como importar e carregar seus dados</h3>
+            <p>
+              Para importar arquivos, clique no <strong>botão superior esquerdo</strong> (ícone de pastinha):
+            </p>
+            <ul>
+              <li>Importe arquivos CSV com dados de municípios e indicadores.</li>
+              <li>Importe arquivos GeoJSON com geometrias municipais.</li>
+              <li>Carregue um perfil completo em JSON (municípios + indicadores).</li>
+              <li>Salve ou carregue seus perfis de dados.</li>
+            </ul>
+            <p>
+              Consulte a aba <strong>Formatos de Importação</strong> para preparar seus arquivos corretamente.
+            </p>
+
+            <h3>Como navegar, visualizar e filtrar dados</h3>
+            <p>
+              Use o <strong>botão superior direito</strong> (ícone de gráfico) para:
+            </p>
+            <ul>
+              <li>Alternar entre os ambientes: <strong>Mapa</strong>, <strong>Indicadores</strong> e <strong>Início</strong>.</li>
+              <li>Aplicar filtros por região, estado, município, capitais, atributos e indicadores.</li>
+              <li>Alterar o estilo do mapa.</li>
+              <li>Acessar a Calculadora BSE (<em>em construção</em>).</li>
+            </ul>
+
+            <h3>Ambientes de visualização disponíveis</h3>
+            <ul>
+              <li><strong>Mapa:</strong> Visualize municípios e indicadores em um mapa interativo.</li>
+              <li><strong>Indicadores:</strong> Explore tabelas e gráficos detalhados.</li>
+              <li><strong>Calculadora BSE:</strong> (em construção) Ferramenta para cálculos específicos.</li>
+            </ul>
+
+            <h3>Dicas para usar o sistema</h3>
+            <ul>
+              <li>Comece importando seus dados ou usando os dados do Drive.</li>
+              <li>Navegue entre os ambientes para explorar diferentes visualizações.</li>
+              <li>Use os filtros para focar em regiões, municípios ou indicadores específicos.</li>
+              <li>Consulte o catálogo para encontrar mais dados públicos.</li>
+              <li>Salve seus perfis para continuar o trabalho depois.</li>
+            </ul>
+
+            <h3>Comece agora!</h3>
+            <p>
+              Navegue pelas abas acima para explorar dados, importar suas bases e visualizar informações municipais.
+              Esta página serve como guia para aproveitar ao máximo o sistema.
+            </p>
+          </div>
+        )}
         {activeSubView === 'catalog' && <CatalogView />}
         {activeSubView === 'importFormats' && <ImportFormatsView />}
         {activeSubView === 'transformation' && <TransformationView />}

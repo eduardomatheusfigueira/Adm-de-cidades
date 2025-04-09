@@ -28,6 +28,13 @@ code {
   justify-content: space-between; /* Space out child elements */
 }
 
+/* Ensure the main area for non-map environments takes full space */
+.main-content-area {
+  width: 100%;
+  height: 100%; /* Ensure it takes full height too */
+  overflow: auto; /* Allow scrolling within this area if content overflows */
+}
+
 .map-container {
   position: absolute;
   top: 0;

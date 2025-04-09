@@ -532,7 +532,7 @@ import React, { useState, useEffect, useRef } from 'react';
                   className="show-data-source-info-button" // Add a class for potential styling
                   onClick={handleShowDataSourceInfo}
                 >
-                  Onde encontrar dados?
+                  Início
                 </button>
                 <button
                   className="show-map-visualization-button"
