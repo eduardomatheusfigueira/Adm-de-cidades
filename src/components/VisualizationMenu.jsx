@@ -32,7 +32,7 @@ import React, { useState, useEffect, useRef } from 'react';
       const [dropdownSearchTerm, setDropdownSearchTerm] = useState(''); // State for dropdown search
       const dropdownRef = useRef(null); // Reintroduce ref for the dropdown panel
       const triggerRef = useRef(null); // Reintroduce ref for the trigger button
- 
+
       const uniqueRegions = csvData ? [...new Set(csvData.map(city => city.Sigla_Regiao))].filter(Boolean).sort() : [];
       const uniqueStates = csvData ? [...new Set(csvData.map(city => city.Sigla_Estado))].filter(Boolean).sort() : [];
 
@@ -66,7 +66,7 @@ import React, { useState, useEffect, useRef } from 'react';
       // const handleSearchChange = (event) => {
       //   setSearchTerm(event.target.value);
       // };
- 
+
       const handleMunicipalitySelectionChange = (event) => {
         const { value, checked } = event.target;
         setSelectedMunicipalities(prevSelected => {
@@ -79,7 +79,7 @@ import React, { useState, useEffect, useRef } from 'react';
           return newSelected;
         });
       };
- 
+
 
       const handleApplyFilters = () => {
         console.log("Aplicando filtros...");
@@ -257,11 +257,6 @@ import React, { useState, useEffect, useRef } from 'react';
         setIsOpen(false);
       };
 
-      const handleShowCalculadoraBSE = () => {
-        console.log("Changing to Calculadora BSE environment");
-        onEnvironmentChange('calculadora-bse'); // Use 'calculadora-bse' as the identifier
-        setIsOpen(false);
-      };
       // Close main menu if clicking outside
       useEffect(() => {
         function handleClickOutside(event) {
@@ -272,7 +267,7 @@ import React, { useState, useEffect, useRef } from 'react';
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
       }, [menuRef]); // Removed isOpen/setIsOpen dependency as it's handled internally now? Check if needed.
- 
+
       // Reintroduce useEffect for closing dropdown
       useEffect(() => {
         function handleClickOutsideDropdown(event) {
@@ -545,19 +540,6 @@ import React, { useState, useEffect, useRef } from 'react';
                   onClick={handleShowDataVisualization}
                 >
                   Mostrar Visualização de Indicadores
-                </button>
-
-                <button
-                  className="show-calculadora-bse-button menu-button" // Added menu-button for base styling
-                  onClick={handleShowCalculadoraBSE}
-                  style={{ // Inline style for contrast
-                    backgroundColor: '#343a40', // Dark grey
-                    color: 'white',
-                    borderColor: '#343a40',
-                    marginTop: '5px' // Add some spacing
-                  }}
-                >
-                  Calculadora BSE
                 </button>
                 {/* Removed duplicate button */}
               </div>

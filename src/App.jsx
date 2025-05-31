@@ -19,7 +19,6 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
     import ETLEnvironment from './components/ETLEnvironment'; // Import the new ETL environment
     import CitySearch from './components/CitySearch'; // Import the new CitySearch component
     import DataSourceInfo from './components/DataSourceInfo'; // Import the new data source info component
-    import CalculadoraBSEPlaceholder from './components/CalculadoraBSEPlaceholder'; // Import the placeholder
 
     function parseCSVData(csvText) {
       const lines = csvText.split('\n');
@@ -777,7 +776,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
           return;
         }
         let features;
-    
+
         // Check if the data is a FeatureCollection or a simple array
         if (geometryImportData.type === 'FeatureCollection') {
           features = geometryImportData.features;
@@ -787,16 +786,16 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
           alert('Formato de dados inválido. Esperado um GeoJSON FeatureCollection.');
           return;
         }
-    
+
         const processedFeatures = features.map(feature => {
           // Standard GeoJSON structure assumed
           const properties = feature.properties;
           const geometry = feature.geometry;
           const cdMun = properties?.[municipalityCodeField];
-    
+
           // Original logic for non-standard features (kept for potential fallback, but less likely needed)
           /*
-    
+
           // Check if it's a feature or a simple object
           if (feature.type === 'Feature') {
             cdMun = feature.properties?.[municipalityCodeField];
@@ -806,14 +805,14 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
             geometry = feature[geometryField];
           }
           */
-    
+
           // console.log("Feature processing:", feature); // LOG: Inspect feature
           // console.log("Extracted Geometry:", geometry); // LOG: Inspect geometry
           if (!cdMun || !geometry) {
             console.warn('Feature sem código de município ou geometria encontrada:', feature);
             return null;
           }
-    
+
           return {
             type: 'Feature',
             properties: {
@@ -830,7 +829,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
         const updatedFeatures = [...geojsonData.features];
         let updatedCount = 0;
         let newCount = 0;
-    
+
         processedFeatures.forEach(newFeature => {
           const cdMun = String(newFeature.properties.CD_MUN); // Ensure string for matching
           if (existingFeaturesMap.has(cdMun)) {
@@ -933,7 +932,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
           document.removeEventListener('mousedown', handleClickOutsideBar);
         };
       }, [selectedCityInfo]);
- 
+
       // Effect to resize map when switching back to map view
       useEffect(() => {
         if (activeEnvironment === 'map' && map.current && mapLoaded) {
@@ -1012,15 +1011,10 @@ import React, { useRef, useEffect, useState, useMemo } from 'react'; // Import u
                 />
               ) : activeEnvironment === 'dataSourceInfo' ? (
                 <DataSourceInfo />
-              ) : activeEnvironment === 'calculadora-bse' ? (
-                <CalculadoraBSEPlaceholder /> // Render the placeholder
               ) : activeEnvironment === 'etl' ? (
                  <ETLEnvironment /> // Added ETL back for completeness
               ) : null /* Render nothing if environment is unknown */}
             </div>
-            {activeEnvironment === 'calculadora-bse' && (
-              <CalculadoraBSEPlaceholder /> // Render the placeholder
-            )}
 
             {showGeometryImportModal && (
               <div className="modal-overlay">
