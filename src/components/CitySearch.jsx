@@ -1,27 +1,33 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react'; // Adicionado useContext
+import { DataContext } from '../contexts/DataContext'; // Importado DataContext
 
-function CitySearch({ cities = [], onCitySelect }) {
+function CitySearch({
+  // cities = [], // Removido - virá do context
+  onCitySelect
+}) {
+  const { csvData: cities } = useContext(DataContext); // Obtendo cities (csvData) do DataContext
+
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState([]);
 
-  // Memoize city names for efficient searching
-  const cityNames = useMemo(() => cities.map(city => ({
-    name: city.Nome_Municipio || 'Nome Indisponível', // Handle potential missing names
+  const cityNames = useMemo(() =>
+    (cities || []).map(city => ({ // Adicionado fallback para cities ser undefined/null inicialmente
+    name: city.Nome_Municipio || 'Nome Indisponível',
     code: city.Codigo_Municipio,
     lat: parseFloat(city.Latitude_Municipio),
     lng: parseFloat(city.Longitude_Municipio)
-  })).filter(city => city.name && !isNaN(city.lat) && !isNaN(city.lng)), [cities]); // Filter out invalid entries
+  })).filter(city => city.name && city.code && !isNaN(city.lat) && !isNaN(city.lng)), [cities]); // Adicionado city.code no filter
 
   const handleInputChange = (event) => {
     const value = event.target.value;
     setSearchTerm(value);
 
-    if (value.length > 1) { // Start suggesting after 2 characters
+    if (value.length > 1) {
       const filteredSuggestions = cityNames
         .filter(city =>
           city.name.toLowerCase().includes(value.toLowerCase())
         )
-        .slice(0, 5); // Limit suggestions
+        .slice(0, 5);
       setSuggestions(filteredSuggestions);
     } else {
       setSuggestions([]);
@@ -29,19 +35,17 @@ function CitySearch({ cities = [], onCitySelect }) {
   };
 
   const handleSuggestionClick = (city) => {
-    setSearchTerm(city.name); // Set input field to selected city name
-    setSuggestions([]); // Clear suggestions
+    setSearchTerm(city.name);
+    setSuggestions([]);
     if (onCitySelect) {
-      onCitySelect(city); // Trigger the callback with selected city data
+      onCitySelect(city);
     }
   };
 
-  // Basic handling for Enter key (select first suggestion or trigger search if needed)
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' && suggestions.length > 0) {
       handleSuggestionClick(suggestions[0]);
     }
-    // Add more sophisticated search trigger logic if needed (e.g., search button)
   };
 
   return (
@@ -58,7 +62,7 @@ function CitySearch({ cities = [], onCitySelect }) {
         <ul className="city-search-suggestions">
           {suggestions.map((city) => (
             <li
-              key={city.code} // Use city code as key
+              key={city.code}
               onClick={() => handleSuggestionClick(city)}
             >
               {city.name}

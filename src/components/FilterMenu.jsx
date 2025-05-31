@@ -1,39 +1,41 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react'; // Adicionado useContext
 import '../styles/FilterMenu.css';
+import { DataContext } from '../contexts/DataContext'; // Importado DataContext
 
 const FilterMenu = ({
-  onImportIndicators,
-  onImportMunicipios,
-  onImportGeometry,
-  onSaveProfile,
-  onLoadProfile
+  // onImportIndicators, // Removido - virá do context
+  // onImportMunicipios, // Removido - virá do context
+  onImportGeometry, // Mantido, pois App.jsx ainda controla o modal
+  // onSaveProfile, // Removido - virá do context
+  // onLoadProfile // Removido - virá do context
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
+  // Obtendo funções do DataContext
+  const {
+    handleImportIndicators,
+    handleImportMunicipios,
+    // processGeometryImportInternal, // Não usado diretamente aqui, App.jsx/UIContext chamará
+    handleSaveProfile,
+    handleLoadProfile
+  } = useContext(DataContext);
+
   const toggleMenu = () => {
-    console.log("toggleMenu chamado - antes do set", isOpen);
     setIsOpen(!isOpen);
-    console.log("toggleMenu chamado - depois do set", !isOpen);
   };
 
-  // Effect to handle click outside to close menu
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     }
-
-    // Bind the event listener
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      // Unbind the event listener on cleanup
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [menuRef, isOpen, setIsOpen]); // Depend on menuRef and isOpen
-
-  console.log("FilterMenu renderizando com isOpen:", isOpen);
+  }, [menuRef]); // Removido isOpen e setIsOpen das dependências, não são necessárias aqui
 
   return (
     <div className="filter-menu top-right" ref={menuRef}>
@@ -48,7 +50,7 @@ const FilterMenu = ({
           <div className="filter-actions import-export-buttons">
             <button
               className="control-button import-button"
-              onClick={onImportIndicators}
+              onClick={handleImportIndicators} // Usando função do context
               title="Importar Indicadores"
             >
               Importar Indicadores
@@ -56,7 +58,7 @@ const FilterMenu = ({
 
             <button
               className="control-button import-button"
-              onClick={onImportMunicipios}
+              onClick={handleImportMunicipios} // Usando função do context
               title="Importar Municípios"
             >
               Importar Municípios
@@ -64,7 +66,7 @@ const FilterMenu = ({
 
             <button
               className="control-button import-geometry-button"
-              onClick={onImportGeometry}
+              onClick={onImportGeometry} // Ainda usa prop de App.jsx para o modal
               title="Importar Geometria dos Municípios"
             >
               Importar Geometria
@@ -72,7 +74,7 @@ const FilterMenu = ({
 
             <button
               className="control-button save-profile-button"
-              onClick={onSaveProfile}
+              onClick={handleSaveProfile} // Usando função do context
               title="Salvar Perfil"
             >
               Salvar Perfil
@@ -80,7 +82,7 @@ const FilterMenu = ({
 
             <button
               className="control-button load-profile-button"
-              onClick={onLoadProfile}
+              onClick={handleLoadProfile} // Usando função do context
               title="Carregar Perfil"
             >
               Carregar Perfil
