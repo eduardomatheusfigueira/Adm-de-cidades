@@ -419,3 +419,85 @@
 .format-section p > strong { /* Style strong within paragraph */
    color: #e67e22; /* Orange color for emphasis */
 }
+
+/* Catalog Controls */
+.catalog-controls {
+  margin-bottom: 30px;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.search-bar {
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 20px;
+  padding-left: 45px;
+  border-radius: 25px;
+  border: 1px solid #cbd5e1;
+  font-size: 1rem;
+  outline: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #3498db;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+}
+
+.search-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+}
+
+.card-details-text {
+  font-size: 0.9em;
+  color: #475569;
+}
+
+.card-details-row {
+  margin-bottom: 5px;
+}
+
+.data-types-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.data-type-tag {
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: #475569;
+}
+
+.card-footer {
+  margin-top: auto;
+  padding-top: 15px;
+}
+
+.link-unavailable {
+  font-size: 0.9em;
+  color: #94a3b8;
+  font-style: italic;
+}

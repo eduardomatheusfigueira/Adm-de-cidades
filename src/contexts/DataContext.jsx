@@ -310,7 +310,7 @@ ${newCount} novos adicionados.`);
     filteredCsvData,
     setFilteredCsvData, // Para handleCityDelete ou diretamente
     applyFiltersToCsvData, // Nova função para ser chamada por UIContext/VisualizationMenu
-    indicadoresHeaders,
+    indicatorsHeaders,
     indicadoresData,
     setIndicadoresData, // Para handleCityUpdate, por exemplo
     geojsonData,
