@@ -1,66 +1,55 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import CityProfileSummary from './CityProfileSummary';
 import '../styles/CityInfoBottomBar.css';
 import TimeSeriesView from './data-visualization/TimeSeriesView';
-import IndicatorComparisonBarChart from './data-visualization/IndicatorComparisonBarChart'; // Import IndicatorComparisonBarChart
+import IndicatorComparisonBarChart from './data-visualization/IndicatorComparisonBarChart';
+import { DataContext } from '../contexts/DataContext';
+import { UIContext } from '../contexts/UIContext'; // Importado UIContext
 
-const CityInfoBottomBar = ({ cityInfo, onClose, cities, onCitySelect, indicadoresData }) => {
+const CityInfoBottomBar = ({
+  // cityInfo, // Removido -> virá do UIContext
+  // onClose, // Removido -> virá do UIContext
+  onCitySelect // Mantido, pois AppContent ainda lida com a lógica de flyTo e seleção
+}) => {
+  const {
+    // csvData: cities, // Já obtido em DataContext, não precisa ser renomeado aqui se não houver conflito
+    indicadoresData
+  } = useContext(DataContext);
+
+  const {
+    selectedCityInfo: cityInfo, // Obtido do UIContext
+    setSelectedCityInfo // Para o botão de fechar
+  } = useContext(UIContext);
+
   if (!cityInfo) {
     return null;
   }
 
   const cityCode = cityInfo.properties.CD_MUN;
 
-  // State to manage selected year and active page
   const [selectedYear, setSelectedYear] = useState('');
   const [availableYears, setAvailableYears] = useState([]);
-  const [activePage, setActivePage] = useState('overview'); // State for active page, default to 'overview'
-  // const [selectedCityName, setSelectedCityName] = useState(''); // Removed city name state
+  const [activePage, setActivePage] = useState('overview');
 
-  // Use useCallback to ensure handlePageChange is not re-created on every render
   const handlePageChange = useCallback((page) => {
-    setActivePage(page); // Update activePage state in CityInfoBottomBar
+    setActivePage(page);
   }, []);
 
   useEffect(() => {
     if (indicadoresData && cityCode) {
-      // Extract available years for the current city
       const years = [...new Set(indicadoresData
         .filter(indicator => indicator.Codigo_Municipio === cityCode)
         .map(indicator => indicator.Ano_Observacao))]
-        .sort((a, b) => b - a); // Sort years in descending order (most recent first)
+        .sort((a, b) => b - a);
       setAvailableYears(years);
-      // Set initial selected year to the most recent year available or default to the first year
       setSelectedYear(years[0] || '');
     }
   }, [indicadoresData, cityCode]);
 
-  useEffect(() => {
-    // Update selectedCityName when cityInfo changes - Removed city name update
-    // if (cityInfo && cityInfo.properties && cityInfo.properties.NM_MUN) {
-    //   const cityName = cityInfo.properties.NM_MUN.split(' - ')[0]; // Split and take first part
-    //   setSelectedCityName(cityName);
-    // } else {
-    //   setSelectedCityName(''); // or some default value if appropriate
-    // }
-  }, [cityInfo]);
-
-  useEffect(() => {
-    // Determine the range of cities to display
-    if (cities && cityInfo) {
-      const selectedIndex = cities.findIndex(city => city.Codigo_Municipio === cityCode);
-      const startIndex = Math.max(0, selectedIndex - 2);
-      const endIndex = Math.min(cities.length - 1, selectedIndex + 2);
-      const slicedCities = cities.slice(startIndex, endIndex + 1);
-      // setDisplayedCities(slicedCities); // displayedCities is not used anymore
-    }
-  }, [cities, cityInfo, cityCode]);
-
-  const cityIndicators = indicadoresData.filter(indicator =>
+  const cityIndicators = indicadoresData ? indicadoresData.filter(indicator =>
     indicator.Codigo_Municipio === cityCode && indicator.Ano_Observacao === selectedYear
-  );
+  ) : [];
 
-  // Function to sort indicators by Indice_Posicional
   const sortByPosicionalIndex = (indicators, ascending = false) => {
     return [...indicators].sort((a, b) => {
       const indexA = parseFloat(a.Indice_Posicional);
@@ -69,7 +58,6 @@ const CityInfoBottomBar = ({ cityInfo, onClose, cities, onCitySelect, indicadore
     });
   };
 
-  // Get top 3 and bottom 3 indicators
   const topIndicators = sortByPosicionalIndex(cityIndicators).slice(0, 3);
   const bottomIndicators = sortByPosicionalIndex(cityIndicators, true).slice(0, 3);
 
@@ -77,27 +65,16 @@ const CityInfoBottomBar = ({ cityInfo, onClose, cities, onCitySelect, indicadore
     setSelectedYear(event.target.value);
   };
 
-  // const handleCityNameChange = (event) => { // Removed city name change handler
-  //   setSelectedCityName(event.target.value);
-  //   const selectedCity = cities.find(city => city.Nome_Municipio === event.target.value);
-  //   if (selectedCity) {
-  //     onCitySelect(selectedCity); // Use onCitySelect to update the selected city
-  //   }
-  // };
+  const handleClose = () => {
+    setSelectedCityInfo(null); // Usa o setter do UIContext
+  };
 
-
-  // Render different content based on active page
   const renderPageContent = () => {
-    console.log("renderPageContent called, activePage:", activePage);
     switch (activePage) {
       case 'overview':
-        // Overview page shows city info and indicators
         return (
           <>
             <div className="city-info-column">
-              <div className="city-selector">
-                {/* City selector removed */}
-              </div>
               <div className="city-profile">
                 <CityProfileSummary cityData={cityInfo.properties} />
               </div>
@@ -123,14 +100,9 @@ const CityInfoBottomBar = ({ cityInfo, onClose, cities, onCitySelect, indicadore
               </div>
               <div className="year-selector-indicators">
                 <label htmlFor="indicator-year-select">Ano:</label>
-                <select
-                  id="indicator-year-select"
-                  value={selectedYear}
-                  onChange={handleYearChange}
-                >
-                  {availableYears.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
+                <select id="indicator-year-select" value={selectedYear} onChange={handleYearChange} disabled={!availableYears || availableYears.length === 0}>
+                  <option value="">Selecione um ano</option>
+                  {availableYears.map(year => (<option key={year} value={year}>{year}</option>))}
                 </select>
               </div>
             </div>
@@ -139,25 +111,20 @@ const CityInfoBottomBar = ({ cityInfo, onClose, cities, onCitySelect, indicadore
       case 'indicators':
         return (
           <div className="page-content-container">
-            <h3>Lista de Indicadores</h3>
+            <h3>Lista de Indicadores ({selectedYear})</h3>
             <div className="indicators-list">
-              {cityIndicators.map((indicator, index) => (
+              {cityIndicators.length > 0 ? cityIndicators.map((indicator, index) => (
                 <div key={`indicator-${index}`} className="indicator-item">
                   <span className="indicator-name">{indicator.Nome_Indicador}</span>
-                  <span className="indicator-value">Índice: {indicator.Indice_Posicional}</span>
+                  <span className="indicator-value">Índice: {indicator.Indice_Posicional} | Valor: {indicator.Valor}</span>
                 </div>
-              ))}
+              )) : <p>Nenhum indicador disponível para este ano.</p>}
             </div>
             <div className="year-selector">
               <label htmlFor="indicator-year-select-page">Ano:</label>
-              <select
-                id="indicator-year-select-page"
-                value={selectedYear}
-                onChange={handleYearChange}
-              >
-                {availableYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
+              <select id="indicator-year-select-page" value={selectedYear} onChange={handleYearChange} disabled={!availableYears || availableYears.length === 0}>
+                <option value="">Selecione um ano</option>
+                {availableYears.map(year => (<option key={year} value={year}>{year}</option>))}
               </select>
             </div>
           </div>
@@ -168,25 +135,19 @@ const CityInfoBottomBar = ({ cityInfo, onClose, cities, onCitySelect, indicadore
             <TimeSeriesView
               indicadoresData={indicadoresData}
               selectedCity={cityInfo}
-              selectedYear={selectedYear}
             />
           </div>
         );
-      case 'indicatorComparison': // Renamed page to indicatorComparison
+      case 'indicatorComparison':
         return (
           <div className="page-content-container">
-            <h3>Comparação de Indicadores</h3>
+            <h3>Comparação de Indicadores ({selectedYear})</h3>
             <div className="comparison-controls">
               <div className="selector-group">
                 <label htmlFor="indicator-year-comparison">Ano:</label>
-                <select
-                  id="indicator-year-comparison"
-                  value={selectedYear}
-                  onChange={handleYearChange}
-                >
-                  {availableYears.map(year => (
-                    <option key={`comparison-year-${year}`} value={year}>{year}</option>
-                  ))}
+                <select id="indicator-year-comparison" value={selectedYear} onChange={handleYearChange} disabled={!availableYears || availableYears.length === 0}>
+                  <option value="">Selecione um ano</option>
+                  {availableYears.map(year => (<option key={`comparison-year-${year}`} value={year}>{year}</option>))}
                 </select>
               </div>
             </div>
@@ -201,8 +162,8 @@ const CityInfoBottomBar = ({ cityInfo, onClose, cities, onCitySelect, indicadore
         return (
           <div className="page-content-container">
             <h3>Dados Brutos</h3>
-            <p>Acesse os dados brutos do município {cityInfo.properties.NM_MUN}.</p>
-            <button className="download-button">Download CSV</button>
+            <p>Acesse os dados brutos do município {cityInfo.properties.NM_MUN || cityInfo.properties.NAME}.</p>
+            <button className="download-button" onClick={() => alert('Funcionalidade de download a ser implementada.')}>Download CSV (placeholder)</button>
           </div>
         );
       default:
@@ -212,49 +173,20 @@ const CityInfoBottomBar = ({ cityInfo, onClose, cities, onCitySelect, indicadore
 
   return (
     <div className="city-info-bottom-bar">
-      <div className="bar-header"> {/* Header for city selection */}
-        <div className="city-selector">
-          {/* City selector removed */}
-        </div>
+      <button onClick={handleClose} className="close-button" aria-label="Fechar barra de informações">X</button> {/* Usando handleClose */}
+      <div className="bar-header">
+        <h2>{cityInfo.properties.NM_MUN || cityInfo.properties.NAME}</h2>
       </div>
-      {/* Content area - shows different content based on active page */}
       <div className="bar-content">
         {renderPageContent()}
       </div>
-
-      {/* Navigation menu - always at the bottom */}
       <div className="navigation-area">
         <div className="pages-navigation">
-          <button
-            className={`page-button ${activePage === 'overview' ? 'active' : ''}`}
-            onClick={() => handlePageChange('overview')}
-          >
-            Visão Geral
-          </button>
-          <button
-            className={`page-button ${activePage === 'indicators' ? 'active' : ''}`}
-            onClick={() => handlePageChange('indicators')}
-          >
-            Indicadores
-          </button>
-          <button
-            className={`page-button ${activePage === 'timeSeries' ? 'active' : ''}`}
-            onClick={() => handlePageChange('timeSeries')}
-          >
-            Série Temporal
-          </button>
-          <button
-            className={`page-button ${activePage === 'indicatorComparison' ? 'active' : ''}`}
-            onClick={() => handlePageChange('indicatorComparison')} // Updated page name
-          >
-            Comparação de Indicadores
-          </button>
-          <button
-            className={`page-button ${activePage === 'rawData' ? 'active' : ''}`}
-            onClick={() => handlePageChange('rawData')}
-          >
-            Dados Brutos
-          </button>
+          <button className={`page-button ${activePage === 'overview' ? 'active' : ''}`} onClick={() => handlePageChange('overview')}>Visão Geral</button>
+          <button className={`page-button ${activePage === 'indicators' ? 'active' : ''}`} onClick={() => handlePageChange('indicators')}>Indicadores</button>
+          <button className={`page-button ${activePage === 'timeSeries' ? 'active' : ''}`} onClick={() => handlePageChange('timeSeries')}>Série Temporal</button>
+          <button className={`page-button ${activePage === 'indicatorComparison' ? 'active' : ''}`} onClick={() => handlePageChange('indicatorComparison')}>Comparação</button>
+          <button className={`page-button ${activePage === 'rawData' ? 'active' : ''}`} onClick={() => handlePageChange('rawData')}>Dados Brutos</button>
         </div>
       </div>
     </div>

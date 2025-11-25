@@ -1,0 +1,1506 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "date": "2025-11-24",
+    "total_databases": 777,
+    "categories": [
+      "Agricultura e Pecuária",
+      "Cultura e Artes",
+      "Dados Eleitorais",
+      "Desenvolvimento Humano e Social",
+      "Economia e Mercado",
+      "Educação",
+      "Emprego e Mercado de Trabalho",
+      "Energia",
+      "Fundações de Amparo à Pesquisa",
+      "Infraestrutura, Transportes e Mobilidade",
+      "Meio Ambiente e Dados Geográficos",
+      "Pesquisa Científica e Acadêmica",
+      "Pesquisas e Censos do IBGE",
+      "Pesquisas e Estatísticas (Outros)",
+      "Portais de Dados Gerais",
+      "Programas Sociais",
+      "Saúde e Epidemiologia",
+      "Segurança e Justiça",
+      "Tecnologia e Inovação",
+      "Transparência, Controle e Administração Pública"
+    ]
+  },
+  "brazilian_databases": {
+    "Portais de Dados Gerais": [],
+    "Economia e Mercado": [
+      {
+        "name": "IPEADATA",
+        "type": "Econômico e Social",
+        "category": "Economia e Mercado",
+        "institution": "Instituto de Pesquisa Econômica Aplicada (IPEA)",
+        "description": "Base de dados macroeconômicos, financeiros e regionais do Brasil com séries históricas desde 1940",
+        "geographic_coverage": "Brasil (nacional, regional, estadual)",
+        "temporal_coverage": "1940-presente",
+        "data_types": [
+          "PIB",
+          "Inflação",
+          "Emprego",
+          "Renda",
+          "Indicadores sociais",
+          "Finanças públicas"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "Excel",
+          "API OData"
+        ],
+        "url": "http://www.ipeadata.gov.br",
+        "api_url": "http://www.ipeadata.gov.br/api/",
+        "update_frequency": "Variável por série",
+        "api_available": true,
+        "quality_score": 9.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "Sistema Gerenciador de Séries Temporais (SGS)",
+        "type": "Séries Temporais Econômicas",
+        "category": "Economia e Mercado",
+        "institution": "Banco Central do Brasil",
+        "description": "Séries temporais de indicadores econômicos e financeiros brasileiros",
+        "geographic_coverage": "Brasil",
+        "temporal_coverage": "1970-presente",
+        "data_types": [
+          "Taxa de juros",
+          "Câmbio",
+          "Reservas internacionais",
+          "Crédito",
+          "Inflação",
+          "Agregados monetários"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "XML",
+          "JSON",
+          "API"
+        ],
+        "url": "https://www3.bcb.gov.br/sgspub",
+        "api_url": "https://api.bcb.gov.br/dados/serie/",
+        "update_frequency": "Diária/Mensal",
+        "api_available": true,
+        "quality_score": 9.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "Cadastro de Clientes do Sistema Financeiro (CCS)",
+        "type": "Crédito e Sistema Financeiro",
+        "category": "Economia e Mercado",
+        "institution": "Banco Central do Brasil",
+        "description": "Informações sobre operações de crédito e relacionamento com instituições financeiras",
+        "geographic_coverage": "Brasil",
+        "temporal_coverage": "2012-presente",
+        "data_types": [
+          "Crédito",
+          "Modalidades",
+          "Garantias",
+          "Inadimplência"
+        ],
+        "access_type": "Restrito (mediante autorização)",
+        "format": [
+          "CSV",
+          "TXT"
+        ],
+        "url": "https://www.bcb.gov.br/estabilidadefinanceira/ccs",
+        "update_frequency": "Mensal",
+        "api_available": false,
+        "quality_score": 8.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "Dados Abertos da Receita Federal",
+        "type": "Dados Fiscais e Tributários",
+        "category": "Economia e Mercado",
+        "institution": "Receita Federal do Brasil",
+        "description": "Dados sobre arrecadação tributária, empresas, comércio exterior",
+        "geographic_coverage": "Brasil",
+        "temporal_coverage": "2010-presente",
+        "data_types": [
+          "Arrecadação",
+          "CNPJ",
+          "Importação/Exportação",
+          "Malha fiscal"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "TXT"
+        ],
+        "url": "https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/dados-abertos",
+        "update_frequency": "Mensal/Trimestral",
+        "api_available": false,
+        "quality_score": 8.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "ComexStat - Estatísticas de Comércio Exterior",
+        "type": "Comércio Exterior",
+        "category": "Economia e Mercado",
+        "institution": "Ministério da Economia / SECEX",
+        "description": "Dados detalhados sobre importações e exportações brasileiras",
+        "geographic_coverage": "Brasil",
+        "temporal_coverage": "1997-presente",
+        "data_types": [
+          "Exportações",
+          "Importações",
+          "Produtos",
+          "Países",
+          "Valores",
+          "Quantidades"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "Excel",
+          "API"
+        ],
+        "url": "http://comexstat.mdic.gov.br/",
+        "api_url": "http://api.comexstat.mdic.gov.br/",
+        "update_frequency": "Mensal",
+        "api_available": true,
+        "quality_score": 9.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Emprego e Mercado de Trabalho": [
+      {
+        "name": "RAIS - Relação Anual de Informações Sociais",
+        "type": "Mercado de Trabalho Formal",
+        "category": "Emprego e Mercado de Trabalho",
+        "institution": "Ministério do Trabalho e Emprego",
+        "description": "Registro administrativo de vínculos empregatícios formais no Brasil",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "1985-presente",
+        "data_types": [
+          "Vínculos",
+          "Remuneração",
+          "Estabelecimentos",
+          "CBO",
+          "CNAE"
+        ],
+        "access_type": "Aberto (microdados identificados restritos)",
+        "format": [
+          "CSV",
+          "TXT"
+        ],
+        "url": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/estatisticas-trabalho/rais",
+        "update_frequency": "Anual",
+        "api_available": false,
+        "quality_score": 9.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "CAGED - Cadastro Geral de Empregados e Desempregados",
+        "type": "Movimentação Empregatícia",
+        "category": "Emprego e Mercado de Trabalho",
+        "institution": "Ministério do Trabalho e Emprego",
+        "description": "Registro mensal de admissões e desligamentos no mercado formal",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "1992-2019 (substituído pelo Novo CAGED em 2020)",
+        "data_types": [
+          "Admissões",
+          "Desligamentos",
+          "Saldo",
+          "Setores",
+          "Ocupações"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "TXT"
+        ],
+        "url": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/estatisticas-trabalho/caged",
+        "update_frequency": "Mensal",
+        "api_available": false,
+        "quality_score": 8.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Saúde e Epidemiologia": [
+      {
+        "name": "SINAN - Sistema de Informação de Agravos de Notificação",
+        "type": "Vigilância Epidemiológica",
+        "category": "Saúde e Epidemiologia",
+        "institution": "Ministério da Saúde",
+        "description": "Notificação e investigação de casos de doenças e agravos",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "1990-presente",
+        "data_types": [
+          "Doenças notificáveis",
+          "Casos confirmados",
+          "Características dos pacientes"
+        ],
+        "access_type": "Aberto (dados agregados) / Restrito (microdados)",
+        "format": [
+          "CSV",
+          "DBF"
+        ],
+        "url": "http://portalsinan.saude.gov.br/",
+        "update_frequency": "Contínua",
+        "api_available": false,
+        "quality_score": 8.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "SINASC - Sistema de Informações sobre Nascidos Vivos",
+        "type": "Estatísticas Vitais",
+        "category": "Saúde e Epidemiologia",
+        "institution": "Ministério da Saúde",
+        "description": "Registro de nascimentos no Brasil",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "1994-presente",
+        "data_types": [
+          "Nascidos vivos",
+          "Características da mãe",
+          "Parto",
+          "Recém-nascido"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "DBF",
+          "DBC"
+        ],
+        "url": "http://tabnet.datasus.gov.br/cgi/deftohtm.exe?sinasc/cnv/nvuf.def",
+        "update_frequency": "Anual",
+        "api_available": false,
+        "quality_score": 9.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "SIM - Sistema de Informações sobre Mortalidade",
+        "type": "Estatísticas Vitais",
+        "category": "Saúde e Epidemiologia",
+        "institution": "Ministério da Saúde",
+        "description": "Registro de óbitos no Brasil com causas de morte",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "1979-presente",
+        "data_types": [
+          "Óbitos",
+          "Causas de morte (CID)",
+          "Características do falecido"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "DBF",
+          "DBC"
+        ],
+        "url": "http://sim.saude.gov.br/",
+        "update_frequency": "Anual",
+        "api_available": false,
+        "quality_score": 9.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "SIH - Sistema de Informações Hospitalares",
+        "type": "Internações Hospitalares",
+        "category": "Saúde e Epidemiologia",
+        "institution": "Ministério da Saúde",
+        "description": "Dados sobre internações hospitalares no SUS",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "1992-presente",
+        "data_types": [
+          "Internações",
+          "Procedimentos",
+          "Diagnósticos",
+          "Custos",
+          "Tempo de permanência"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "DBF",
+          "DBC"
+        ],
+        "url": "http://sih.datasus.gov.br/",
+        "update_frequency": "Mensal",
+        "api_available": false,
+        "quality_score": 8.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "SIA - Sistema de Informações Ambulatoriais",
+        "type": "Atendimento Ambulatorial",
+        "category": "Saúde e Epidemiologia",
+        "institution": "Ministério da Saúde",
+        "description": "Dados sobre atendimentos ambulatoriais no SUS",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "1994-presente",
+        "data_types": [
+          "Procedimentos ambulatoriais",
+          "Consultas",
+          "Exames",
+          "Custos"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "DBF",
+          "DBC"
+        ],
+        "url": "http://sia.datasus.gov.br/",
+        "update_frequency": "Mensal",
+        "api_available": false,
+        "quality_score": 8.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "CNES - Cadastro Nacional de Estabelecimentos de Saúde",
+        "type": "Infraestrutura de Saúde",
+        "category": "Saúde e Epidemiologia",
+        "institution": "Ministério da Saúde",
+        "description": "Cadastro de estabelecimentos de saúde no Brasil",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "2003-presente",
+        "data_types": [
+          "Estabelecimentos",
+          "Leitos",
+          "Equipamentos",
+          "Profissionais",
+          "Serviços"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "DBF"
+        ],
+        "url": "http://cnes.datasus.gov.br/",
+        "update_frequency": "Mensal",
+        "api_available": false,
+        "quality_score": 8.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Educação": [
+      {
+        "name": "Censo da Educação Superior",
+        "type": "Educação Superior",
+        "category": "Educação",
+        "institution": "Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (INEP)",
+        "description": "Dados sobre instituições, cursos, docentes e estudantes do ensino superior",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "1995-presente",
+        "data_types": [
+          "Matrículas",
+          "Cursos",
+          "IES",
+          "Docentes",
+          "Infraestrutura",
+          "Desempenho"
+        ],
+        "access_type": "Aberto (microdados mediante solicitação)",
+        "format": [
+          "CSV",
+          "SPSS",
+          "SAS",
+          "Stata"
+        ],
+        "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/censo-da-educacao-superior",
+        "update_frequency": "Anual",
+        "api_available": false,
+        "quality_score": 9.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "ENADE - Exame Nacional de Desempenho dos Estudantes",
+        "type": "Avaliação Educacional",
+        "category": "Educação",
+        "institution": "INEP",
+        "description": "Resultados do exame de avaliação de estudantes do ensino superior",
+        "geographic_coverage": "Brasil",
+        "temporal_coverage": "2004-presente",
+        "data_types": [
+          "Desempenho estudantes",
+          "Questionário socioeconômico",
+          "Conceitos cursos"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "TXT"
+        ],
+        "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/enade",
+        "update_frequency": "Trienal por área",
+        "api_available": false,
+        "quality_score": 8.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Infraestrutura, Transportes e Mobilidade": [
+      {
+        "name": "ANTT - Anuário Estatístico de Transportes",
+        "type": "Transportes",
+        "category": "Infraestrutura, Transportes e Mobilidade",
+        "institution": "Agência Nacional de Transportes Terrestres",
+        "description": "Estatísticas sobre transporte terrestre no Brasil",
+        "geographic_coverage": "Brasil",
+        "temporal_coverage": "2000-presente",
+        "data_types": [
+          "Transporte rodoviário",
+          "Ferroviário",
+          "Cargas",
+          "Passageiros",
+          "Frota"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "Excel",
+          "PDF"
+        ],
+        "url": "https://portal.antt.gov.br/anuario-estatistico",
+        "update_frequency": "Anual",
+        "api_available": false,
+        "quality_score": 7.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Meio Ambiente e Dados Geográficos": [
+      {
+        "name": "PRODES - Monitoramento do Desmatamento da Amazônia",
+        "type": "Desmatamento",
+        "category": "Meio Ambiente e Dados Geográficos",
+        "institution": "Instituto Nacional de Pesquisas Espaciais (INPE)",
+        "description": "Monitoramento por satélite do desmatamento na Amazônia Legal",
+        "geographic_coverage": "Amazônia Legal",
+        "temporal_coverage": "1988-presente",
+        "data_types": [
+          "Taxa de desmatamento",
+          "Incremento anual",
+          "Dados geoespaciais"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "Shapefile",
+          "GeoTIFF",
+          "CSV"
+        ],
+        "url": "http://www.obt.inpe.br/OBT/assuntos/programas/amazonia/prodes",
+        "update_frequency": "Anual",
+        "api_available": false,
+        "quality_score": 9.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "DETER - Detecção de Desmatamento em Tempo Real",
+        "type": "Alertas de Desmatamento",
+        "category": "Meio Ambiente e Dados Geográficos",
+        "institution": "INPE",
+        "description": "Sistema de alertas de desmatamento em tempo quase real",
+        "geographic_coverage": "Amazônia e Cerrado",
+        "temporal_coverage": "2004-presente",
+        "data_types": [
+          "Alertas",
+          "Áreas degradadas",
+          "Coordenadas geográficas"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "Shapefile",
+          "CSV"
+        ],
+        "url": "http://www.obt.inpe.br/OBT/assuntos/programas/amazonia/deter",
+        "update_frequency": "Diária",
+        "api_available": true,
+        "quality_score": 8.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "SISAM - Sistema de Monitoramento Ambiental",
+        "type": "Licenciamento Ambiental",
+        "category": "Meio Ambiente e Dados Geográficos",
+        "institution": "IBAMA",
+        "description": "Dados sobre licenciamento ambiental federal",
+        "geographic_coverage": "Brasil",
+        "temporal_coverage": "2000-presente",
+        "data_types": [
+          "Licenças",
+          "Processos",
+          "Empreendimentos",
+          "Condicionantes"
+        ],
+        "access_type": "Parcialmente aberto",
+        "format": [
+          "PDF",
+          "Web"
+        ],
+        "url": "https://servicos.ibama.gov.br/licenciamento/",
+        "update_frequency": "Contínua",
+        "api_available": false,
+        "quality_score": 6.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Segurança e Justiça": [
+      {
+        "name": "SINESP - Sistema Nacional de Informações de Segurança Pública",
+        "type": "Segurança Pública",
+        "category": "Segurança e Justiça",
+        "institution": "Ministério da Justiça e Segurança Pública",
+        "description": "Estatísticas criminais e de segurança pública",
+        "geographic_coverage": "Brasil (por UF)",
+        "temporal_coverage": "2015-presente",
+        "data_types": [
+          "Ocorrências criminais",
+          "Vítimas",
+          "Efetivo policial",
+          "Sistema prisional"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "Excel"
+        ],
+        "url": "https://www.gov.br/mj/pt-br/assuntos/sua-seguranca/seguranca-publica/sinesp",
+        "update_frequency": "Semestral",
+        "api_available": false,
+        "quality_score": 7.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "Fórum Brasileiro de Segurança Pública - Anuário",
+        "type": "Estatísticas Criminais",
+        "category": "Segurança e Justiça",
+        "institution": "Fórum Brasileiro de Segurança Pública",
+        "description": "Compilação de dados de segurança pública de todas as UFs",
+        "geographic_coverage": "Brasil (por UF e município)",
+        "temporal_coverage": "2007-presente",
+        "data_types": [
+          "Crimes violentos",
+          "Mortes violentas",
+          "Roubos",
+          "Efetivo policial",
+          "Gastos"
+        ],
+        "access_type": "Parcialmente aberto",
+        "format": [
+          "Excel",
+          "PDF"
+        ],
+        "url": "https://forumseguranca.org.br/anuario-brasileiro-seguranca-publica/",
+        "update_frequency": "Anual",
+        "api_available": false,
+        "quality_score": 8.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "Justiça em Números - CNJ",
+        "type": "Sistema Judiciário",
+        "category": "Segurança e Justiça",
+        "institution": "Conselho Nacional de Justiça",
+        "description": "Estatísticas do Poder Judiciário brasileiro",
+        "geographic_coverage": "Brasil (por tribunal)",
+        "temporal_coverage": "2004-presente",
+        "data_types": [
+          "Processos",
+          "Sentenças",
+          "Recursos humanos",
+          "Despesas",
+          "Produtividade"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "Excel",
+          "PDF"
+        ],
+        "url": "https://www.cnj.jus.br/pesquisas-judiciarias/justica-em-numeros/",
+        "update_frequency": "Anual",
+        "api_available": false,
+        "quality_score": 8.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "INFOPEN - Levantamento Nacional de Informações Penitenciárias",
+        "type": "Sistema Prisional",
+        "category": "Segurança e Justiça",
+        "institution": "Ministério da Justiça",
+        "description": "Dados sobre população carcerária e sistema prisional",
+        "geographic_coverage": "Brasil (por UF e estabelecimento)",
+        "temporal_coverage": "2005-presente",
+        "data_types": [
+          "População prisional",
+          "Perfil dos presos",
+          "Infraestrutura",
+          "Crimes"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "Excel",
+          "PDF"
+        ],
+        "url": "https://www.gov.br/senappen/pt-br/servicos/sisdepen",
+        "update_frequency": "Semestral",
+        "api_available": false,
+        "quality_score": 7.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Agricultura e Pecuária": [
+      {
+        "name": "PAM - Produção Agrícola Municipal",
+        "type": "Produção Agrícola",
+        "category": "Agricultura e Pecuária",
+        "institution": "IBGE",
+        "description": "Produção, área plantada e colhida das principais culturas agrícolas",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "1974-presente",
+        "data_types": [
+          "Produção",
+          "Área plantada",
+          "Área colhida",
+          "Rendimento",
+          "Valor da produção"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "Excel",
+          "API SIDRA"
+        ],
+        "url": "https://sidra.ibge.gov.br/pesquisa/pam",
+        "update_frequency": "Anual",
+        "api_available": true,
+        "quality_score": 9.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "PPM - Produção da Pecuária Municipal",
+        "type": "Produção Pecuária",
+        "category": "Agricultura e Pecuária",
+        "institution": "IBGE",
+        "description": "Efetivos de rebanhos e produção de origem animal",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "1974-presente",
+        "data_types": [
+          "Rebanhos",
+          "Produção de leite",
+          "Ovos",
+          "Mel",
+          "Lã",
+          "Couro"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "Excel",
+          "API SIDRA"
+        ],
+        "url": "https://sidra.ibge.gov.br/pesquisa/ppm",
+        "update_frequency": "Anual",
+        "api_available": true,
+        "quality_score": 9.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Energia": [
+      {
+        "name": "EPE - Balanço Energético Nacional",
+        "type": "Energia",
+        "category": "Energia",
+        "institution": "Empresa de Pesquisa Energética",
+        "description": "Oferta e consumo de energia no Brasil por fonte e setor",
+        "geographic_coverage": "Brasil (nacional e regional)",
+        "temporal_coverage": "1970-presente",
+        "data_types": [
+          "Oferta de energia",
+          "Consumo",
+          "Fontes",
+          "Setores",
+          "Eficiência energética"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "Excel",
+          "PDF"
+        ],
+        "url": "https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes/balanco-energetico-nacional",
+        "update_frequency": "Anual",
+        "api_available": false,
+        "quality_score": 8.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "ONS - Operador Nacional do Sistema Elétrico",
+        "type": "Sistema Elétrico",
+        "category": "Energia",
+        "institution": "ONS",
+        "description": "Dados operacionais do sistema elétrico brasileiro",
+        "geographic_coverage": "Brasil (por subsistema)",
+        "temporal_coverage": "2000-presente",
+        "data_types": [
+          "Carga",
+          "Geração",
+          "Reservatórios",
+          "Intercâmbio",
+          "Preços"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "Excel"
+        ],
+        "url": "http://www.ons.org.br/paginas/resultados-da-operacao/historico-da-operacao",
+        "update_frequency": "Diária/Mensal",
+        "api_available": false,
+        "quality_score": 8.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Pesquisas e Censos do IBGE": [],
+    "Programas Sociais": [
+      {
+        "name": "Anuário Estatístico da Previdência Social (AEPS)",
+        "type": "Previdência Social",
+        "category": "Programas Sociais",
+        "institution": "Instituto Nacional do Seguro Social (INSS)",
+        "description": "Estatísticas sobre benefícios previdenciários e assistenciais",
+        "geographic_coverage": "Brasil",
+        "temporal_coverage": "1980-presente",
+        "data_types": [
+          "Benefícios",
+          "Contribuintes",
+          "Arrecadação",
+          "Acidentes de trabalho"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "Excel",
+          "PDF"
+        ],
+        "url": "https://www.gov.br/previdencia/pt-br/assuntos/previdencia-social/arquivos/anuario-estatistico-da-previdencia-social",
+        "update_frequency": "Anual",
+        "api_available": false,
+        "quality_score": 7.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "CadÚnico - Cadastro Único para Programas Sociais",
+        "type": "Programas Sociais",
+        "category": "Programas Sociais",
+        "institution": "Ministério do Desenvolvimento Social",
+        "description": "Cadastro de famílias de baixa renda para programas sociais",
+        "geographic_coverage": "Brasil (por município)",
+        "temporal_coverage": "2001-presente",
+        "data_types": [
+          "Famílias cadastradas",
+          "Renda",
+          "Composição familiar",
+          "Características habitacionais"
+        ],
+        "access_type": "Restrito (microdados mediante convênio)",
+        "format": [
+          "CSV",
+          "TXT"
+        ],
+        "url": "https://www.gov.br/cidadania/pt-br/acoes-e-programas/cadastro-unico",
+        "update_frequency": "Mensal",
+        "api_available": false,
+        "quality_score": 8.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Transparência, Controle e Administração Pública": [],
+    "Desenvolvimento Humano e Social": [
+      {
+        "name": "Déficit Habitacional no Brasil",
+        "type": "Habitação",
+        "category": "Desenvolvimento Humano e Social",
+        "institution": "Fundação João Pinheiro",
+        "description": "Cálculo do déficit habitacional e inadequação de domicílios",
+        "geographic_coverage": "Brasil (por UF e município)",
+        "temporal_coverage": "2000-presente",
+        "data_types": [
+          "Déficit habitacional",
+          "Inadequação",
+          "Componentes",
+          "Perfil das famílias"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "Excel",
+          "PDF"
+        ],
+        "url": "http://novosite.fjp.mg.gov.br/deficit-habitacional-no-brasil/",
+        "update_frequency": "Irregular (baseado em PNAD)",
+        "api_available": false,
+        "quality_score": 8.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Pesquisas e Estatísticas (Outros)": [],
+    "Pesquisa Científica e Acadêmica": [
+      {
+        "name": "Diretório de Grupos de Pesquisa CNPq",
+        "type": "Pesquisa Científica",
+        "category": "Pesquisa Científica e Acadêmica",
+        "institution": "Conselho Nacional de Desenvolvimento Científico e Tecnológico",
+        "description": "Censo dos grupos de pesquisa em atividade no Brasil",
+        "geographic_coverage": "Brasil",
+        "temporal_coverage": "1993-presente",
+        "data_types": [
+          "Grupos de pesquisa",
+          "Pesquisadores",
+          "Linhas de pesquisa",
+          "Instituições"
+        ],
+        "access_type": "Aberto",
+        "format": [
+          "CSV",
+          "XML"
+        ],
+        "url": "http://lattes.cnpq.br/web/dgp",
+        "update_frequency": "Bienal",
+        "api_available": false,
+        "quality_score": 8.0,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      },
+      {
+        "name": "Plataforma Lattes",
+        "type": "Currículos de Pesquisadores",
+        "category": "Pesquisa Científica e Acadêmica",
+        "institution": "CNPq",
+        "description": "Currículos de pesquisadores e produção científica",
+        "geographic_coverage": "Brasil",
+        "temporal_coverage": "1999-presente",
+        "data_types": [
+          "Currículos",
+          "Publicações",
+          "Projetos",
+          "Formação",
+          "Orientações"
+        ],
+        "access_type": "Aberto (consulta individual)",
+        "format": [
+          "XML",
+          "Web"
+        ],
+        "url": "http://lattes.cnpq.br/",
+        "update_frequency": "Contínua",
+        "api_available": false,
+        "quality_score": 8.5,
+        "source": "additional_brazilian",
+        "country": "Brasil"
+      }
+    ],
+    "Cultura e Artes": [],
+    "Tecnologia e Inovação": [],
+    "Fundações de Amparo à Pesquisa": [],
+    "Dados Eleitorais": []
+  },
+  "international_databases": [
+    {
+      "name": "Penn World Table",
+      "institution": "University of Groningen",
+      "category": "Economia e Mercado",
+      "geographic_coverage": "Global (183 países)",
+      "temporal_coverage": "1950-2019",
+      "data_types": [
+        "PIB",
+        "PPP",
+        "Produtividade",
+        "Capital",
+        "Trabalho",
+        "TFP"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "Stata",
+        "Excel",
+        "CSV"
+      ],
+      "url": "https://www.rug.nl/ggdc/productivity/pwt/",
+      "applications": [
+        "Crescimento econômico",
+        "Comparações internacionais",
+        "Produtividade"
+      ],
+      "limitations": [
+        "Revisões metodológicas",
+        "Lag temporal",
+        "PPP complexo"
+      ],
+      "api_available": false,
+      "quality_score": 9.2,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "WITS - World Integrated Trade Solution",
+      "institution": "World Bank / UNCTAD",
+      "category": "Economia e Mercado",
+      "geographic_coverage": "Global",
+      "temporal_coverage": "1988-presente",
+      "data_types": [
+        "Comércio internacional",
+        "Tarifas",
+        "Medidas não-tarifárias",
+        "Fluxos comerciais"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "CSV",
+        "Excel",
+        "API"
+      ],
+      "url": "https://wits.worldbank.org/",
+      "applications": [
+        "Política comercial",
+        "Integração econômica",
+        "Barreiras comerciais"
+      ],
+      "limitations": [
+        "Complexidade dos dados",
+        "Nomenclaturas variadas"
+      ],
+      "api_available": true,
+      "quality_score": 8.8,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "BIS Statistics",
+      "institution": "Bank for International Settlements",
+      "category": "Economia e Mercado",
+      "geographic_coverage": "Global (países membros)",
+      "temporal_coverage": "1970-presente",
+      "data_types": [
+        "Mercados financeiros",
+        "Banking statistics",
+        "Dívida",
+        "Derivativos",
+        "Câmbio"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "CSV",
+        "Excel",
+        "SDMX"
+      ],
+      "url": "https://www.bis.org/statistics/",
+      "applications": [
+        "Estabilidade financeira",
+        "Mercados globais",
+        "Regulação bancária"
+      ],
+      "limitations": [
+        "Foco em países desenvolvidos",
+        "Técnico"
+      ],
+      "api_available": true,
+      "quality_score": 9.0,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "Human Development Reports Data",
+      "institution": "United Nations Development Programme",
+      "category": "Desenvolvimento Humano e Social",
+      "geographic_coverage": "Global (189 países)",
+      "temporal_coverage": "1990-presente",
+      "data_types": [
+        "IDH",
+        "Educação",
+        "Saúde",
+        "Renda",
+        "Desigualdade",
+        "Pobreza"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "CSV",
+        "Excel"
+      ],
+      "url": "http://hdr.undp.org/en/data",
+      "applications": [
+        "Desenvolvimento humano",
+        "Desigualdade",
+        "Bem-estar"
+      ],
+      "limitations": [
+        "Indicadores compostos",
+        "Revisões metodológicas"
+      ],
+      "api_available": false,
+      "quality_score": 8.7,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "PovcalNet",
+      "institution": "World Bank",
+      "category": "Desenvolvimento Humano e Social",
+      "geographic_coverage": "Global (164 países)",
+      "temporal_coverage": "1981-presente",
+      "data_types": [
+        "Pobreza",
+        "Desigualdade",
+        "Distribuição de renda",
+        "Gini",
+        "Linhas de pobreza"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "CSV",
+        "Excel",
+        "API"
+      ],
+      "url": "https://pip.worldbank.org/",
+      "applications": [
+        "Pobreza global",
+        "Desigualdade",
+        "Distribuição de renda"
+      ],
+      "limitations": [
+        "Dados de surveys",
+        "Cobertura irregular",
+        "Comparabilidade"
+      ],
+      "api_available": true,
+      "quality_score": 8.9,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "Global Burden of Disease (GBD)",
+      "institution": "Institute for Health Metrics and Evaluation (IHME)",
+      "category": "Saúde e Epidemiologia",
+      "geographic_coverage": "Global (204 países)",
+      "temporal_coverage": "1990-presente",
+      "data_types": [
+        "Mortalidade",
+        "Morbidade",
+        "Fatores de risco",
+        "DALYs",
+        "YLLs",
+        "YLDs"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "CSV",
+        "Excel",
+        "API"
+      ],
+      "url": "http://ghdx.healthdata.org/gbd-results-tool",
+      "applications": [
+        "Carga de doença",
+        "Prioridades de saúde",
+        "Comparações internacionais"
+      ],
+      "limitations": [
+        "Estimativas modeladas",
+        "Complexidade metodológica",
+        "Incerteza"
+      ],
+      "api_available": true,
+      "quality_score": 9.1,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "DHS Program - Demographic and Health Surveys",
+      "institution": "USAID",
+      "category": "Saúde e Epidemiologia",
+      "geographic_coverage": "Países em desenvolvimento (90+ países)",
+      "temporal_coverage": "1984-presente",
+      "data_types": [
+        "Saúde reprodutiva",
+        "Mortalidade infantil",
+        "Nutrição",
+        "HIV/AIDS",
+        "Malária"
+      ],
+      "access_type": "Aberto (registro requerido)",
+      "format": [
+        "Stata",
+        "SPSS",
+        "SAS",
+        "CSV"
+      ],
+      "url": "https://dhsprogram.com/",
+      "applications": [
+        "Saúde materno-infantil",
+        "Planejamento familiar",
+        "Nutrição"
+      ],
+      "limitations": [
+        "Países selecionados",
+        "Periodicidade irregular",
+        "Amostral"
+      ],
+      "api_available": true,
+      "quality_score": 9.0,
+      "source": "international_validated",
+      "country": "Países em desenvolvimento"
+    },
+    {
+      "name": "PISA - Programme for International Student Assessment",
+      "institution": "OECD",
+      "category": "Educação",
+      "geographic_coverage": "80+ países",
+      "temporal_coverage": "2000-presente",
+      "data_types": [
+        "Proficiência em leitura",
+        "Matemática",
+        "Ciências",
+        "Contexto socioeconômico"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "SPSS",
+        "SAS",
+        "CSV"
+      ],
+      "url": "https://www.oecd.org/pisa/data/",
+      "applications": [
+        "Qualidade educacional",
+        "Equidade",
+        "Políticas educacionais"
+      ],
+      "limitations": [
+        "Trienal",
+        "Amostral",
+        "Foco em 15 anos"
+      ],
+      "api_available": false,
+      "quality_score": 9.3,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "TIMSS - Trends in International Mathematics and Science Study",
+      "institution": "IEA - International Association for Evaluation of Educational Achievement",
+      "category": "Educação",
+      "geographic_coverage": "60+ países",
+      "temporal_coverage": "1995-presente",
+      "data_types": [
+        "Matemática",
+        "Ciências",
+        "4º e 8º anos",
+        "Contexto escolar"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "SPSS",
+        "SAS"
+      ],
+      "url": "https://timssandpirls.bc.edu/",
+      "applications": [
+        "Avaliação educacional",
+        "Tendências",
+        "Currículo"
+      ],
+      "limitations": [
+        "Quadrienal",
+        "Países selecionados"
+      ],
+      "api_available": false,
+      "quality_score": 8.8,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "Worldwide Governance Indicators (WGI)",
+      "institution": "World Bank",
+      "category": "Transparência, Controle e Administração Pública",
+      "geographic_coverage": "Global (200+ países)",
+      "temporal_coverage": "1996-presente",
+      "data_types": [
+        "Voz e accountability",
+        "Estabilidade política",
+        "Efetividade governamental",
+        "Qualidade regulatória",
+        "Estado de direito",
+        "Controle de corrupção"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "Excel",
+        "CSV"
+      ],
+      "url": "https://info.worldbank.org/governance/wgi/",
+      "applications": [
+        "Qualidade institucional",
+        "Governança",
+        "Desenvolvimento"
+      ],
+      "limitations": [
+        "Indicadores de percepção",
+        "Margens de erro",
+        "Subjetividade"
+      ],
+      "api_available": false,
+      "quality_score": 8.6,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "Transparency International - Corruption Perceptions Index",
+      "institution": "Transparency International",
+      "category": "Transparência, Controle e Administração Pública",
+      "geographic_coverage": "Global (180 países)",
+      "temporal_coverage": "1995-presente",
+      "data_types": [
+        "Percepção de corrupção",
+        "Rankings",
+        "Scores"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "Excel",
+        "CSV"
+      ],
+      "url": "https://www.transparency.org/en/cpi",
+      "applications": [
+        "Corrupção",
+        "Governança",
+        "Investimento"
+      ],
+      "limitations": [
+        "Percepções",
+        "Não mede corrupção real",
+        "Metodologia debatida"
+      ],
+      "api_available": false,
+      "quality_score": 7.8,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "Climate Change Knowledge Portal",
+      "institution": "World Bank",
+      "category": "Meio Ambiente e Dados Geográficos",
+      "geographic_coverage": "Global",
+      "temporal_coverage": "1901-2100 (projeções)",
+      "data_types": [
+        "Temperatura",
+        "Precipitação",
+        "Extremos climáticos",
+        "Projeções",
+        "Vulnerabilidade"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "CSV",
+        "NetCDF",
+        "API"
+      ],
+      "url": "https://climateknowledgeportal.worldbank.org/",
+      "applications": [
+        "Mudanças climáticas",
+        "Adaptação",
+        "Vulnerabilidade"
+      ],
+      "limitations": [
+        "Modelos climáticos",
+        "Incerteza em projeções"
+      ],
+      "api_available": true,
+      "quality_score": 8.5,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "Global Forest Watch",
+      "institution": "World Resources Institute",
+      "category": "Meio Ambiente e Dados Geográficos",
+      "geographic_coverage": "Global",
+      "temporal_coverage": "2000-presente",
+      "data_types": [
+        "Cobertura florestal",
+        "Desmatamento",
+        "Incêndios",
+        "Alertas"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "GeoJSON",
+        "Shapefile",
+        "API"
+      ],
+      "url": "https://www.globalforestwatch.org/",
+      "applications": [
+        "Monitoramento florestal",
+        "Desmatamento",
+        "Conservação"
+      ],
+      "limitations": [
+        "Resolução espacial",
+        "Cobertura de nuvens"
+      ],
+      "api_available": true,
+      "quality_score": 8.7,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "Armed Conflict Location & Event Data (ACLED)",
+      "institution": "ACLED",
+      "category": "Segurança e Justiça",
+      "geographic_coverage": "Global (foco em conflitos)",
+      "temporal_coverage": "1997-presente",
+      "data_types": [
+        "Eventos de conflito",
+        "Protestos",
+        "Violência",
+        "Localização",
+        "Atores"
+      ],
+      "access_type": "Aberto (registro requerido)",
+      "format": [
+        "CSV",
+        "Excel",
+        "API"
+      ],
+      "url": "https://acleddata.com/",
+      "applications": [
+        "Conflitos",
+        "Violência política",
+        "Protestos"
+      ],
+      "limitations": [
+        "Cobertura varia por região",
+        "Codificação subjetiva"
+      ],
+      "api_available": true,
+      "quality_score": 8.8,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "Gender Statistics - World Bank",
+      "institution": "World Bank",
+      "category": "Desenvolvimento Humano e Social",
+      "geographic_coverage": "Global",
+      "temporal_coverage": "1960-presente",
+      "data_types": [
+        "Educação por gênero",
+        "Emprego",
+        "Saúde",
+        "Participação política",
+        "Violência"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "CSV",
+        "Excel",
+        "API"
+      ],
+      "url": "https://genderdata.worldbank.org/",
+      "applications": [
+        "Igualdade de gênero",
+        "Empoderamento feminino",
+        "Políticas de gênero"
+      ],
+      "limitations": [
+        "Dados agregados",
+        "Cobertura irregular"
+      ],
+      "api_available": true,
+      "quality_score": 8.4,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "UN Migration Data Portal",
+      "institution": "International Organization for Migration (IOM)",
+      "category": "Desenvolvimento Humano e Social",
+      "geographic_coverage": "Global",
+      "temporal_coverage": "1990-presente",
+      "data_types": [
+        "Fluxos migratórios",
+        "Estoque de migrantes",
+        "Remessas",
+        "Refugiados"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "CSV",
+        "Excel"
+      ],
+      "url": "https://www.migrationdataportal.org/",
+      "applications": [
+        "Migração internacional",
+        "Políticas migratórias",
+        "Desenvolvimento"
+      ],
+      "limitations": [
+        "Qualidade varia por país",
+        "Subnotificação"
+      ],
+      "api_available": false,
+      "quality_score": 7.9,
+      "source": "international_validated",
+      "country": "Global"
+    },
+    {
+      "name": "UNHCR Refugee Data",
+      "institution": "United Nations High Commissioner for Refugees",
+      "category": "Desenvolvimento Humano e Social",
+      "geographic_coverage": "Global",
+      "temporal_coverage": "1951-presente",
+      "data_types": [
+        "Refugiados",
+        "Solicitantes de asilo",
+        "Deslocados internos",
+        "Apátridas"
+      ],
+      "access_type": "Aberto",
+      "format": [
+        "CSV",
+        "Excel",
+        "API"
+      ],
+      "url": "https://www.unhcr.org/refugee-statistics/",
+      "applications": [
+        "Refúgio",
+        "Deslocamento forçado",
+        "Proteção internacional"
+      ],
+      "limitations": [
+        "Definições variam",
+        "Subnotificação em conflitos"
+      ],
+      "api_available": true,
+      "quality_score": 8.6,
+      "source": "international_validated",
+      "country": "Global"
+    }
+  ]
+}
