@@ -1,0 +1,1607 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "date": "Novembro 2025",
+    "total_databases": "80+"
+  },
+  "brazilian_databases": {
+    "Geral e Metadados": [
+      {
+        "name": "Portal Brasileiro de Dados Abertos",
+        "type": "Principal",
+        "description": "O Portal Brasileiro de Dados Abertos é o portal central que reúne dados públicos de diversas instituições governamentais brasileiras. É o ponto de partida para explorar a maioria das bases de dados disponíveis.",
+        "info_available": [
+          "Catálogo de conjuntos de dados de diversos órgãos",
+          "Dados estatísticos, geográficos, financeiros e orçamentários",
+          "Informações sobre programas e políticas públicas",
+          "Dados de todos os setores da administração pública"
+        ],
+        "how_to_use": [
+          "Acesse o portal e use a barra de pesquisa para encontrar conjuntos de dados",
+          "Filtre por organizações, temas ou formatos de dados",
+          "Baixe os dados em formatos como CSV, JSON, XML",
+          "Leia a documentação específica de cada conjunto de dados"
+        ],
+        "url": "https://dados.gov.br/"
+      },
+      {
+        "name": "IBGE - SIDRA (Sistema IBGE de Recuperação Automática)",
+        "type": "Estatísticas",
+        "description": "O SIDRA é o principal sistema de dados estatísticos do IBGE, oferecendo acesso a tabelas de dados de diversas pesquisas e censos realizados pelo instituto.",
+        "info_available": [
+          "Dados demográficos (Censo Demográfico, PNAD)",
+          "Indicadores econômicos (PIB, inflação, emprego)",
+          "Dados agropecuários (Censo Agropecuário)",
+          "Informações geográficas e cartográficas",
+          "Estatísticas sociais (educação, saúde, trabalho)"
+        ],
+        "how_to_use": [
+          "Acesse o SIDRA e navegue pelas pesquisas disponíveis",
+          "Selecione variáveis, períodos e localidades de interesse",
+          "Gere tabelas personalizadas para análise",
+          "Exporte os dados em formatos como XLS, CSV ou HTML"
+        ],
+        "url": "https://sidra.ibge.gov.br/"
+      },
+      {
+        "name": "IPARDES - BDEweb (Base de Dados do Estado)",
+        "type": "Regional",
+        "description": "O BDEweb do Instituto Paranaense de Desenvolvimento Econômico e Social (IPARDES) é um sistema de informações estatísticas com mais de 15 milhões de dados classificados por grandes temas e assuntos, focado no estado do Paraná.",
+        "info_available": [
+          "Produto Interno Bruto (PIB) municipal e estadual",
+          "Índice de Desenvolvimento Humano (IDH)",
+          "Índice Ipardes de Desempenho Municipal (IPDM)",
+          "Indicadores sociais, econômicos e demográficos",
+          "Dados sobre municípios do Paraná"
+        ],
+        "how_to_use": [
+          "Acesse o BDEweb e selecione o tipo de consulta (variáveis ou localidades)",
+          "Escolha os temas, subtemas e variáveis de interesse",
+          "Selecione o período e as localidades para análise",
+          "Exporte os dados em formatos como XLS ou PDF"
+        ],
+        "url": "https://www.ipardes.pr.gov.br/Pagina/Base-de-Dados-do-Estado"
+      },
+      {
+        "name": "Base dos Dados",
+        "type": "Geral",
+        "description": "A Base dos Dados é uma plataforma que centraliza e padroniza dados públicos brasileiros, tornando-os mais acessíveis e utilizáveis. Embora não seja governamental, reúne dados de fontes oficiais de forma organizada.",
+        "info_available": [
+          "Dados socioeconômicos de diversas fontes governamentais",
+          "Informações sobre eleições, educação, saúde e economia",
+          "Dados tratados e padronizados para análise",
+          "Bases de dados integradas de diferentes órgãos",
+          "Bases preparadas para integrações via SQL e Python"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e explore os conjuntos de dados disponíveis",
+          "Utilize os filtros para encontrar dados por tema ou fonte",
+          "Faça o download direto ou use a API via Python ou R",
+          "Consulte a documentação para entender a estrutura dos dados",
+          "Consulte diretamente via BigQuery"
+        ],
+        "url": "https://basedosdados.org/"
+      }
+    ],
+    "Economia e Mercado": [
+      {
+        "name": "IPEADATA",
+        "type": "Economia",
+        "description": "O IPEADATA é uma base de dados macroeconômicos, financeiros e regionais do Brasil mantida pelo Instituto de Pesquisa Econômica Aplicada (IPEA).",
+        "info_available": [
+          "Dados macroeconômicos (inflação, PIB, câmbio, juros)",
+          "Séries históricas financeiras e econômicas",
+          "Indicadores sociais e regionais",
+          "Dados demográficos e geográficos",
+          "Informações sobre mercado de trabalho"
+        ],
+        "how_to_use": [
+          "Acesse o IPEADATA e escolha entre as bases macro, regional ou social",
+          "Use a busca para encontrar séries específicas",
+          "Visualize gráficos ou tabelas das séries temporais",
+          "Exporte os dados em formatos como XLS, CSV ou HTML"
+        ],
+        "url": "http://www.ipeadata.gov.br/",
+        "status": "TODO: This link is timing out."
+      },
+      {
+        "name": "Portal da Transparência",
+        "type": "Orçamento",
+        "description": "O Portal da Transparência do Governo Federal permite o acompanhamento da execução orçamentária e financeira do governo, oferecendo informações sobre receitas, despesas e transferências de recursos.",
+        "info_available": [
+          "Despesas e receitas do governo federal",
+          "Transferências de recursos para estados e municípios",
+          "Dados sobre programas sociais e beneficiários",
+          "Informações sobre servidores públicos",
+          "Contratos, convênios e licitações"
+        ],
+        "how_to_use": [
+          "Acesse o portal e navegue pelos menus temáticos",
+          "Use os filtros para refinar as consultas por órgão, período e tipo",
+          "Explore os dados através dos painéis interativos",
+          "Faça download dos dados em formatos abertos (CSV, JSON)"
+        ],
+        "url": "https://portaldatransparencia.gov.br/"
+      },
+      {
+        "name": "SICONFI - Sistema de Informações Contábeis e Fiscais",
+        "type": "Finanças",
+        "description": "O SICONFI é um sistema do Tesouro Nacional que coleta, armazena e disponibiliza dados contábeis e fiscais de estados, municípios e do Distrito Federal.",
+        "info_available": [
+          "Relatórios fiscais de estados e municípios",
+          "Balanços orçamentários, financeiros e patrimoniais",
+          "Demonstrações contábeis de entes públicos",
+          "Indicadores fiscais e financeiros",
+          "Matriz de saldos contábeis"
+        ],
+        "how_to_use": [
+          "Acesse o SICONFI e navegue pelas opções de consulta",
+          "Selecione o tipo de relatório (DCA, RGF, RREO)",
+          "Escolha o ente federativo, o período e os dados desejados",
+          "Visualize ou exporte os dados em formatos como XLS ou PDF"
+        ],
+        "url": "https://siconfi.tesouro.gov.br/",
+        "status": "TODO: This link is failing with an SSL error."
+      },
+      {
+        "name": "Banco Central - Estatísticas",
+        "type": "Financeiro",
+        "description": "O portal de estatísticas do Banco Central do Brasil disponibiliza dados sobre o sistema financeiro, câmbio, crédito, balanço de pagamentos e outros indicadores econômicos.",
+        "info_available": [
+          "Séries temporais de indicadores econômicos",
+          "Taxas de juros e de câmbio",
+          "Dados sobre crédito e mercado financeiro",
+          "Estatísticas monetárias e de balanço de pagamentos",
+          "Indicadores de inflação e atividade econômica"
+        ],
+        "how_to_use": [
+          "Acesse o Sistema Gerenciador de Séries Temporais (SGS)",
+          "Pesquise por código ou nome da série de interesse",
+          "Defina o período de consulta e visualize os dados",
+          "Exporte os dados em diversos formatos (CSV, XLS, JSON)"
+        ],
+        "url": "https://www.bcb.gov.br/estatisticas"
+      },
+      {
+        "name": "Comex Stat - Estatísticas de Comércio Exterior",
+        "type": "Comércio",
+        "description": "O Comex Stat é o sistema oficial para consulta e extração de dados do comércio exterior brasileiro, desenvolvido pelo Ministério do Desenvolvimento, Indústria, Comércio e Serviços (MDIC).",
+        "info_available": [
+          "Dados de exportações e importações brasileiras",
+          "Balança comercial por período, produto e país",
+          "Estatísticas por Unidade da Federação",
+          "Informações sobre produtos por Nomenclatura Comum do Mercosul (NCM)",
+          "Séries históricas do comércio exterior"
+        ],
+        "how_to_use": [
+          "Acesse o Comex Stat e escolha entre exportação ou importação",
+          "Defina os filtros (período, produto, país, UF)",
+          "Selecione as variáveis para análise",
+          "Visualize os resultados e exporte em CSV, XLS ou PDF"
+        ],
+        "url": "https://comexstat.mdic.gov.br/",
+        "status": "TODO: This link is failing with an SSL error."
+      },
+      {
+        "name": "Portal de Dados Abertos da CVM",
+        "type": "Financeiro",
+        "description": "Plataforma que disponibiliza dados de empresas de capital aberto, fundos de investimento e outros participantes do mercado de capitais brasileiro, permitindo acompanhar a evolução e desempenho das companhias listadas.",
+        "info_available": [
+          "Demonstrações financeiras de companhias abertas",
+          "Dados cadastrais de empresas registradas",
+          "Informações sobre fundos de investimento",
+          "Dados de operações e transações no mercado",
+          "Documentos e fatos relevantes de empresas de capital aberto"
+        ],
+        "how_to_use": [
+          "Acesse o portal e navegue pelos conjuntos de dados",
+          "Filtre por empresa, período ou tipo de documento",
+          "Baixe os dados em formato aberto (CSV, JSON)",
+          "Utilize as APIs disponíveis para integração com sistemas"
+        ],
+        "url": "https://dados.cvm.gov.br/"
+      },
+      {
+        "name": "B3 - Empresas Listadas",
+        "type": "Bolsa",
+        "description": "Portal com informações sobre todas as empresas listadas na B3 (Brasil, Bolsa, Balcão), principal bolsa de valores brasileira, incluindo dados financeiros, documentos oficiais e informações de governança corporativa.",
+        "info_available": [
+          "Dados cadastrais de empresas listadas",
+          "Demonstrações financeiras e documentos corporativos",
+          "Informações sobre governança corporativa",
+          "Dados de cotações e negociações",
+          "Histórico de dividendos e eventos corporativos"
+        ],
+        "how_to_use": [
+          "Acesse o portal e pesquise por empresa",
+          "Consulte relatórios e demonstrações financeiras",
+          "Baixe dados históricos de negociação",
+          "Acompanhe fatos relevantes e comunicados ao mercado"
+        ],
+        "url": "https://www.b3.com.br/pt_br/produtos-e-servicos/negociacao/renda-variavel/empresas-listadas.htm"
+      },
+      {
+        "name": "Banco Central - Dados Abertos",
+        "type": "Monetário",
+        "description": "Portal de dados abertos do Banco Central do Brasil que disponibiliza informações sobre o sistema financeiro, política monetária, cambial e de crédito, permitindo análises econômicas e financeiras do país.",
+        "info_available": [
+          "Séries temporais de indicadores econômicos e financeiros",
+          "Dados sobre instituições financeiras e suas operações",
+          "Informações sobre câmbio, inflação e juros",
+          "Estatísticas de crédito e endividamento",
+          "Indicadores do sistema de pagamentos brasileiro"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos ou o Sistema Gerenciador de Séries Temporais (SGS)",
+          "Busque os indicadores de interesse por tema ou código",
+          "Selecione o período e formato de visualização",
+          "Exporte os dados em diversos formatos (CSV, JSON, Excel)"
+        ],
+        "url": "https://dadosabertos.bcb.gov.br/"
+      },
+      {
+        "name": "Mapa da Indústria - CNI",
+        "type": "Industrial",
+        "description": "Plataforma da Confederação Nacional da Indústria (CNI) que reúne dados e indicadores industriais do Brasil, com informações sobre produção, emprego, investimentos e comércio exterior do setor industrial.",
+        "info_available": [
+          "Indicadores de produção industrial por setor",
+          "Dados sobre emprego e salários na indústria",
+          "Informações sobre investimentos e utilização da capacidade",
+          "Estatísticas de comércio exterior industrial",
+          "Pesquisas de confiança e expectativas do empresariado"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e selecione o tipo de informação desejada",
+          "Filtre por período, setor industrial ou região",
+          "Visualize gráficos e tabelas comparativas",
+          "Exporte os dados em formatos como Excel e PDF"
+        ],
+        "url": "https://www.portaldaindustria.com.br/estatisticas/"
+      }
+    ],
+    "Emprego e Renda": [
+      {
+        "name": "CAGED - Cadastro Geral de Empregados e Desempregados",
+        "type": "Emprego",
+        "description": "O CAGED é um registro administrativo que monitora a evolução do mercado de trabalho formal brasileiro. Desde 2020, o Novo CAGED passou a utilizar dados do eSocial e outros sistemas.",
+        "info_available": [
+          "Admissões e desligamentos por setor econômico",
+          "Saldo de empregos por região, estado e município",
+          "Dados por gênero, faixa etária e escolaridade",
+          "Estatísticas sobre salários e ocupações",
+          "Séries históricas do mercado de trabalho formal"
+        ],
+        "how_to_use": [
+          "Acesse o painel do Novo CAGED no site do Ministério do Trabalho",
+          "Filtre por período, região, setor econômico ou outras variáveis",
+          "Visualize gráficos e tabelas com os resultados da consulta",
+          "Faça download dos microdados para análises mais detalhadas"
+        ],
+        "url": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/estatisticas-trabalho/caged"
+      },
+      {
+        "name": "RAIS - Relação Anual de Informações Sociais",
+        "type": "Trabalho",
+        "description": "A RAIS é um registro administrativo anual que fornece informações sobre o mercado de trabalho formal brasileiro, abrangendo todos os tipos de vínculos empregatícios.",
+        "info_available": [
+          "Informações completas sobre todos os vínculos empregatícios formais",
+          "Dados sobre estabelecimentos empregadores",
+          "Estatísticas detalhadas por setor, ocupação, escolaridade e remuneração",
+          "Informações sobre rotatividade e tempo de emprego",
+          "Séries históricas anuais do mercado de trabalho"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma RAIS no site do Ministério do Trabalho",
+          "Selecione o ano-base e as variáveis de interesse",
+          "Gere tabelas personalizadas com os dados de vínculos e estabelecimentos",
+          "Faça download dos microdados para análises estatísticas mais avançadas"
+        ],
+        "url": "https://www.rais.gov.br/"
+      },
+      {
+        "name": "PDET - Programa de Disseminação das Estatísticas do Trabalho",
+        "type": "Estatísticas",
+        "description": "O PDET é um programa do Ministério do Trabalho e Emprego que visa divulgar informações oriundas da RAIS e do CAGED, disponibilizando ferramentas para acesso e análise desses dados.",
+        "info_available": [
+          "Microdados não identificados da RAIS e do CAGED",
+          "Séries históricas de emprego formal",
+          "Tabelas predefinidas com estatísticas do mercado de trabalho",
+          "Informações sobre perfil de empresas e trabalhadores",
+          "Dados georreferenciados do mercado de trabalho"
+        ],
+        "how_to_use": [
+          "Acesse o portal do PDET",
+          "Escolha entre as ferramentas disponíveis (tabulador, base estatística, microdados)",
+          "Selecione as variáveis e filtros desejados",
+          "Visualize ou faça download dos resultados em diferentes formatos"
+        ],
+        "url": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/estatisticas-trabalho",
+        "status": "TODO: This link is returning a 403 error."
+      },
+      {
+        "name": "PROGER - Programa de Geração de Emprego e Renda",
+        "type": "Financiamento",
+        "description": "O PROGER é um programa que disponibiliza linhas de crédito com recursos do Fundo de Amparo ao Trabalhador (FAT) para financiar empreendimentos que visem a geração de emprego e renda.",
+        "info_available": [
+          "Dados sobre linhas de crédito disponíveis",
+          "Informações sobre recursos aplicados por setor e região",
+          "Estatísticas de empregos gerados pelos financiamentos",
+          "Documentos e relatórios de avaliação do programa",
+          "Histórico de contratações e beneficiários"
+        ],
+        "how_to_use": [
+          "Acesse o portal do PROGER no site do Ministério do Trabalho",
+          "Consulte os relatórios estatísticos disponíveis",
+          "Acesse informações sobre as linhas de crédito e condições",
+          "Consulte os agentes financeiros e requisitos para solicitação"
+        ],
+        "url": "https://www.gov.br/trabalho-e-emprego/pt-br/servicos/trabalhador/empreendedorismo/proger",
+        "status": "TODO: This link is returning a 403 error."
+      }
+    ],
+    "Saúde e Epidemiologia": [
+      {
+        "name": "DATASUS - Informações de Saúde (TABNET)",
+        "type": "Saúde",
+        "description": "O DATASUS é o departamento de informática do Sistema Único de Saúde que disponibiliza informações sobre saúde no Brasil. O TABNET é sua principal ferramenta para tabulação de dados.",
+        "info_available": [
+          "Estatísticas vitais (nascimentos, óbitos, mortalidade)",
+          "Epidemiologia e morbidade (doenças, agravos)",
+          "Rede assistencial e produção de serviços de saúde",
+          "Indicadores de saúde",
+          "Informações demográficas e socioeconômicas"
+        ],
+        "how_to_use": [
+          "Acesse o TABNET e escolha a base de dados de interesse",
+          "Selecione as variáveis de linha, coluna e conteúdo",
+          "Defina os filtros e períodos desejados",
+          "Execute a tabulação e exporte os dados (CSV, XLS)"
+        ],
+        "url": "https://datasus.saude.gov.br/informacoes-de-saude-tabnet/"
+      },
+      {
+        "name": "Portal de Dados Abertos da ANS",
+        "type": "Saúde Suplementar",
+        "description": "O Portal de Dados Abertos da Agência Nacional de Saúde Suplementar (ANS) disponibiliza informações sobre planos de saúde, beneficiários, operadoras e outros aspectos da saúde suplementar no Brasil.",
+        "info_available": [
+          "Dados de beneficiários de planos de saúde",
+          "Informações sobre operadoras de planos de saúde",
+          "Dados de ressarcimento ao SUS",
+          "Indicadores do setor de saúde suplementar",
+          "Informações sobre coberturas e procedimentos"
+        ],
+        "how_to_use": [
+          "Acesse o portal e explore os conjuntos de dados disponíveis",
+          "Use a função de busca para encontrar dados específicos",
+          "Consulte a documentação para entender os metadados",
+          "Baixe os dados em formatos abertos (CSV, JSON, XML)"
+        ],
+        "url": "https://dadosabertos.ans.gov.br/"
+      },
+      {
+        "name": "OpenDataSUS",
+        "type": "COVID-19",
+        "description": "O OpenDataSUS é uma plataforma de dados abertos do Ministério da Saúde que disponibiliza informações relacionadas à COVID-19 e outros dados de saúde pública.",
+        "info_available": [
+          "Registros de casos e óbitos por COVID-19",
+          "Dados de vacinação contra COVID-19",
+          "Informações sobre a Síndrome Respiratória Aguda Grave (SRAG)",
+          "Dados de outros agravos e doenças",
+          "Microdados de sistemas de informação em saúde"
+        ],
+        "how_to_use": [
+          "Acesse o OpenDataSUS e navegue pelos repositórios",
+          "Escolha o conjunto de dados de interesse",
+          "Consulte a documentação para entender a estrutura dos dados",
+          "Faça o download dos arquivos disponíveis"
+        ],
+        "url": "https://opendatasus.saude.gov.br/"
+      },
+      {
+        "name": "Vigitel - Vigilância de Fatores de Risco",
+        "type": "Comportamental",
+        "description": "Sistema de monitoramento de fatores de risco e proteção para doenças crônicas por inquérito telefônico do Ministério da Saúde, que coleta dados sobre hábitos alimentares, atividade física, tabagismo, entre outros.",
+        "info_available": [
+          "Dados sobre hábitos alimentares da população",
+          "Informações sobre sedentarismo e atividade física",
+          "Estatísticas sobre tabagismo e consumo de álcool",
+          "Prevalência de doenças crônicas não transmissíveis",
+          "Séries históricas de fatores de risco à saúde"
+        ],
+        "how_to_use": [
+          "Acesse os relatórios anuais do Vigitel",
+          "Consulte as bases de dados no site do DATASUS",
+          "Analise as tendências temporais dos indicadores",
+          "Utilize os microdados para análises específicas"
+        ],
+        "url": "https://datasus.saude.gov.br/vigitel-vigilancia-de-fatores-de-risco-e-protecao-para-doencas-cronicas-por-inquerito-telefonico/"
+      }
+    ],
+    "Educação": [
+      {
+        "name": "INEP - Dados Abertos",
+        "type": "Educação",
+        "description": "O Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (INEP) disponibiliza dados sobre todos os níveis educacionais do Brasil, desde a educação básica até o ensino superior.",
+        "info_available": [
+          "Microdados do Censo Escolar da Educação Básica",
+          "Microdados do Censo da Educação Superior",
+          "Resultados do Enem, Saeb, Ideb e outros exames",
+          "Indicadores Educacionais",
+          "Dados sobre escolas, professores e alunos"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos do INEP",
+          "Navegue pelos conjuntos de dados disponíveis",
+          "Faça download dos microdados ou das sinopses estatísticas",
+          "Consulte os dicionários de variáveis para interpretar os dados"
+        ],
+        "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos",
+        "status": "TODO: This link is returning a 403 error."
+      },
+      {
+        "name": "FNDE - Dados Abertos",
+        "type": "Financiamento",
+        "description": "O Fundo Nacional de Desenvolvimento da Educação (FNDE) disponibiliza dados sobre os programas de financiamento da educação pública brasileira.",
+        "info_available": [
+          "Dados do FUNDEB (Fundo de Manutenção da Educação Básica)",
+          "Informações sobre o Programa Nacional de Alimentação Escolar (PNAE)",
+          "Dados do Programa Nacional do Livro Didático (PNLD)",
+          "Informações sobre o Programa Dinheiro Direto na Escola (PDDE)",
+          "Dados sobre o transporte escolar e outras transferências"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos do FNDE",
+          "Navegue pelos conjuntos de dados disponíveis",
+          "Faça download dos dados em formato aberto",
+          "Consulte os sistemas específicos para cada programa"
+        ],
+        "url": "https://www.gov.br/fnde/pt-br/acesso-a-informacao/dados-abertos",
+        "status": "TODO: This link is returning a 403 error."
+      }
+    ],
+    "Infraestrutura, Transportes e Mobilidade": [
+      {
+        "name": "SNIS - Sistema Nacional de Informações sobre Saneamento",
+        "type": "Saneamento",
+        "description": "O SNIS é o maior e mais importante sistema de informações do setor saneamento no Brasil, reunindo dados sobre água, esgotos, resíduos sólidos e águas pluviais.",
+        "info_available": [
+          "Dados sobre abastecimento de água",
+          "Informações sobre coleta e tratamento de esgoto",
+          "Dados sobre manejo de resíduos sólidos",
+          "Informações sobre drenagem e manejo de águas pluviais",
+          "Indicadores operacionais, econômicos e de qualidade"
+        ],
+        "how_to_use": [
+          "Acesse a Série Histórica do SNIS",
+          "Escolha o componente de interesse (Água e Esgotos, Resíduos Sólidos ou Águas Pluviais)",
+          "Selecione os indicadores, períodos e localidades desejados",
+          "Gere consultas e exporte os dados em diversos formatos"
+        ],
+        "url": "https://www.gov.br/cidades/pt-br/acesso-a-informacao/acoes-e-programas/saneamento/snis"
+      },
+      {
+        "name": "ANTT - Dados Abertos",
+        "type": "Transporte Terrestre",
+        "description": "A Agência Nacional de Transportes Terrestres (ANTT) disponibiliza dados sobre o transporte terrestre no Brasil, incluindo rodovias, ferrovias e transporte de passageiros.",
+        "info_available": [
+          "Dados sobre transporte rodoviário de cargas e passageiros",
+          "Informações sobre concessões rodoviárias",
+          "Dados sobre o transporte ferroviário",
+          "Estatísticas de acidentes e fiscalização",
+          "Informações sobre tarifas e fluxos de transporte"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos da ANTT",
+          "Navegue pelos conjuntos de dados disponíveis",
+          "Faça download dos dados em formatos abertos",
+          "Consulte a documentação para entender a estrutura dos dados"
+        ],
+        "url": "https://dados.antt.gov.br/"
+      },
+      {
+        "name": "Observatório Nacional de Segurança Viária",
+        "type": "Segurança Viária",
+        "description": "Organização que compila e disponibiliza dados e estatísticas sobre acidentes de trânsito no Brasil, produzindo análises sobre segurança viária e fatores de risco.",
+        "info_available": [
+          "Estatísticas de acidentes de trânsito",
+          "Dados sobre mortalidade e morbidade no trânsito",
+          "Estudos sobre fatores de risco e comportamento",
+          "Indicadores de segurança viária por região",
+          "Análises de custo social e econômico dos acidentes"
+        ],
+        "how_to_use": [
+          "Acesse o portal e consulte os relatórios disponíveis",
+          "Navegue pelos dashboards e visualizações interativas",
+          "Filtre os dados por região, tipo de veículo ou período",
+          "Faça download de estatísticas e indicadores em formato aberto"
+        ],
+        "url": "https://www.onsv.org.br/"
+      },
+      {
+        "name": "Portal de Dados Abertos da ANAC",
+        "type": "Transporte Aéreo",
+        "description": "Plataforma da Agência Nacional de Aviação Civil que disponibiliza dados sobre o transporte aéreo brasileiro, incluindo voos, aeronaves, aeroportos e empresas aéreas.",
+        "info_available": [
+          "Dados estatísticos de voos e operações aéreas",
+          "Informações sobre tarifas e demanda do setor",
+          "Cadastro de aeronaves e aeródromos",
+          "Estatísticas de acidentes e incidentes",
+          "Dados de empresas aéreas e suas operações"
+        ],
+        "how_to_use": [
+          "Acesse o portal e utilize o catálogo de dados",
+          "Filtre por categoria, formato ou palavra-chave",
+          "Faça download dos conjuntos de dados",
+          "Consulte os metadados para entender a estrutura das informações"
+        ],
+        "url": "https://dados.gov.br/organization/agencia-nacional-de-aviacao-civil-anac"
+      },
+      {
+        "name": "DENATRAN - Dados Abertos",
+        "type": "Frota Veicular",
+        "description": "Portal de dados do Departamento Nacional de Trânsito com informações sobre a frota de veículos, condutores habilitados, multas e infrações em todo o Brasil.",
+        "info_available": [
+          "Estatísticas da frota de veículos por tipo e localidade",
+          "Dados sobre habilitação de condutores",
+          "Informações sobre infrações e penalidades",
+          "Estatísticas de acidentes de trânsito",
+          "Dados sobre veículos por idade e categoria"
+        ],
+        "how_to_use": [
+          "Acesse o portal e selecione a categoria de dados",
+          "Filtre por estado, período ou tipo de veículo",
+          "Visualize relatórios estatísticos ou dados brutos",
+          "Faça download das informações em formato aberto"
+        ],
+        "url": "https://dados.gov.br/organization/departamento-nacional-de-transito-denatran"
+      }
+    ],
+    "Meio Ambiente e Dados Geográficos": [
+      {
+        "name": "IBAMA - Dados Abertos",
+        "type": "Ambiental",
+        "description": "O Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renováveis (IBAMA) disponibiliza dados sobre licenciamento ambiental, fiscalização, qualidade ambiental e biodiversidade.",
+        "info_available": [
+          "Dados sobre autos de infração e embargos ambientais",
+          "Informações sobre licenciamento ambiental",
+          "Dados sobre acidentes ambientais",
+          "Informações sobre a fauna e flora brasileiras",
+          "Dados sobre queimadas e desmatamento"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos do IBAMA",
+          "Navegue pelos conjuntos de dados disponíveis",
+          "Faça download dos dados em formatos abertos",
+          "Consulte os sistemas específicos como o SISCOM para dados geoespaciais"
+        ],
+        "url": "https://dadosabertos.ibama.gov.br/"
+      },
+      {
+        "name": "ANA - Dados Abertos",
+        "type": "Recursos Hídricos",
+        "description": "A Agência Nacional de Águas e Saneamento Básico (ANA) disponibiliza dados sobre recursos hídricos, bacias hidrográficas, qualidade da água e eventos hidrológicos.",
+        "info_available": [
+          "Dados hidrológicos (vazão, precipitação, nível d'água)",
+          "Informações sobre qualidade da água",
+          "Dados sobre outorgas e usos da água",
+          "Informações sobre bacias hidrográficas",
+          "Dados sobre reservatórios e sistemas hídricos"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos da ANA",
+          "Navegue pelos conjuntos de dados disponíveis",
+          "Faça download dos dados em formatos abertos",
+          "Consulte o Portal HidroWeb para dados hidrometeorológicos"
+        ],
+        "url": "https://dadosabertos.ana.gov.br/"
+      },
+      {
+        "name": "INDE - Infraestrutura Nacional de Dados Espaciais",
+        "type": "Geoespacial",
+        "description": "Portal que integra dados geoespaciais produzidos por instituições governamentais brasileiras em um único ambiente de acesso.",
+        "info_available": [
+          "Mapas temáticos de diversas instituições públicas",
+          "Dados de limites territoriais e administrativos",
+          "Informações sobre recursos naturais, infraestrutura e urbanização",
+          "Geosserviços padronizados para integração com sistemas externos",
+          "Bases cartográficas oficiais do Brasil"
+        ],
+        "how_to_use": [
+          "Acesse o visualizador de mapas para combinação e análise de camadas",
+          "Consulte o catálogo de geosserviços para acesso via WMS, WFS ou WCS",
+          "Baixe dados em formatos geoespaciais (Shapefile, GeoJSON)",
+          "Integre os serviços em aplicações próprias de geoprocessamento"
+        ],
+        "url": "https://inde.gov.br/",
+        "status": "TODO: This link is failing with an SSL error."
+      },
+      {
+        "name": "SEEG - Sistema de Estimativas de Emissões de Gases",
+        "type": "Climático",
+        "description": "Principal plataforma de monitoramento de emissões de gases de efeito estufa na América Latina, mantida pelo Observatório do Clima.",
+        "info_available": [
+          "Dados de emissões por setor econômico",
+          "Séries históricas de emissões desde 1970",
+          "Informações em nível nacional, estadual e municipal",
+          "Dados setoriais (energia, indústria, agropecuária, resíduos e mudança de uso da terra)",
+          "Indicadores comparativos de desempenho climático"
+        ],
+        "how_to_use": [
+          "Acesse as plataformas de visualização de dados",
+          "Filtre por período, setor ou região geográfica",
+          "Exporte os dados em formato aberto para análises complementares",
+          "Consulte relatórios e análises disponíveis sobre as tendências de emissões"
+        ],
+        "url": "https://seeg.eco.br/"
+      },
+      {
+        "name": "MapBiomas Brasil",
+        "type": "Uso do Solo",
+        "description": "Projeto que mapeia anualmente a cobertura e uso do solo no Brasil, oferecendo informações sobre mudanças na paisagem desde 1985.",
+        "info_available": [
+          "Mapas anuais de cobertura e uso do solo desde 1985",
+          "Dados sobre áreas de floresta, agricultura, pastagens e áreas urbanas",
+          "Informações sobre transições de uso do solo ao longo do tempo",
+          "Alertas de desmatamento e monitoramento ambiental",
+          "Mapeamentos específicos para cada bioma brasileiro"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e navegue pelos mapas interativos",
+          "Filtre por região, bioma ou tipo de cobertura",
+          "Baixe os dados geoespaciais para análises específicas",
+          "Consulte relatórios e estatísticas sobre as mudanças territoriais"
+        ],
+        "url": "https://brasil.mapbiomas.org/"
+      },
+      {
+        "name": "TerraBrasilis - INPE",
+        "type": "Monitoramento Ambiental",
+        "description": "Plataforma desenvolvida pelo INPE para organização, acesso e uso dos dados geográficos de monitoramento ambiental.",
+        "info_available": [
+          "Dados de desmatamento da Amazônia (PRODES) e demais biomas",
+          "Sistema de detecção de desmatamento em tempo real (DETER)",
+          "Informações sobre queimadas e incêndios florestais",
+          "Mapas de uso e cobertura da terra",
+          "Séries históricas de desmatamento e degradação florestal"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e selecione o conjunto de dados de interesse",
+          "Utilize as ferramentas de visualização e análise espacial",
+          "Baixe dados em formatos geoespaciais para uso em SIG",
+          "Consulte painéis e dashboards com estatísticas atualizadas"
+        ],
+        "url": "http://terrabrasilis.dpi.inpe.br/"
+      }
+    ],
+    "Segurança e Justiça": [
+      {
+        "name": "Atlas da Violência",
+        "type": "Violência",
+        "description": "O Atlas da Violência é uma plataforma desenvolvida pelo IPEA e pelo Fórum Brasileiro de Segurança Pública que reúne dados sobre homicídios e outros tipos de violência no Brasil.",
+        "info_available": [
+          "Dados sobre homicídios por município, estado e região",
+          "Informações sobre mortes violentas por causa indeterminada",
+          "Dados sobre violência por raça e gênero",
+          "Estatísticas sobre juventude e violência",
+          "Dados sobre óbitos por armas de fogo"
+        ],
+        "how_to_use": [
+          "Acesse o Atlas da Violência",
+          "Navegue pelos diferentes temas disponíveis",
+          "Selecione os filtros de interesse (estados, municípios, período)",
+          "Visualize os dados em mapas, gráficos ou tabelas"
+        ],
+        "url": "https://www.ipea.gov.br/atlasviolencia/"
+      },
+      {
+        "name": "CNJ - Dados Abertos",
+        "type": "Judiciário",
+        "description": "O Conselho Nacional de Justiça (CNJ) disponibiliza dados sobre o funcionamento do Poder Judiciário brasileiro, processos judiciais e outros indicadores da Justiça.",
+        "info_available": [
+          "Estatísticas processuais por tribunal e vara",
+          "Dados sobre produtividade de magistrados e servidores",
+          "Informações sobre execução fiscal e tempos de tramitação",
+          "Dados sobre processos em diferentes áreas do Direito",
+          "Estatísticas do Sistema Carcerário e Sistema Prisional"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos do CNJ",
+          "Consulte o painel Justiça em Números",
+          "Explore o Datajud e outros sistemas específicos",
+          "Faça download dos relatórios e bases de dados disponíveis"
+        ],
+        "url": "https://www.cnj.jus.br/estatistica/"
+      },
+      {
+        "name": "DATAJUD - Base Nacional de Dados do Poder Judiciário",
+        "type": "Processual",
+        "description": "Sistema oficial do CNJ que centraliza informações processuais de todos os tribunais brasileiros e serve como fonte primária para estatísticas judiciais.",
+        "info_available": [
+          "Dados sobre processos judiciais de todos os tribunais",
+          "Estatísticas sobre tempo de tramitação e produtividade",
+          "Informações sobre a movimentação processual",
+          "Painéis analíticos sobre a atividade jurisdicional",
+          "Indicadores de desempenho do sistema judiciário"
+        ],
+        "how_to_use": [
+          "Acesse o portal do CNJ e consulte os painéis estatísticos",
+          "Visualize dados agregados por tribunal, comarca ou assunto",
+          "Baixe relatórios e extratos estatísticos em diversos formatos",
+          "Para pesquisadores, solicite acesso às APIs e bases de dados"
+        ],
+        "url": "https://www.cnj.jus.br/sistemas/datajud/"
+      },
+      {
+        "name": "Corpus 927 - ENFAM",
+        "type": "Precedentes",
+        "description": "Plataforma desenvolvida pela Escola Nacional de Formação e Aperfeiçoamento de Magistrados (ENFAM) que reúne decisões vinculantes previstas no art. 927 do CPC.",
+        "info_available": [
+          "Precedentes judiciais vinculantes do STF e STJ",
+          "Jurisprudência qualificada e sistematizada",
+          "Súmulas vinculantes e orientações jurisprudenciais",
+          "Decisões em incidentes de resolução de demandas repetitivas",
+          "Teses jurídicas firmadas em julgamentos de recursos repetitivos"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e utilize os filtros de pesquisa",
+          "Selecione o tema jurídico ou tribunal de interesse",
+          "Consulte a íntegra das decisões e seus fundamentos",
+          "Utilize os resultados para fundamentação jurídica e pesquisa"
+        ],
+        "url": "https://corpus927.enfam.jus.br/"
+      },
+      {
+        "name": "Consulta Unificada de Jurisprudência - Jusbrasil",
+        "type": "Jurisprudência",
+        "description": "Ferramenta que unifica a busca por jurisprudência de diversos tribunais brasileiros, facilitando o acesso às decisões judiciais.",
+        "info_available": [
+          "Acórdãos e decisões de tribunais de todo o Brasil",
+          "Jurisprudência unificada de diversos tribunais",
+          "Decisões organizadas por tema e relevância",
+          "Estatísticas sobre tendências decisórias",
+          "Conexões com legislação relacionada"
+        ],
+        "how_to_use": [
+          "Acesse o portal e utilize a busca unificada",
+          "Filtre por tribunal, período ou tipo de decisão",
+          "Leia os acórdãos na íntegra ou resumos",
+          "Compare decisões sobre o mesmo tema em diferentes tribunais"
+        ],
+        "url": "https://www.jusbrasil.com.br/jurisprudencia/",
+        "status": "TODO: This link is blocking automated requests."
+      },
+      {
+        "name": "Pesquisa de Jurisprudência - STJ",
+        "type": "Superior",
+        "description": "Sistema de busca oficial do Superior Tribunal de Justiça que permite acesso à jurisprudência do STJ.",
+        "info_available": [
+          "Acórdãos e decisões do STJ",
+          "Súmulas e orientações jurisprudenciais",
+          "Informativos de jurisprudência",
+          "Decisões em recursos repetitivos",
+          "Pesquisa temática de julgados"
+        ],
+        "how_to_use": [
+          "Acesse o sistema de pesquisa jurisprudencial",
+          "Utilize operadores de busca para refinar pesquisas",
+          "Filtre por tipo de decisão, órgão julgador ou relator",
+          "Consulte a íntegra dos acórdãos e repositórios oficiais"
+        ],
+        "url": "https://scon.stj.jus.br/",
+        "status": "TODO: This link is blocking automated requests."
+      }
+    ],
+    "Agricultura e Pecuária": [
+      {
+        "name": "EMBRAPA - Bases de Dados da Pesquisa Agropecuária",
+        "type": "Agrícola",
+        "description": "A Empresa Brasileira de Pesquisa Agropecuária (EMBRAPA) mantém a Base de Dados da Pesquisa Agropecuária (BDPA), que reúne informações técnico-científicas sobre agricultura, pecuária e áreas correlatas.",
+        "info_available": [
+          "Dados sobre produção agrícola e pecuária",
+          "Informações sobre tecnologias e sistemas de produção",
+          "Dados sobre solos, clima e recursos naturais",
+          "Resultados de pesquisas científicas agropecuárias",
+          "Informações georreferenciadas sobre o agronegócio"
+        ],
+        "how_to_use": [
+          "Acesse a BDPA da EMBRAPA",
+          "Use a busca para encontrar documentos e dados específicos",
+          "Consulte os sistemas temáticos como o Agritempo e o SOMABRASIL",
+          "Baixe publicações e datasets disponíveis"
+        ],
+        "url": "https://www.bdpa.cnptia.embrapa.br/"
+      },
+      {
+        "name": "IBGE - Censo Agropecuário",
+        "type": "Agropecuária",
+        "description": "O Censo Agropecuário do IBGE é a principal fonte de dados sobre a estrutura e a produção da agricultura e da pecuária brasileiras.",
+        "info_available": [
+          "Dados sobre estabelecimentos agropecuários",
+          "Informações sobre produção vegetal e animal",
+          "Características dos produtores e das propriedades",
+          "Dados sobre uso da terra, maquinário e insumos",
+          "Informações sobre agricultura familiar e não familiar"
+        ],
+        "how_to_use": [
+          "Acesse o SIDRA e selecione as tabelas do Censo Agropecuário",
+          "Defina as variáveis, períodos e localidades de interesse",
+          "Gere tabelas personalizadas para análise",
+          "Exporte os dados em diversos formatos"
+        ],
+        "url": "https://sidra.ibge.gov.br/pesquisa/censo-agropecuario/censo-agropecuario-2017"
+      }
+    ],
+    "Energia": [
+      {
+        "name": "ANEEL - Dados Abertos",
+        "type": "Energia Elétrica",
+        "description": "A Agência Nacional de Energia Elétrica (ANEEL) disponibiliza dados sobre o setor elétrico brasileiro, incluindo geração, transmissão, distribuição e comercialização de energia.",
+        "info_available": [
+          "Dados sobre usinas e geração de energia",
+          "Informações sobre linhas de transmissão e subestações",
+          "Dados sobre tarifas e consumo de energia",
+          "Informações sobre concessões e contratos",
+          "Dados sobre qualidade do serviço e fiscalização"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos da ANEEL",
+          "Navegue pelos conjuntos de dados disponíveis",
+          "Faça download dos dados em formatos abertos",
+          "Consulte o SIGA (Sistema de Informações de Geração da ANEEL) para dados específicos"
+        ],
+        "url": "https://dadosabertos.aneel.gov.br/"
+      },
+      {
+        "name": "EPE - Publicações e Dados Abertos",
+        "type": "Planejamento Energético",
+        "description": "A Empresa de Pesquisa Energética (EPE) disponibiliza dados e estudos sobre o planejamento energético brasileiro, abrangendo diversos setores.",
+        "info_available": [
+          "Dados do Balanço Energético Nacional (BEN)",
+          "Informações sobre demanda e oferta de energia",
+          "Estatísticas sobre consumo de energia por setor",
+          "Dados sobre preços e custos de energia",
+          "Informações sobre emissões de gases de efeito estufa"
+        ],
+        "how_to_use": [
+          "Acesse a seção de publicações e dados abertos da EPE",
+          "Navegue pelos estudos e dados disponíveis",
+          "Consulte o BEN para estatísticas energéticas detalhadas",
+          "Faça download dos relatórios e planilhas em diferentes formatos"
+        ],
+        "url": "https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes"
+      },
+      {
+        "name": "ONS - Dados Abertos",
+        "type": "Operação Elétrica",
+        "description": "O Operador Nacional do Sistema Elétrico (ONS) disponibiliza dados sobre a operação do sistema elétrico brasileiro.",
+        "info_available": [
+          "Dados de geração de energia por fonte",
+          "Informações sobre carga de energia do sistema",
+          "Dados de reservatórios e vazões",
+          "Informações sobre intercâmbios de energia entre subsistemas",
+          "Dados históricos e em tempo real da operação"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos do ONS",
+          "Navegue pelos conjuntos de dados disponíveis",
+          "Use as APIs disponíveis para acesso programático",
+          "Faça download dos dados em formatos como CSV e JSON"
+        ],
+        "url": "https://dados.ons.org.br/"
+      }
+    ],
+    "Pesquisas Domiciliares e Especiais (IBGE)": [
+      {
+        "name": "PNAD e PNAD Contínua",
+        "type": "Pesquisa Domiciliar",
+        "description": "A Pesquisa Nacional por Amostra de Domicílios (PNAD) e sua versão contínua (PNAD-C) são pesquisas do IBGE sobre características demográficas e socioeconômicas da população.",
+        "info_available": [
+          "Dados sobre mercado de trabalho e desemprego",
+          "Informações sobre educação e distribuição de renda",
+          "Estatísticas sobre habitação e acesso a serviços básicos",
+          "Dados demográficos da população brasileira",
+          "Séries históricas de indicadores socioeconômicos"
+        ],
+        "how_to_use": [
+          "Acesse os microdados da PNAD no site do IBGE",
+          "Use o SIDRA para tabelas agregadas da PNAD Contínua",
+          "Baixe os microdados para análises estatísticas detalhadas",
+          "Consulte a documentação e os dicionários de variáveis"
+        ],
+        "url": "https://www.ibge.gov.br/estatisticas/sociais/trabalho/9171-pesquisa-nacional-por-amostra-de-domicilios-continua-mensal.html"
+      },
+      {
+        "name": "POF - Pesquisa de Orçamentos Familiares",
+        "type": "Consumo Familiar",
+        "description": "A Pesquisa de Orçamentos Familiares (POF) do IBGE investiga a composição dos gastos e do consumo das famílias brasileiras.",
+        "info_available": [
+          "Estrutura de gastos e consumo das famílias",
+          "Dados sobre alimentação e segurança alimentar",
+          "Informações sobre despesas com habitação, saúde e educação",
+          "Avaliação subjetiva das condições de vida",
+          "Dados para cálculo da cesta básica e índices de preços"
+        ],
+        "how_to_use": [
+          "Acesse os resultados da POF no site do IBGE",
+          "Consulte as tabelas e publicações disponíveis",
+          "Baixe os microdados para análises específicas",
+          "Use a documentação para entender a metodologia da pesquisa"
+        ],
+        "url": "https://www.ibge.gov.br/estatisticas/sociais/saude/24786-pesquisa-de-orcamentos-familiares-2.html"
+      },
+      {
+        "name": "MUNIC e ESTADIC - Pesquisas de Informações Básicas",
+        "type": "Administração Pública",
+        "description": "A Pesquisa de Informações Básicas Municipais (MUNIC) e a Estadual (ESTADIC) fornecem informações sobre a estrutura, dinâmica e funcionamento das instituições públicas.",
+        "info_available": [
+          "Perfil dos municípios e estados brasileiros",
+          "Dados sobre gestão pública local e estadual",
+          "Informações sobre políticas setoriais implementadas",
+          "Estrutura administrativa e legislação municipal/estadual",
+          "Recursos humanos e institucionais das administrações"
+        ],
+        "how_to_use": [
+          "Acesse as pesquisas MUNIC e ESTADIC no site do IBGE",
+          "Consulte as tabelas e publicações por tema",
+          "Baixe as bases de dados completas para análises específicas",
+          "Use os suplementos temáticos para informações detalhadas"
+        ],
+        "url": "https://www.ibge.gov.br/estatisticas/sociais/educacao/10586-pesquisa-de-informacoes-basicas-municipais.html"
+      },
+      {
+        "name": "PNSB - Pesquisa Nacional de Saneamento Básico",
+        "type": "Saneamento Básico",
+        "description": "A Pesquisa Nacional de Saneamento Básico (PNSB) investiga as condições do saneamento básico junto às prefeituras e empresas.",
+        "info_available": [
+          "Dados sobre abastecimento de água e esgotamento sanitário",
+          "Informações sobre manejo de resíduos sólidos",
+          "Dados sobre drenagem urbana e manejo de águas pluviais",
+          "Características operacionais dos serviços de saneamento",
+          "Tarifas, receitas e investimentos no setor"
+        ],
+        "how_to_use": [
+          "Acesse a PNSB no site do IBGE",
+          "Consulte as tabelas por tema e região",
+          "Baixe os resultados em formato de planilha",
+          "Use o Atlas de Saneamento para visualização geográfica"
+        ],
+        "url": "https://www.ibge.gov.br/estatisticas/multidominio/meio-ambiente/9073-pesquisa-nacional-de-saneamento-basico.html"
+      },
+      {
+        "name": "CNEFE - Cadastro Nacional de Endereços para Fins Estatísticos",
+        "type": "Cadastro Territorial",
+        "description": "O CNEFE é um banco de dados com interface espacial implementado pelo IBGE para uso nas pesquisas domiciliares.",
+        "info_available": [
+          "Endereços georreferenciados de domicílios e estabelecimentos",
+          "Localização de equipamentos urbanos e rurais",
+          "Informações sobre setores censitários",
+          "Coordenadas geográficas de endereços",
+          "Classificação de estabelecimentos por tipo"
+        ],
+        "how_to_use": [
+          "Acesse o CNEFE através do site do IBGE",
+          "Selecione a área geográfica de interesse",
+          "Baixe os arquivos por Unidade da Federação",
+          "Use em sistemas de informações geográficas (SIG)"
+        ],
+        "url": "https://www.ibge.gov.br/estatisticas/downloads-estatisticas.html"
+      }
+    ],
+    "Social e Assistência": [
+      {
+        "name": "Cadastro Único para Programas Sociais",
+        "type": "Cadastro Social",
+        "description": "O Cadastro Único é um instrumento de identificação e caracterização socioeconômica das famílias brasileiras de baixa renda.",
+        "info_available": [
+          "Perfil socioeconômico das famílias cadastradas",
+          "Dados sobre composição familiar e características dos domicílios",
+          "Informações sobre escolaridade, trabalho e renda",
+          "Estatísticas sobre acesso a serviços públicos",
+          "Distribuição geográfica das famílias em vulnerabilidade"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos do Ministério do Desenvolvimento Social",
+          "Utilize o CECAD para consultas agregadas e relatórios",
+          "Solicite acesso aos dados identificados via procedimento formal",
+          "Consulte relatórios e tabulações disponíveis publicamente"
+        ],
+        "url": "https://dados.gov.br/dados/conjuntos-dados/pessoas-inscritas-no-cadastro-unico"
+      },
+      {
+        "name": "CECAD - Consulta, Seleção e Extração de Informações do CadÚnico",
+        "type": "Consulta CadÚnico",
+        "description": "O CECAD é uma ferramenta que permite conhecer as características socioeconômicas das famílias e pessoas incluídas no Cadastro Único.",
+        "info_available": [
+          "Tabulações por faixa de renda, escolaridade, grupos populacionais",
+          "Consultas por município, região e estado",
+          "Informações sobre famílias beneficiárias de programas sociais",
+          "Dados sobre populações específicas (quilombolas, indígenas, etc.)",
+          "Estatísticas sobre condições de habitação e acesso a serviços"
+        ],
+        "how_to_use": [
+          "Acesse o CECAD com seu login e senha (necessita credenciamento)",
+          "Selecione o tipo de consulta (Tabulador, Frequência, Extrato)",
+          "Defina os filtros e parâmetros para a consulta",
+          "Exporte os resultados em formato de tabela ou gráfico"
+        ],
+        "url": "https://cecad.cidadania.gov.br/"
+      },
+      {
+        "name": "SAGI - Secretaria de Avaliação e Gestão da Informação",
+        "type": "Monitoramento Social",
+        "description": "A SAGI/SAGICAD é responsável pelo desenvolvimento de ferramentas informacionais para o monitoramento e avaliação de programas e políticas sociais.",
+        "info_available": [
+          "Indicadores de programas sociais e políticas públicas",
+          "Painéis de monitoramento de programas como Bolsa Família",
+          "Dados sobre equipamentos e serviços socioassistenciais",
+          "Mapas temáticos e ferramentas de georreferenciamento",
+          "Relatórios de pesquisas e avaliações de programas"
+        ],
+        "how_to_use": [
+          "Acesse o portal da SAGI",
+          "Navegue pelas ferramentas disponíveis (MI Social, MOPS, IDV, etc.)",
+          "Selecione indicadores, regiões e períodos de interesse",
+          "Exporte os dados ou visualizações geradas"
+        ],
+        "url": "https://www.gov.br/mds/pt-br/orgaos/SAGICAD",
+        "status": "TODO: This link is returning a 403 error."
+      },
+      {
+        "name": "DATAPREV - Empresa de Tecnologia e Informações da Previdência",
+        "type": "Previdência Social",
+        "description": "A DATAPREV é a empresa pública responsável pela gestão da base de dados sociais brasileira, principalmente a do INSS.",
+        "info_available": [
+          "Dados sobre benefícios previdenciários e assistenciais",
+          "Informações sobre segurados e contribuintes da Previdência",
+          "Estatísticas sobre beneficiários do Bolsa Família e outros programas",
+          "Dados do Cadastro Nacional de Informações Sociais (CNIS)",
+          "Informações sobre recolhimentos e arrecadação previdenciária"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos da DATAPREV",
+          "Consulte os Anuários Estatísticos da Previdência Social",
+          "Utilize o portal Meu INSS para dados individuais (com autenticação)",
+          "Acesse painéis e relatórios estatísticos disponíveis"
+        ],
+        "url": "https://www.dataprev.gov.br/",
+        "status": "TODO: This link is failing with an SSL error."
+      }
+    ],
+    "Transparência, Controle e Administração Pública": [
+      {
+        "name": "CGU - Controladoria-Geral da União",
+        "type": "Controle Interno",
+        "description": "A Controladoria-Geral da União (CGU) é o órgão de controle interno do Governo Federal responsável pela defesa do patrimônio público, transparência e combate à corrupção.",
+        "info_available": [
+          "Dados sobre gastos públicos e transferências de recursos",
+          "Informações sobre acordos de leniência e processos disciplinares",
+          "Registros de empresas inidôneas e punidas",
+          "Relatórios de auditorias e fiscalizações",
+          "Dados sobre servidores públicos federais"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos da CGU",
+          "Navegue pelos conjuntos de dados disponíveis",
+          "Utilize ferramentas específicas como o Portal da Transparência",
+          "Faça download dos dados em formatos abertos (CSV, JSON, XML)"
+        ],
+        "url": "https://www.gov.br/cgu/pt-br",
+        "status": "TODO: This link is returning a 403 error."
+      },
+      {
+        "name": "Fala.BR - Plataforma Integrada de Ouvidoria e Acesso à Informação",
+        "type": "Participação Cidadã",
+        "description": "O Fala.BR é uma plataforma que integra os canais de atendimento ao cidadão, permitindo o registro de manifestações de ouvidoria e pedidos de acesso à informação.",
+        "info_available": [
+          "Dados sobre manifestações de ouvidoria (denúncias, reclamações, etc.)",
+          "Estatísticas de pedidos de acesso à informação",
+          "Informações sobre tempo médio de resposta de órgãos públicos",
+          "Consulta pública a pedidos e respostas de LAI",
+          "Relatórios de transparência dos órgãos públicos"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma Fala.BR",
+          "Registre manifestações ou pedidos de acesso à informação",
+          "Consulte dados estatísticos disponíveis",
+          "Acompanhe o andamento das manifestações registradas"
+        ],
+        "url": "https://falabr.cgu.gov.br/"
+      },
+      {
+        "name": "TCU - Tribunal de Contas da União",
+        "type": "Controle Externo",
+        "description": "O Tribunal de Contas da União (TCU) é o órgão de controle externo do governo federal que auxilia o Congresso Nacional na fiscalização.",
+        "info_available": [
+          "Dados sobre fiscalizações, auditorias e julgamentos de contas",
+          "Informações sobre licitações e contratos públicos",
+          "Acórdãos e jurisprudência do TCU",
+          "Relatórios de gestão fiscal e execução orçamentária",
+          "Dados sobre obras públicas e transferências governamentais"
+        ],
+        "how_to_use": [
+          "Acesse o portal do TCU e navegue pelos sistemas disponíveis",
+          "Utilize ferramentas como o e-TCU para consulta de processos",
+          "Consulte a jurisprudência e acórdãos no sistema Pesquisa Jurisprudencial",
+          "Acesse painéis e relatórios específicos disponibilizados"
+        ],
+        "url": "https://portal.tcu.gov.br/"
+      },
+      {
+        "name": "Painel Resolveu? - CGU",
+        "type": "Ouvidoria",
+        "description": "Ferramenta da CGU que apresenta informações sobre manifestações de ouvidoria recebidas por órgãos federais.",
+        "info_available": [
+          "Dados estatísticos sobre manifestações de ouvidoria",
+          "Informações sobre satisfação dos usuários",
+          "Indicadores de prazo de atendimento",
+          "Estatísticas por órgão, assunto e região",
+          "Séries históricas sobre participação social"
+        ],
+        "how_to_use": [
+          "Acesse o painel e navegue pelos dashboards disponíveis",
+          "Filtre por órgão, tipo de manifestação ou período",
+          "Visualize gráficos e estatísticas de desempenho",
+          "Exporte os dados em formato aberto para análises específicas"
+        ],
+        "url": "https://www.gov.br/ouvidorias/pt-br/cidadao/painel-resolveu"
+      },
+      {
+        "name": "Painel de Compras - Governo Federal",
+        "type": "Contratações Públicas",
+        "description": "Ferramenta que apresenta os dados de compras públicas realizadas pelo Governo Federal.",
+        "info_available": [
+          "Dados sobre processos de compras governamentais",
+          "Informações sobre fornecedores e contratos",
+          "Estatísticas sobre modalidades de licitação",
+          "Indicadores de economia e eficiência nas contratações",
+          "Séries históricas de preços e valores contratados"
+        ],
+        "how_to_use": [
+          "Acesse o painel e navegue pelos diferentes módulos",
+          "Filtre por órgão, período ou tipo de contratação",
+          "Visualize gráficos comparativos e estatísticas",
+          "Exporte os dados em formato aberto para análises detalhadas"
+        ],
+        "url": "https://paineldecompras.economia.gov.br/"
+      },
+      {
+        "name": "Portal da Transparência - Estados e Municípios",
+        "type": "Transparência Subnacional",
+        "description": "Plataforma que reúne links para os portais de transparência dos estados e municípios brasileiros.",
+        "info_available": [
+          "Links para portais de transparência estaduais e municipais",
+          "Dados sobre execução orçamentária e financeira",
+          "Informações sobre servidores e folha de pagamento",
+          "Detalhes sobre convênios e transferências",
+          "Dados sobre licitações e contratos subnacionais"
+        ],
+        "how_to_use": [
+          "Acesse o portal e selecione o estado ou município de interesse",
+          "Navegue pelo portal de transparência específico da localidade",
+          "Consulte dados sobre receitas, despesas e contratos",
+          "Utilize as ferramentas de busca para informações específicas"
+        ],
+        "url": "https://www.gov.br/cgu/pt-br/assuntos/transparencia-publica/escala-brasil-transparente-360",
+        "status": "TODO: This link is returning a 403 error."
+      }
+    ],
+    "Desenvolvimento Regional e Social": [
+      {
+        "name": "Atlas Brasil - Desenvolvimento Humano",
+        "type": "Indicadores Sociais",
+        "description": "Plataforma que disponibiliza o Índice de Desenvolvimento Humano Municipal (IDHM) e mais de 330 indicadores socioeconômicos.",
+        "info_available": [
+          "Indicadores de desenvolvimento humano (longevidade, educação e renda)",
+          "Dados sobre vulnerabilidade social e desigualdade",
+          "Séries históricas e comparativos entre regiões",
+          "Mapas interativos e relatórios personalizáveis",
+          "Perfis completos de municípios e regiões metropolitanas"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e selecione o município ou região de interesse",
+          "Visualize dados e indicadores específicos por tema",
+          "Compare diferentes localidades e períodos",
+          "Exporte os dados em diversos formatos para análises próprias"
+        ],
+        "url": "http://www.atlasbrasil.org.br/"
+      },
+      {
+        "name": "IVS - Índice de Vulnerabilidade Social",
+        "type": "Vulnerabilidade Social",
+        "description": "Ferramenta que identifica falhas de oferta de serviços públicos básicos e situações de vulnerabilidade social, desenvolvida pelo IPEA.",
+        "info_available": [
+          "Indicadores de infraestrutura urbana",
+          "Dados sobre capital humano (saúde e educação)",
+          "Informações sobre renda e trabalho",
+          "Séries históricas de vulnerabilidade social",
+          "Mapas temáticos de desigualdades territoriais"
+        ],
+        "how_to_use": [
+          "Acesse o portal e navegue pelos mapas interativos",
+          "Selecione a região e os indicadores de interesse",
+          "Compare dados entre diferentes períodos e localidades",
+          "Baixe os relatórios completos ou dados específicos em diversos formatos"
+        ],
+        "url": "https://www.ipea.gov.br/portal/index.php?option=com_content&id=29765"
+      }
+    ],
+    "Pesquisas de Opinião e Estudos Regionais": [
+      {
+        "name": "CESOP - Centro de Estudos de Opinião Pública",
+        "type": "Opinião Pública",
+        "description": "Banco de dados de pesquisas de opinião pública da Unicamp, que resgata, organiza e armazena pesquisas por amostragem realizadas no Brasil desde a década de 1990.",
+        "info_available": [
+          "Pesquisas eleitorais históricas (desde a década de 1990)",
+          "Estudos sobre comportamento social e político",
+          "Pesquisas de institutos como IBOPE, Datafolha e outros",
+          "Microdados de surveys e questionários aplicados",
+          "Séries históricas de tendências de opinião"
+        ],
+        "how_to_use": [
+          "Acesse o portal do CESOP",
+          "Consulte o catálogo de pesquisas disponíveis",
+          "Solicite acesso aos dados brutos para pesquisa acadêmica",
+          "Utilize as informações em análises longitudinais de opinião pública"
+        ],
+        "url": "https://www.cesop.unicamp.br/por/"
+      },
+      {
+        "name": "SEADE Repositório",
+        "type": "Estatísticas Estaduais (SP)",
+        "description": "Plataforma de dados estatísticos da Fundação SEADE de São Paulo, com foco em informações socioeconômicas paulistas.",
+        "info_available": [
+          "Dados demográficos e populacionais de São Paulo",
+          "Informações econômicas setoriais",
+          "Indicadores sociais e de qualidade de vida",
+          "Séries históricas e projeções estatísticas",
+          "Dados sobre COVID-19 e outras estatísticas específicas"
+        ],
+        "how_to_use": [
+          "Acesse o repositório e explore as bases temáticas",
+          "Selecione os indicadores de interesse",
+          "Filtre por município ou região",
+          "Exporte os dados em formatos abertos para análise"
+        ],
+        "url": "https://repositorio.seade.gov.br/",
+        "status": "TODO: This link is returning a 403 error."
+      },
+      {
+        "name": "Observatório das Metrópoles",
+        "type": "Estudos Urbanos",
+        "description": "Rede de pesquisa que produz estudos e informações sobre as regiões metropolitanas brasileiras.",
+        "info_available": [
+          "Dados sobre desigualdades socioespaciais",
+          "Indicadores de desenvolvimento urbano",
+          "Informações sobre mobilidade e habitação",
+          "Análises comparativas entre metrópoles",
+          "Estudos sobre governança metropolitana"
+        ],
+        "how_to_use": [
+          "Acesse o portal e consulte os estudos disponíveis",
+          "Navegue pelos indicadores metropolitanos",
+          "Faça download de relatórios e análises específicas",
+          "Utilize os mapas temáticos para visualização de dados"
+        ],
+        "url": "https://www.observatoriodasmetropoles.net.br/"
+      }
+    ],
+    "Acadêmico e Científico": [
+      {
+        "name": "Repositório Institucional da USP",
+        "type": "Repositório Universitário",
+        "description": "Plataforma que reúne a produção científica e intelectual da Universidade de São Paulo.",
+        "info_available": [
+          "Teses e dissertações defendidas na USP",
+          "Artigos científicos publicados por pesquisadores da universidade",
+          "Trabalhos apresentados em eventos acadêmicos",
+          "Produção intelectual e material didático",
+          "Dados de pesquisa e conjuntos de dados científicos"
+        ],
+        "how_to_use": [
+          "Acesse o portal e utilize a busca por tema ou autor",
+          "Filtre por unidade, programa ou ano",
+          "Baixe os documentos em formato digital",
+          "Explore as coleções temáticas disponíveis"
+        ],
+        "url": "https://www.acessoaberto.usp.br/repositorio-institucional-da-usp/"
+      },
+      {
+        "name": "Repositório da Produção Científica e Intelectual da Unicamp",
+        "type": "Repositório Universitário",
+        "description": "Plataforma que reúne e preserva a produção científica e acadêmica da Universidade Estadual de Campinas.",
+        "info_available": [
+          "Teses e dissertações da Unicamp",
+          "Artigos científicos e publicações",
+          "Trabalhos apresentados em congressos",
+          "Material audiovisual e multimídia",
+          "Produções técnicas e patentes desenvolvidas na universidade"
+        ],
+        "how_to_use": [
+          "Acesse o repositório e utilize os filtros de busca",
+          "Explore por faculdade, instituto ou departamento",
+          "Faça download dos documentos completos",
+          "Visualize estatísticas de acesso e citação"
+        ],
+        "url": "https://www.sbu.unicamp.br/sbu/repositorio-institucional-da-unicamp-2/"
+      },
+      {
+        "name": "BDTD - Biblioteca Digital Brasileira de Teses e Dissertações",
+        "type": "Teses e Dissertações",
+        "description": "Plataforma que integra os sistemas de informação de teses e dissertações de instituições de ensino e pesquisa do Brasil.",
+        "info_available": [
+          "Teses de doutorado de universidades brasileiras",
+          "Dissertações de mestrado de diversas instituições",
+          "Produções acadêmicas de pós-graduação stricto sensu",
+          "Resumos e textos completos das pesquisas",
+          "Referências bibliográficas e dados de autoridade"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e utilize a busca avançada",
+          "Filtre por instituição, área do conhecimento ou data",
+          "Visualize os metadados e resumos das pesquisas",
+          "Faça download dos textos completos em formato PDF"
+        ],
+        "url": "https://bdtd.ibict.br/"
+      },
+      {
+        "name": "SciELO - Scientific Electronic Library Online",
+        "type": "Periódicos Científicos",
+        "description": "Biblioteca eletrônica que abrange uma coleção selecionada de periódicos científicos brasileiros e latino-americanos.",
+        "info_available": [
+          "Artigos científicos em texto completo",
+          "Publicações acadêmicas de diversas áreas do conhecimento",
+          "Métricas de citação e impacto dos periódicos",
+          "Coleções temáticas e por área de conhecimento",
+          "Dados bibliométricos de publicações brasileiras"
+        ],
+        "how_to_use": [
+          "Acesse o portal e navegue pelas coleções de periódicos",
+          "Utilize a busca avançada por autor, título ou assunto",
+          "Filtre por área de conhecimento ou data de publicação",
+          "Faça download dos artigos em PDF ou visualize online"
+        ],
+        "url": "https://www.scielo.br/"
+      },
+      {
+        "name": "CNPq - Plataforma Lattes",
+        "type": "Currículos Acadêmicos",
+        "description": "Base de dados de currículos e instituições de pesquisa do Brasil, mantida pelo CNPq.",
+        "info_available": [
+          "Currículos de pesquisadores, estudantes e profissionais",
+          "Informações sobre produção científica e tecnológica",
+          "Dados sobre participação em projetos e eventos",
+          "Histórico acadêmico e profissional",
+          "Redes de colaboração científica"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e utilize a busca por nome ou CPF",
+          "Consulte currículos individuais para informações detalhadas",
+          "Utilize ferramentas de análise de produção científica",
+          "Extraia dados para relatórios e avaliações institucionais"
+        ],
+        "url": "https://lattes.cnpq.br/",
+        "status": "TODO: This link is failing with an SSL error."
+      }
+    ],
+    "Cultura e Lazer": [
+      {
+        "name": "Dados Abertos do Ministério da Cultura",
+        "type": "Políticas Culturais",
+        "description": "Portal de dados abertos do MinC que disponibiliza informações sobre políticas culturais, projetos incentivados e equipamentos culturais.",
+        "info_available": [
+          "Dados sobre projetos culturais da Lei Rouanet",
+          "Informações sobre equipamentos culturais no Brasil",
+          "Estatísticas de investimentos no setor cultural",
+          "Dados sobre patrimônio histórico e artístico",
+          "Informações sobre políticas públicas para a cultura"
+        ],
+        "how_to_use": [
+          "Acesse o portal e explore os conjuntos de dados disponíveis",
+          "Filtre por área cultural, região ou período",
+          "Baixe os dados em formatos abertos",
+          "Utilize as APIs para integração com aplicações"
+        ],
+        "url": "https://www.gov.br/cultura/pt-br/acesso-a-informacao/dados-abertos-1"
+      },
+      {
+        "name": "SNIIC - Sistema Nacional de Informações e Indicadores Culturais",
+        "type": "Indicadores Culturais",
+        "description": "Plataforma que integra dados e indicadores culturais de diversas fontes, proporcionando um panorama do setor cultural brasileiro.",
+        "info_available": [
+          "Mapas culturais e equipamentos por região",
+          "Dados sobre agentes e instituições culturais",
+          "Indicadores de consumo e produção cultural",
+          "Informações sobre financiamento à cultura",
+          "Estatísticas de emprego e economia criativa"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e selecione o tipo de informação desejada",
+          "Utilize os filtros por região, setor cultural ou período",
+          "Visualize mapas interativos e dashboards",
+          "Exporte os dados em formatos abertos para análise"
+        ],
+        "url": "http://sniic.cultura.gov.br/"
+      },
+      {
+        "name": "Mapa Cultural - Plataforma Colaborativa",
+        "type": "Mapeamento Cultural",
+        "description": "Plataforma colaborativa que reúne informações sobre eventos, agentes, espaços e projetos culturais.",
+        "info_available": [
+          "Dados georreferenciados de equipamentos culturais",
+          "Informações sobre agentes e coletivos culturais",
+          "Calendário de eventos e programação cultural",
+          "Dados sobre projetos e iniciativas culturais",
+          "Estatísticas sobre a distribuição cultural por território"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e navegue pelo mapa interativo",
+          "Filtre por tipo de espaço, evento ou agente cultural",
+          "Consulte informações detalhadas sobre cada ponto no mapa",
+          "Exporte dados em formato aberto ou utilize as APIs disponíveis"
+        ],
+        "url": "https://mapas.cultura.gov.br/",
+        "status": "TODO: This link is blocking automated requests."
+      },
+      {
+        "name": "Base de Dados da FUNARTE",
+        "type": "Fomento às Artes",
+        "description": "Repositório de dados da Fundação Nacional de Artes que reúne informações sobre as artes no Brasil.",
+        "info_available": [
+          "Dados sobre editais e programas de fomento às artes",
+          "Informações sobre espetáculos e exposições",
+          "Acervo histórico de artes cênicas, música e artes visuais",
+          "Registros de artistas e grupos artísticos",
+          "Estatísticas de ocupação dos espaços culturais da Funarte"
+        ],
+        "how_to_use": [
+          "Acesse o portal da Funarte e navegue pelos dados disponíveis",
+          "Selecione a área artística ou tipo de informação desejada",
+          "Consulte relatórios e estudos sobre as artes no Brasil",
+          "Baixe documentos e publicações para referência"
+        ],
+        "url": "https://www.gov.br/funarte/pt-br",
+        "status": "TODO: This link is returning a 403 error."
+      }
+    ],
+    "Tecnologia e Inovação": [
+      {
+        "name": "Portal de Dados Abertos da PRODESP",
+        "type": "Governo Digital (SP)",
+        "description": "Plataforma da empresa de tecnologia do Estado de São Paulo que disponibiliza dados sobre serviços digitais e tecnologia pública.",
+        "info_available": [
+          "Dados sobre serviços digitais governamentais",
+          "Informações sobre infraestrutura tecnológica",
+          "Estatísticas de atendimento e uso de plataformas",
+          "Dados sobre documentos e certificações digitais",
+          "Indicadores de transformação digital do setor público"
+        ],
+        "how_to_use": [
+          "Acesse o portal e navegue pelos conjuntos de dados",
+          "Filtre por área de serviço ou período",
+          "Baixe os dados em formatos abertos",
+          "Utilize as informações para análises de transformação digital"
+        ],
+        "url": "https://www.prodesp.sp.gov.br/transparencia/dados-abertos"
+      },
+      {
+        "name": "OISP - Observatório de Inovação no Setor Público",
+        "type": "Inovação Pública",
+        "description": "Plataforma que mapeia e divulga iniciativas inovadoras na administração pública brasileira.",
+        "info_available": [
+          "Dados sobre iniciativas inovadoras no setor público",
+          "Informações sobre laboratórios de inovação",
+          "Estatísticas sobre impacto de projetos inovadores",
+          "Ferramentas e metodologias para inovação pública",
+          "Dados sobre desafios e soluções governamentais"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e navegue pelo mapa de inovações",
+          "Filtre por tema, região ou tipo de iniciativa",
+          "Explore casos práticos e lições aprendidas",
+          "Faça download de metodologias e ferramentas disponíveis"
+        ],
+        "url": "https://www.gov.br/gestao/pt-br/inova"
+      },
+      {
+        "name": "DCTI - Dados de Ciência, Tecnologia e Inovação",
+        "type": "Indicadores CT&I",
+        "description": "Plataforma do Ministério da Ciência, Tecnologia e Inovações que disponibiliza dados sobre investimentos, produção científica, patentes e indicadores de CT&I no Brasil.",
+        "info_available": [
+          "Dados sobre investimentos em pesquisa e desenvolvimento",
+          "Estatísticas de produção científica brasileira",
+          "Informações sobre patentes e propriedade intelectual",
+          "Indicadores de formação de recursos humanos em CT&I",
+          "Dados sobre projetos financiados com recursos públicos"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e selecione o tema de interesse",
+          "Utilize os filtros disponíveis para refinar a busca",
+          "Visualize gráficos e tabelas interativas",
+          "Faça download dos dados em formato aberto para análises específicas"
+        ],
+        "url": "https://antigo.mctic.gov.br/mctic/opencms/indicadores/indicadores_cti.html"
+      }
+    ],
+    "Fundações de Amparo à Pesquisa": [
+      {
+        "name": "FAPESP - Fundação de Amparo à Pesquisa do Estado de São Paulo",
+        "type": "Fomento (SP)",
+        "description": "Principal agência de fomento à pesquisa científica e tecnológica de São Paulo.",
+        "info_available": [
+          "Dados sobre projetos de pesquisa financiados",
+          "Informações sobre bolsas de estudo e pesquisa",
+          "Resultados e publicações de projetos apoiados",
+          "Indicadores de investimento em CT&I em São Paulo",
+          "Dados sobre acordos de cooperação e parcerias"
+        ],
+        "how_to_use": [
+          "Acesse a Biblioteca Virtual da FAPESP",
+          "Consulte dados sobre auxílios e bolsas concedidas",
+          "Explore relatórios de atividades e indicadores",
+          "Utilize a busca por área do conhecimento ou pesquisador"
+        ],
+        "url": "https://fapesp.br/bv"
+      },
+      {
+        "name": "FAPERJ - Fundação de Amparo à Pesquisa do Estado do Rio de Janeiro",
+        "type": "Fomento (RJ)",
+        "description": "Agência de fomento à pesquisa do Rio de Janeiro.",
+        "info_available": [
+          "Dados sobre editais e chamadas públicas",
+          "Informações sobre projetos e pesquisadores apoiados",
+          "Resultados de pesquisas financiadas",
+          "Indicadores de CT&I no Rio de Janeiro",
+          "Relatórios de gestão e prestação de contas"
+        ],
+        "how_to_use": [
+          "Acesse o portal da FAPERJ e navegue pelos programas",
+          "Consulte resultados de editais e projetos aprovados",
+          "Busque por área de conhecimento ou instituição",
+          "Acesse relatórios e publicações institucionais"
+        ],
+        "url": "https://www.faperj.br/"
+      },
+      {
+        "name": "FAPEMIG - Fundação de Amparo à Pesquisa do Estado de Minas Gerais",
+        "type": "Fomento (MG)",
+        "description": "Fundação de apoio à pesquisa em Minas Gerais.",
+        "info_available": [
+          "Dados sobre programas e editais de fomento",
+          "Informações sobre projetos e bolsas concedidas",
+          "Resultados e publicações de pesquisas apoiadas",
+          "Indicadores de ciência e tecnologia em Minas Gerais",
+          "Relatórios de atividades e investimentos"
+        ],
+        "how_to_use": [
+          "Acesse o site da FAPEMIG e explore os programas",
+          "Consulte a lista de projetos e bolsistas apoiados",
+          "Busque por área do conhecimento ou palavra-chave",
+          "Acesse publicações e relatórios institucionais"
+        ],
+        "url": "https://fapemig.br/"
+      }
+    ],
+    "Dados Eleitorais": [
+      {
+        "name": "TSE - Repositório de Dados Eleitorais",
+        "type": "Eleições",
+        "description": "Portal do Tribunal Superior Eleitoral que centraliza dados sobre eleições, eleitorado, candidaturas e resultados eleitorais no Brasil.",
+        "info_available": [
+          "Resultados de eleições (votação por seção, município, etc.)",
+          "Dados sobre o eleitorado (perfil, distribuição geográfica)",
+          "Informações sobre candidaturas e prestação de contas",
+          "Estatísticas eleitorais históricas",
+          "Dados sobre partidos políticos e filiação partidária"
+        ],
+        "how_to_use": [
+          "Acesse o repositório e selecione o tipo de dado desejado",
+          "Filtre por ano da eleição, cargo ou localidade",
+          "Baixe os dados em formato aberto (CSV, TXT)",
+          "Consulte as estatísticas e relatórios disponíveis"
+        ],
+        "url": "https://dadosabertos.tse.jus.br/"
+      }
+    ]
+  },
+  "international_databases": []
+}

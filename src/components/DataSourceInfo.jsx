@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import '../styles/DataSourceInfo.css'; // Styles will be applied
 import TransformacaoMunicipios from './ETL/TransformacaoMunicipios'; // Import the transformation component
 import TransformacaoSNIS from './ETL/TransformacaoSNIS'; // Import the SNIS transformation component
@@ -8,137 +8,184 @@ import TransformacaoDATASUS from './ETL/TransformacaoDATASUS'; // Import the DAT
 import TransformacaoFINBRA from './ETL/TransformacaoFINBRA'; // Import the FINBRA transformation component
 import TransformacaoIBGE from './ETL/TransformacaoIBGE'; // Import the IBGE transformation component
 import TransformacaoCodigoMunicipio from './ETL/TransformacaoCodigoMunicipio'; // Import the Code Correction component
-import { dataSources } from '../data/dataSources'; // Import the data sources
+import catalogData from '../data/catalog.json';
 
 // --- Catalog Component ---
 const CatalogView = () => {
-  // Helper function to create list items
-  const renderList = (items) => items.map((item, index) => <li key={index}>{item}</li>);
+  const [activeTab, setActiveTab] = useState('brazil'); // 'brazil' or 'international'
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const sections = [
-    { id: "geral", title: "Portais de Dados Gerais", icon: "fas fa-database", color: "blue", data: dataSources.geral },
-    { id: "economia", title: "Economia e Mercado", icon: "fas fa-money-bill-wave", color: "green", data: dataSources.economia },
-    { id: "emprego", title: "Emprego e Mercado de Trabalho", icon: "fas fa-briefcase", color: "blue", data: dataSources.emprego },
-    { id: "saude", title: "Saúde e Epidemiologia", icon: "fas fa-heartbeat", color: "red", data: dataSources.saude },
-    { id: "educacao", title: "Educação", icon: "fas fa-graduation-cap", color: "yellow", data: dataSources.educacao },
-    { id: "infraestrutura", title: "Infraestrutura, Transportes e Mobilidade", icon: "fas fa-bus", color: "gray", data: dataSources.infraestrutura },
-    { id: "ambiental", title: "Meio Ambiente e Dados Geográficos", icon: "fas fa-map-marked-alt", color: "green", data: dataSources.ambiental },
-    { id: "seguranca", title: "Segurança e Justiça", icon: "fas fa-balance-scale", color: "red", data: dataSources.seguranca },
-    { id: "agricultura", title: "Agricultura e Pecuária", icon: "fas fa-tractor", color: "yellow", data: dataSources.agricultura },
-    { id: "energia", title: "Energia", icon: "fas fa-bolt", color: "yellow", data: dataSources.energia },
-    { id: "pesquisas-ibge", title: "Pesquisas e Censos do IBGE", icon: "fas fa-chart-bar", color: "indigo", data: dataSources.pesquisasIbge },
-    { id: "social", title: "Programas Sociais", icon: "fas fa-hands-helping", color: "red", data: dataSources.social },
-    { id: "transparencia", title: "Transparência, Controle e Administração Pública", icon: "fas fa-building", color: "purple", data: dataSources.transparencia },
-    { id: "desenvolvimento", title: "Desenvolvimento Humano e Social", icon: "fas fa-chart-line", color: "blue", data: dataSources.desenvolvimento },
-    { id: "pesquisas", title: "Pesquisas e Estatísticas (Outros)", icon: "fas fa-poll", color: "blue", data: dataSources.pesquisas },
-    { id: "academico", title: "Pesquisa Científica e Acadêmica", icon: "fas fa-graduation-cap", color: "blue", data: dataSources.academico },
-    { id: "cultura", title: "Cultura e Artes", icon: "fas fa-theater-masks", color: "purple", data: dataSources.cultura },
-    { id: "tecnologia", title: "Tecnologia e Inovação", icon: "fas fa-microchip", color: "indigo", data: dataSources.tecnologia },
-    { id: "fundacoes", title: "Fundações de Amparo à Pesquisa", icon: "fas fa-flask", color: "blue", data: dataSources.fundacoes },
-    { id: "eleitorais", title: "Dados Eleitorais", icon: "fas fa-vote-yea", color: "purple", data: dataSources.eleitorais }
-  ].sort((a, b) => a.title.localeCompare(b.title)); // Sort sections alphabetically by title
+  // Helper to group array by key
+  const groupByKey = (array, key) => {
+    return array.reduce((result, currentValue) => {
+      (result[currentValue[key]] = result[currentValue[key]] || []).push(currentValue);
+      return result;
+    }, {});
+  };
+
+  // Process and filter data
+  const filteredData = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    let data = {};
+
+    if (activeTab === 'brazil') {
+      // Brazilian data is already grouped by category object
+      Object.keys(catalogData.brazilian_databases).forEach(category => {
+        const items = catalogData.brazilian_databases[category].filter(item =>
+          (item.name && item.name.toLowerCase().includes(term)) ||
+          (item.description && item.description.toLowerCase().includes(term)) ||
+          (item.type && item.type.toLowerCase().includes(term))
+        );
+        if (items.length > 0) {
+          data[category] = items;
+        }
+      });
+    } else {
+      // International data is an array
+      const items = catalogData.international_databases.filter(item =>
+        (item.name && item.name.toLowerCase().includes(term)) ||
+        (item.description && item.description.toLowerCase().includes(term)) ||
+        (item.institution && item.institution.toLowerCase().includes(term)) ||
+        (item.category && item.category.toLowerCase().includes(term))
+      );
+      // Group international items by category for display consistency
+      data = groupByKey(items, 'category');
+    }
+    return data;
+  }, [activeTab, searchTerm, catalogData]);
+
+  // Helper to render details list
+  const renderDetailList = (items) => {
+    if (!items || items.length === 0) return null;
+    return (
+      <ul className="details-list">
+        {items.map((item, idx) => <li key={idx}>{item}</li>)}
+      </ul>
+    );
+  };
+
+  const sections = Object.keys(filteredData).sort();
 
   return (
-    <>
-      {/* Example Data Card */}
-      <div className="base-card example-data-card" style={{ marginBottom: '2rem', borderLeft: '4px solid #2563eb', padding: '1.5rem' }}>
-        <div className="card-content">
-          <h3 className="card-title" style={{ marginTop: '0', marginBottom: '1rem' }}>Dados de Exemplo</h3>
-          <p style={{ marginBottom: '1rem' }}>
-            Não tem seus próprios dados ainda? Sem problemas! Disponibilizamos um conjunto de dados de exemplo para você explorar as funcionalidades do aplicativo. Faça o download abaixo:
-          </p>
-          <a
-            href="https://drive.google.com/drive/folders/1cRH2xw-bqfP7na9tE8l7DRPCjS4wM4cf?usp=sharing"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="card-link-button"
-            style={{ display: 'inline-block', textDecoration: 'none', marginBottom: '1.5rem' }}
+    <div className="catalog-view">
+      {/* Search and Filter Header */}
+      <div className="catalog-controls">
+        <div className="tabs">
+          <button
+            className={`sub-view-button ${activeTab === 'brazil' ? 'active' : ''}`}
+            onClick={() => setActiveTab('brazil')}
           >
-            <i className="fas fa-download link-icon"></i> Baixar Dados de Exemplo (Google Drive)
-          </a>
-          <h4 style={{ marginBottom: '0.5rem', fontSize: '1.1em' }}>O que você encontrará:</h4>
-          <ul style={{ listStyle: 'disc', marginLeft: '20px', marginBottom: '1rem', lineHeight: '1.6' }}>
-            <li><strong>Indicadores (<code>indicadores.csv</code>):</strong> Arquivo CSV contendo os valores numéricos dos indicadores (ex: IDH, Taxa de Mortalidade) para cada município e ano específico. Inclui também o Índice Posicional calculado. Essencial para as visualizações temáticas.</li>
-            <li><strong>Municípios (<code>municipios.csv</code>):</strong> Arquivo CSV com informações cadastrais de cada município, como nome, código IBGE, estado, região, área, coordenadas geográficas (latitude/longitude) e se é capital. Forma a base de dados sobre as localidades.</li>
-            <li><strong>Geometrias (<code>municipios-geo.json</code>):</strong> Arquivo GeoJSON que define os limites geográficos (polígonos) de cada município. É usado para desenhar os contornos dos municípios no mapa. Sem ele, os municípios são representados apenas por pontos.</li>
-            <li><strong>Perfis (<code>exemplo_perfil.json</code>):</strong> Arquivo JSON que agrupa os dados de municípios e indicadores em um único arquivo. Carregar um perfil substitui todos os dados existentes no aplicativo, sendo útil para configurar rapidamente um cenário completo.</li>
-          </ul>
-          <h4 style={{ marginBottom: '0.5rem', fontSize: '1.1em' }}>Como importar:</h4>
-          <p>
-            Utilize os botões no menu superior esquerdo (ícone <i className="fas fa-filter"></i>) para importar os arquivos:
-          </p>
-           <ul style={{ listStyle: 'none', paddingLeft: '0', marginBottom: '1rem' }}>
-              <li style={{ marginBottom: '0.5rem' }}><i className="fas fa-file-csv" style={{ marginRight: '8px', color: '#10B981' }}></i> Use <strong>"Importar Indicadores"</strong> para carregar o arquivo <code>indicadores.csv</code>.</li>
-              <li style={{ marginBottom: '0.5rem' }}><i className="fas fa-file-csv" style={{ marginRight: '8px', color: '#10B981' }}></i> Use <strong>"Importar Municípios"</strong> para carregar o arquivo <code>municipios.csv</code>.</li>
-              <li style={{ marginBottom: '0.5rem' }}><i className="fas fa-map-marked-alt" style={{ marginRight: '8px', color: '#3B82F6' }}></i> Use <strong>"Importar Geometria"</strong> para carregar o arquivo <code>municipios-geo.json</code>.</li>
-              <li style={{ marginBottom: '0.5rem' }}><i className="fas fa-file-code" style={{ marginRight: '8px', color: '#F59E0B' }}></i> Use <strong>"Carregar Perfil"</strong> para carregar um arquivo <code>.json</code> de perfil completo.</li>
-           </ul>
-          <p>
-            Certifique-se de que os arquivos seguem os formatos detalhados na aba <strong>"Formatos de Importação"</strong> aqui nesta página para garantir uma importação bem-sucedida.
-          </p>
+            🇧🇷 Bases Nacionais
+          </button>
+          <button
+            className={`sub-view-button ${activeTab === 'international' ? 'active' : ''}`}
+            onClick={() => setActiveTab('international')}
+          >
+            🌍 Bases Internacionais
+          </button>
+        </div>
+
+        <div className="search-bar">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Pesquisar por nome, descrição, tema..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <i className="fas fa-search search-icon"></i>
         </div>
       </div>
 
-      {/* Index */}
-      <nav className="data-source-index">
-        <h2>Índice de Conteúdo</h2>
-        <ul className="index-grid">
-          {sections.map(section => (
-            <li key={section.id}>
-              <a href={`#${section.id}`} className="index-link">
-                <i className={`${section.icon} index-icon`}></i> {section.title}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      {/* Sections */}
-      {sections.map(section => (
-        <section key={section.id} id={section.id} className="data-source-section">
-          <div className="section-header">
-            <div className={`section-icon-wrapper bg-${section.color}-100 text-${section.color}-500`}>
-              <i className={section.icon}></i>
+      {/* Content */}
+      {sections.length === 0 ? (
+        <div className="no-results">
+          <h3>Nenhum resultado encontrado</h3>
+          <p>Tente outros termos de pesquisa.</p>
+        </div>
+      ) : (
+        sections.map(category => (
+          <section key={category} className="data-source-section">
+            <div className="section-header">
+              <h2 className="section-title">{category}</h2>
             </div>
-            <h2 className="section-title">{section.title}</h2>
-          </div>
+            <div className="cards-grid">
+              {filteredData[category].map((source, index) => (
+                <div key={index} className="base-card">
+                  <div className="card-content">
+                    <div className="card-header">
+                      <h3 className="card-title">{source.name}</h3>
+                      {source.type && <span className="card-type bg-blue-100 text-blue-800">{source.type}</span>}
+                      {source.institution && <span className="card-type bg-indigo-100 text-indigo-800">{source.institution}</span>}
+                    </div>
 
-          <div className="cards-grid">
-            {section.data.map(source => (
-              <div key={source.id} className="base-card">
-                <div className="card-content">
-                  <div className="card-header">
-                    <h3 className="card-title">{source.title}</h3>
-                    <span className={`card-type ${source.typeClass}`}>{source.type}</span>
+                    <p className="card-description">{source.description}</p>
+
+                    {/* Additional Details for Brazilian items */}
+                    {activeTab === 'brazil' && (
+                      <>
+                        {source.info_available && source.info_available.length > 0 && (
+                          <div className="card-details">
+                            <h4 className="details-title">Informações disponíveis:</h4>
+                            {renderDetailList(source.info_available)}
+                          </div>
+                        )}
+                        {source.how_to_use && source.how_to_use.length > 0 && (
+                          <div className="card-details">
+                            <h4 className="details-title">Como utilizar:</h4>
+                            {renderDetailList(source.how_to_use)}
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Additional Details for International items */}
+                    {activeTab === 'international' && (
+                      <>
+                        <div className="card-details card-details-text">
+                          <div className="card-details-row"><strong>Cobertura:</strong> {source.geographic_coverage}</div>
+                          <div className="card-details-row"><strong>Período:</strong> {source.temporal_coverage}</div>
+                          {source.update_frequency && <div className="card-details-row"><strong>Atualização:</strong> {source.update_frequency}</div>}
+                          {source.quality_score && <div className="card-details-row"><strong>Índice de Qualidade:</strong> {source.quality_score}/10</div>}
+                        </div>
+
+                        {source.data_types && source.data_types.length > 0 && (
+                          <div className="card-details">
+                            <h4 className="details-title">Tipos de Dados:</h4>
+                            <div className="data-types-container">
+                              {source.data_types.map((type, idx) => (
+                                <span key={idx} className="data-type-tag">{type}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    <div className="card-footer">
+                      {source.url ? (
+                        <a href={source.url} target="_blank" rel="noopener noreferrer" className="card-link-button">
+                          <i className="fas fa-external-link-alt link-icon"></i>
+                          Acessar {source.access_type ? `(${source.access_type})` : 'Base'}
+                        </a>
+                      ) : (
+                        <span className="link-unavailable">Link não disponível</span>
+                      )}
+                    </div>
                   </div>
-                  <p className="card-description">{source.description}</p>
-                  {source.info && source.info.length > 0 && (
-                    <div className="card-details">
-                      <h4 className="details-title">Informações disponíveis:</h4>
-                      <ul className="details-list">{renderList(source.info)}</ul>
-                    </div>
-                  )}
-                  {source.usage && source.usage.length > 0 && (
-                    <div className="card-details">
-                      <h4 className="details-title">Como utilizar:</h4>
-                      <ol className="details-list ordered">{renderList(source.usage)}</ol>
-                    </div>
-                  )}
-                  <a href={source.link} target="_blank" rel="noopener noreferrer" className="card-link-button">
-                    <i className="fas fa-external-link-alt link-icon"></i>Acessar {source.type}
-                  </a>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
+              ))}
+            </div>
+          </section>
+        ))
+      )}
 
       {/* Footer */}
       <footer className="data-source-footer">
-        <p>Última atualização: Abril de 2025</p>
+        <p>Última atualização: {catalogData.metadata?.date || 'Novembro 2025'} • Versão {catalogData.metadata?.version || '2.0'}</p>
+        <p>Total de bases catalogadas: {catalogData.metadata?.total_databases || '80+'}</p>
       </footer>
-    </>
+    </div>
   );
 };
 
@@ -374,7 +421,6 @@ const DataSourceInfo = () => {
             Boas-vindas
           </button>
           <button
-            id="catalog-button"
             className={`sub-view-button ${activeSubView === 'catalog' ? 'active' : ''}`}
             onClick={() => setActiveSubView('catalog')}
           >
