@@ -2,7 +2,7 @@
   "metadata": {
     "version": "2.0",
     "date": "2025-11-24",
-    "total_databases": 777,
+    "total_databases": 379,
     "categories": [
       "Agricultura e Pecuária",
       "Cultura e Artes",
@@ -78,19 +78,6 @@
         "validated": true
       },
       {
-        "name": "Dados de todos os setores da administração pública",
-        "type": "Como utilizar:",
-        "category": "Portais de Dados Gerais",
-        "description": "Acesse o portal e use a barra de pesquisa para encontrar conjuntos de dados Filtre por organizações, temas ou formatos de dados Baixe os dados em formatos como CSV, JSON, XML Leia a documentação específica de cada conjunto de dados IBGE - SIDRA (Sistema IBGE de Recuperação Automática) O SIDRA é o principal sistema de dados estatísticos do IBGE, oferecendo acesso a tabelas de dados de diversas pesquisas e censos realizados pelo instituto.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "IBGE - SIDRA (Sistema IBGE de Recuperação Automática)",
         "type": "Estatísticas",
         "category": "Portais de Dados Gerais",
@@ -151,45 +138,6 @@
           "Gere tabelas personalizadas para análise",
           "Exporte os dados em formatos como XLS, CSV ou HTML"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Estatísticas sociais (educação, saúde, trabalho)",
-        "type": "Como utilizar:",
-        "category": "Portais de Dados Gerais",
-        "description": "Acesse o SIDRA e navegue pelas pesquisas disponíveis Selecione variáveis, períodos e localidades de interesse Gere tabelas personalizadas para análise Exporte os dados em formatos como XLS, CSV ou HTML IPARDES - BDEweb (Base de Dados do Estado) O BDEweb do Instituto Paranaense de Desenvolvimento Econômico e Social (IPARDES) é um sistema de informações estatísticas com mais de 15 milhões de dados classificados por grandes temas e assuntos, focado no estado do Paraná.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Gere tabelas personalizadas para análise",
-        "type": "",
-        "category": "Portais de Dados Gerais",
-        "description": "IPARDES - BDEweb (Base de Dados do Estado) O BDEweb do Instituto Paranaense de Desenvolvimento Econômico e Social (IPARDES) é um sistema de informações estatísticas com mais de 15 milhões de dados classificados por grandes temas e assuntos, focado no estado do Paraná.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em formatos como XLS, CSV ou HTML",
-        "type": "Acessar Estatísticas",
-        "category": "Portais de Dados Gerais",
-        "description": "IPARDES - BDEweb (Base de Dados do Estado) O BDEweb do Instituto Paranaense de Desenvolvimento Econômico e Social (IPARDES) é um sistema de informações estatísticas com mais de 15 milhões de dados classificados por grandes temas e assuntos, focado no estado do Paraná.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -282,32 +230,6 @@
         "validated": true
       },
       {
-        "name": "Dados sobre municípios do Paraná",
-        "type": "Como utilizar:",
-        "category": "Portais de Dados Gerais",
-        "description": "Acesse o BDEweb e selecione o tipo de consulta (variáveis ou localidades) Escolha os temas, subtemas e variáveis de interesse Selecione o período e as localidades para análise Exporte os dados em formatos como XLS ou PDF A Base dos Dados é uma plataforma que centraliza e padroniza dados públicos brasileiros, tornando-os mais acessíveis e utilizáveis. Embora não seja governamental, reúne dados de fontes oficiais de forma organizada.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em formatos como XLS ou PDF",
-        "type": "Acessar Regional",
-        "category": "Portais de Dados Gerais",
-        "description": "A Base dos Dados é uma plataforma que centraliza e padroniza dados públicos brasileiros, tornando-os mais acessíveis e utilizáveis. Embora não seja governamental, reúne dados de fontes oficiais de forma organizada.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Base dos Dados",
         "type": "Geral",
         "category": "Portais de Dados Gerais",
@@ -371,45 +293,6 @@
           "Consulte a documentação para entender a estrutura dos dados",
           "Consulte diretamente via BigQuery"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Bases preparadas para integrações via SQL e Python",
-        "type": "Como utilizar:",
-        "category": "Portais de Dados Gerais",
-        "description": "Acesse a plataforma e explore os conjuntos de dados disponíveis Utilize os filtros para encontrar dados por tema ou fonte Faça o download direto ou use a API via Python ou R Consulte a documentação para entender a estrutura dos dados Consulte diretamente via BigQuery Cadastro Único para Programas Sociais O Cadastro Único é um instrumento de identificação e caracterização socioeconômica das famílias brasileiras de baixa renda, utilizado para seleção de beneficiários e integração de programas sociais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize os filtros para encontrar dados por tema ou fonte",
-        "type": "",
-        "category": "Portais de Dados Gerais",
-        "description": "Consulte a documentação para entender a estrutura dos dados Consulte diretamente via BigQuery Cadastro Único para Programas Sociais O Cadastro Único é um instrumento de identificação e caracterização socioeconômica das famílias brasileiras de baixa renda, utilizado para seleção de beneficiários e integração de programas sociais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Faça o download direto ou use a API via Python ou R",
-        "type": "",
-        "category": "Portais de Dados Gerais",
-        "description": "Consulte diretamente via BigQuery Cadastro Único para Programas Sociais O Cadastro Único é um instrumento de identificação e caracterização socioeconômica das famílias brasileiras de baixa renda, utilizado para seleção de beneficiários e integração de programas sociais.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -634,19 +517,6 @@
         "validated": true
       },
       {
-        "name": "Exporte os dados em formatos como XLS, CSV ou HTML",
-        "type": "Acessar Economia",
-        "category": "Economia e Mercado",
-        "description": "Portal da Transparência O Portal da Transparência do Governo Federal permite o acompanhamento da execução orçamentária e financeira do governo, oferecendo informações sobre receitas, despesas e transferências de recursos.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Portal da Transparência",
         "type": "Orçamento",
         "category": "Economia e Mercado",
@@ -707,19 +577,6 @@
           "Explore os dados através dos painéis interativos",
           "Faça download dos dados em formatos abertos (CSV, JSON)"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Contratos, convênios e licitações",
-        "type": "Como utilizar:",
-        "category": "Economia e Mercado",
-        "description": "Acesse o portal e navegue pelos menus temáticos Use os filtros para refinar as consultas por órgão, período e tipo Explore os dados através dos painéis interativos Faça download dos dados em formatos abertos (CSV, JSON) SICONFI - Sistema de Informações Contábeis e Fiscais O SICONFI é um sistema do Tesouro Nacional que coleta, armazena e disponibiliza dados contábeis e fiscais de estados, municípios e do Distrito Federal.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -812,19 +669,6 @@
         "validated": true
       },
       {
-        "name": "Matriz de saldos contábeis",
-        "type": "Como utilizar:",
-        "category": "Economia e Mercado",
-        "description": "Acesse o SICONFI e navegue pelas opções de consulta Selecione o tipo de relatório (DCA, RGF, RREO) Escolha o ente federativo, o período e os dados desejados Visualize ou exporte os dados em formatos como XLS ou PDF Banco Central - Estatísticas O portal de estatísticas do Banco Central do Brasil disponibiliza dados sobre o sistema financeiro, câmbio, crédito, balanço de pagamentos e outros indicadores econômicos.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Banco Central - Estatísticas",
         "type": "Financeiro",
         "category": "Economia e Mercado",
@@ -910,45 +754,6 @@
         "validated": true
       },
       {
-        "name": "Indicadores de inflação e atividade econômica",
-        "type": "Como utilizar:",
-        "category": "Economia e Mercado",
-        "description": "Acesse o Sistema Gerenciador de Séries Temporais (SGS) Pesquise por código ou nome da série de interesse Defina o período de consulta e visualize os dados Exporte os dados em diversos formatos (CSV, XLS, JSON) Comex Stat - Estatísticas de Comércio Exterior O Comex Stat é o sistema oficial para consulta e extração de dados do comércio exterior brasileiro, desenvolvido pelo Ministério do Desenvolvimento, Indústria, Comércio e Serviços (MDIC).",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Pesquise por código ou nome da série de interesse",
-        "type": "Defina o período de consulta e visualize os dados",
-        "category": "Economia e Mercado",
-        "description": "Exporte os dados em diversos formatos (CSV, XLS, JSON) Comex Stat - Estatísticas de Comércio Exterior O Comex Stat é o sistema oficial para consulta e extração de dados do comércio exterior brasileiro, desenvolvido pelo Ministério do Desenvolvimento, Indústria, Comércio e Serviços (MDIC).",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em diversos formatos (CSV, XLS, JSON)",
-        "type": "Acessar Financeiro",
-        "category": "Economia e Mercado",
-        "description": "Comex Stat - Estatísticas de Comércio Exterior O Comex Stat é o sistema oficial para consulta e extração de dados do comércio exterior brasileiro, desenvolvido pelo Ministério do Desenvolvimento, Indústria, Comércio e Serviços (MDIC).",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Comex Stat - Estatísticas de Comércio Exterior",
         "type": "Comércio",
         "category": "Economia e Mercado",
@@ -1009,19 +814,6 @@
           "Selecione as variáveis para análise",
           "Visualize os resultados e exporte em CSV, XLS ou PDF"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Séries históricas do comércio exterior",
-        "type": "Como utilizar:",
-        "category": "Economia e Mercado",
-        "description": "Acesse o Comex Stat e escolha entre exportação ou importação Defina os filtros (período, produto, país, UF) Selecione as variáveis para análise Visualize os resultados e exporte em CSV, XLS ou PDF Portal de Dados Abertos da CVM Plataforma que disponibiliza dados de empresas de capital aberto, fundos de investimento e outros participantes do mercado de capitais brasileiro, permitindo acompanhar a evolução e desempenho das companhias listadas.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -1096,32 +888,6 @@
         "validated": true
       },
       {
-        "name": "Documentos e fatos relevantes de empresas de capital aberto",
-        "type": "Como utilizar:",
-        "category": "Economia e Mercado",
-        "description": "Acesse o portal e navegue pelos conjuntos de dados Filtre por empresa, período ou tipo de documento Baixe os dados em formato aberto (CSV, JSON) Utilize as APIs disponíveis para integração com sistemas B3 - Empresas Listadas Portal com informações sobre todas as empresas listadas na B3 (Brasil, Bolsa, Balcão), principal bolsa de valores brasileira, incluindo dados financeiros, documentos oficiais e informações de governança corporativa.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize as APIs disponíveis para integração com sistemas",
-        "type": "Acessar Financeiro",
-        "category": "Economia e Mercado",
-        "description": "B3 - Empresas Listadas Portal com informações sobre todas as empresas listadas na B3 (Brasil, Bolsa, Balcão), principal bolsa de valores brasileira, incluindo dados financeiros, documentos oficiais e informações de governança corporativa.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "B3 - Empresas Listadas",
         "type": "Bolsa",
         "category": "Economia e Mercado",
@@ -1182,19 +948,6 @@
           "Baixe dados históricos de negociação",
           "Acompanhe fatos relevantes e comunicados ao mercado"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Histórico de dividendos e eventos corporativos",
-        "type": "Como utilizar:",
-        "category": "Economia e Mercado",
-        "description": "Acesse o portal e pesquise por empresa Consulte relatórios e demonstrações financeiras Baixe dados históricos de negociação Acompanhe fatos relevantes e comunicados ao mercado Banco Central - Dados Abertos Portal de dados abertos do Banco Central do Brasil que disponibiliza informações sobre o sistema financeiro, política monetária, cambial e de crédito, permitindo análises econômicas e financeiras do país.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -1269,32 +1022,6 @@
         "validated": true
       },
       {
-        "name": "Indicadores do sistema de pagamentos brasileiro",
-        "type": "Como utilizar:",
-        "category": "Economia e Mercado",
-        "description": "Acesse o portal de dados abertos ou o Sistema Gerenciador de Séries Temporais (SGS) Busque os indicadores de interesse por tema ou código Selecione o período e formato de visualização Exporte os dados em diversos formatos (CSV, JSON, Excel) Mapa da Indústria - CNI Plataforma da Confederação Nacional da Indústria (CNI) que reúne dados e indicadores industriais do Brasil, com informações sobre produção, emprego, investimentos e comércio exterior do setor industrial.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em diversos formatos (CSV, JSON, Excel)",
-        "type": "Acessar Monetário",
-        "category": "Economia e Mercado",
-        "description": "Mapa da Indústria - CNI Plataforma da Confederação Nacional da Indústria (CNI) que reúne dados e indicadores industriais do Brasil, com informações sobre produção, emprego, investimentos e comércio exterior do setor industrial.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Mapa da Indústria - CNI",
         "type": "Industrial",
         "category": "Economia e Mercado",
@@ -1355,32 +1082,6 @@
           "Visualize gráficos e tabelas comparativas",
           "Exporte os dados em formatos como Excel e PDF"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Pesquisas de confiança e expectativas do empresariado",
-        "type": "Como utilizar:",
-        "category": "Economia e Mercado",
-        "description": "Acesse a plataforma e selecione o tipo de informação desejada Filtre por período, setor industrial ou região Visualize gráficos e tabelas comparativas Exporte os dados em formatos como Excel e PDF O Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (INEP) disponibiliza dados sobre todos os níveis educacionais do Brasil, desde a educação básica até o ensino superior.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em formatos como Excel e PDF",
-        "type": "Acessar Industrial",
-        "category": "Economia e Mercado",
-        "description": "O Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (INEP) disponibiliza dados sobre todos os níveis educacionais do Brasil, desde a educação básica até o ensino superior.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -1516,19 +1217,6 @@
         "validated": true
       },
       {
-        "name": "Séries históricas do mercado de trabalho formal",
-        "type": "Como utilizar:",
-        "category": "Emprego e Mercado de Trabalho",
-        "description": "Acesse o painel do Novo CAGED no site do Ministério do Trabalho Filtre por período, região, setor econômico ou outras variáveis Visualize gráficos e tabelas com os resultados da consulta Faça download dos microdados para análises mais detalhadas RAIS - Relação Anual de Informações Sociais A RAIS é um registro administrativo anual que fornece informações sobre o mercado de trabalho formal brasileiro, abrangendo todos os tipos de vínculos empregatícios: estatutários, celetistas, temporários e avulsos.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Dados sobre estabelecimentos empregadores",
         "type": "",
         "category": "Emprego e Mercado de Trabalho",
@@ -1558,32 +1246,6 @@
           "Gere tabelas personalizadas com os dados de vínculos e estabelecimentos",
           "Faça download dos microdados para análises estatísticas mais avançadas"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Séries históricas anuais do mercado de trabalho",
-        "type": "Como utilizar:",
-        "category": "Emprego e Mercado de Trabalho",
-        "description": "Acesse a plataforma RAIS no site do Ministério do Trabalho Selecione o ano-base e as variáveis de interesse Gere tabelas personalizadas com os dados de vínculos e estabelecimentos Faça download dos microdados para análises estatísticas mais avançadas PDET - Programa de Disseminação das Estatísticas do Trabalho O PDET é um programa do Ministério do Trabalho e Emprego que visa divulgar informações oriundas da RAIS e do CAGED, disponibilizando ferramentas para acesso e análise desses dados.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Gere tabelas personalizadas com os dados de vínculos e estabelecimentos",
-        "type": "",
-        "category": "Emprego e Mercado de Trabalho",
-        "description": "PDET - Programa de Disseminação das Estatísticas do Trabalho O PDET é um programa do Ministério do Trabalho e Emprego que visa divulgar informações oriundas da RAIS e do CAGED, disponibilizando ferramentas para acesso e análise desses dados.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -1658,19 +1320,6 @@
         "validated": true
       },
       {
-        "name": "Dados georreferenciados do mercado de trabalho",
-        "type": "Como utilizar:",
-        "category": "Emprego e Mercado de Trabalho",
-        "description": "Acesse o portal do PDET Escolha entre as ferramentas disponíveis (tabulador, base estatística, microdados) Selecione as variáveis e filtros desejados Visualize ou faça download dos resultados em diferentes formatos PROGER - Programa de Geração de Emprego e Renda O PROGER é um programa que disponibiliza linhas de crédito com recursos do Fundo de Amparo ao Trabalhador (FAT) para financiar empreendimentos que visem a geração de emprego e renda.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "PROGER - Programa de Geração de Emprego e Renda",
         "type": "Financiamento",
         "category": "Emprego e Mercado de Trabalho",
@@ -1731,19 +1380,6 @@
           "Acesse informações sobre as linhas de crédito e condições",
           "Consulte os agentes financeiros e requisitos para solicitação"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Histórico de contratações e beneficiários",
-        "type": "Como utilizar:",
-        "category": "Emprego e Mercado de Trabalho",
-        "description": "Acesse o portal do PROGER no site do Ministério do Trabalho Consulte os relatórios estatísticos disponíveis Acesse informações sobre as linhas de crédito e condições Consulte os agentes financeiros e requisitos para solicitação ANEEL - Dados Abertos A Agência Nacional de Energia Elétrica (ANEEL) disponibiliza dados sobre o setor elétrico brasileiro, incluindo geração, transmissão, distribuição e comercialização de energia.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -1998,19 +1634,6 @@
         "validated": true
       },
       {
-        "name": "Execute a tabulação e exporte os dados (CSV, XLS)",
-        "type": "Acessar Saúde",
-        "category": "Saúde e Epidemiologia",
-        "description": "Portal de Dados Abertos da ANS O Portal de Dados Abertos da Agência Nacional de Saúde Suplementar (ANS) disponibiliza informações sobre planos de saúde, beneficiários, operadoras e outros aspectos da saúde suplementar no Brasil.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Portal de Dados Abertos da ANS",
         "type": "Saúde Suplementar",
         "category": "Saúde e Epidemiologia",
@@ -2145,32 +1768,6 @@
         "validated": true
       },
       {
-        "name": "Microdados de sistemas de informação em saúde",
-        "type": "Como utilizar:",
-        "category": "Saúde e Epidemiologia",
-        "description": "Acesse o OpenDataSUS e navegue pelos repositórios Escolha o conjunto de dados de interesse Consulte a documentação para entender a estrutura dos dados Faça o download dos arquivos disponíveis Vigitel - Vigilância de Fatores de Risco Sistema de monitoramento de fatores de risco e proteção para doenças crônicas por inquérito telefônico do Ministério da Saúde, que coleta dados sobre hábitos alimentares, atividade física, tabagismo, entre outros.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Faça o download dos arquivos disponíveis",
-        "type": "Acessar COVID-19",
-        "category": "Saúde e Epidemiologia",
-        "description": "Vigitel - Vigilância de Fatores de Risco Sistema de monitoramento de fatores de risco e proteção para doenças crônicas por inquérito telefônico do Ministério da Saúde, que coleta dados sobre hábitos alimentares, atividade física, tabagismo, entre outros.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Vigitel - Vigilância de Fatores de Risco",
         "type": "Comportamental",
         "category": "Saúde e Epidemiologia",
@@ -2231,45 +1828,6 @@
           "Analise as tendências temporais dos indicadores",
           "Utilize os microdados para análises específicas"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Séries históricas de fatores de risco à saúde",
-        "type": "Como utilizar:",
-        "category": "Saúde e Epidemiologia",
-        "description": "Acesse os relatórios anuais do Vigitel Consulte as bases de dados no site do DATASUS Analise as tendências temporais dos indicadores Utilize os microdados para análises específicas O Atlas da Violência é uma plataforma desenvolvida pelo IPEA e pelo Fórum Brasileiro de Segurança Pública que reúne dados sobre homicídios e outros tipos de violência no Brasil.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Analise as tendências temporais dos indicadores",
-        "type": "Utilize os microdados para análises específicas",
-        "category": "Saúde e Epidemiologia",
-        "description": "O Atlas da Violência é uma plataforma desenvolvida pelo IPEA e pelo Fórum Brasileiro de Segurança Pública que reúne dados sobre homicídios e outros tipos de violência no Brasil.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize os microdados para análises específicas",
-        "type": "Acessar Comportamental",
-        "category": "Saúde e Epidemiologia",
-        "description": "O Atlas da Violência é uma plataforma desenvolvida pelo IPEA e pelo Fórum Brasileiro de Segurança Pública que reúne dados sobre homicídios e outros tipos de violência no Brasil.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -2419,19 +1977,6 @@
         "validated": true
       },
       {
-        "name": "Dados sobre escolas, professores e alunos",
-        "type": "Como utilizar:",
-        "category": "Educação",
-        "description": "Acesse o portal de dados abertos do INEP Navegue pelos conjuntos de dados disponíveis Faça download dos microdados ou das sinopses estatísticas Consulte os dicionários de variáveis para interpretar os dados O Fundo Nacional de Desenvolvimento da Educação (FNDE) disponibiliza dados sobre os programas de financiamento da educação pública brasileira.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "FNDE - Dados Abertos",
         "type": "Financiamento",
         "category": "Educação",
@@ -2474,19 +2019,6 @@
           "Faça download dos dados em formato aberto",
           "Consulte os sistemas específicos para cada programa"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Dados sobre o transporte escolar e outras transferências",
-        "type": "Como utilizar:",
-        "category": "Educação",
-        "description": "Acesse o portal de dados abertos do FNDE Navegue pelos conjuntos de dados disponíveis Faça download dos dados em formato aberto Consulte os sistemas específicos para cada programa Emprego e Mercado de Trabalho CAGED - Cadastro Geral de Empregados e Desempregados O CAGED é um registro administrativo que monitora a evolução do mercado de trabalho formal brasileiro, registrando mensalmente as admissões e demissões de empregados sob o regime da CLT. Desde 2020, o Novo CAGED passou a utilizar dados do eSocial e outros sistemas.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -2565,32 +2097,6 @@
           "Selecione os indicadores, períodos e localidades desejados",
           "Gere consultas e exporte os dados em diversos formatos"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Indicadores operacionais, econômicos e de qualidade",
-        "type": "Como utilizar:",
-        "category": "Infraestrutura, Transportes e Mobilidade",
-        "description": "Acesse a Série Histórica do SNIS Escolha o componente de interesse (Água e Esgotos, Resíduos Sólidos ou Águas Pluviais) Selecione os indicadores, períodos e localidades desejados Gere consultas e exporte os dados em diversos formatos A Agência Nacional de Transportes Terrestres (ANTT) disponibiliza dados sobre o transporte terrestre no Brasil, incluindo rodovias, ferrovias e transporte de passageiros.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Gere consultas e exporte os dados em diversos formatos",
-        "type": "Acessar Saneamento",
-        "category": "Infraestrutura, Transportes e Mobilidade",
-        "description": "A Agência Nacional de Transportes Terrestres (ANTT) disponibiliza dados sobre o transporte terrestre no Brasil, incluindo rodovias, ferrovias e transporte de passageiros.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -2750,19 +2256,6 @@
         "validated": true
       },
       {
-        "name": "Análises de custo social e econômico dos acidentes",
-        "type": "Como utilizar:",
-        "category": "Infraestrutura, Transportes e Mobilidade",
-        "description": "Acesse o portal e consulte os relatórios disponíveis Navegue pelos dashboards e visualizações interativas Filtre os dados por região, tipo de veículo ou período Faça download de estatísticas e indicadores em formato aberto Portal de Dados Abertos da ANAC Plataforma da Agência Nacional de Aviação Civil que disponibiliza dados sobre o transporte aéreo brasileiro, incluindo voos, aeronaves, aeroportos e empresas aéreas, permitindo análises sobre o setor.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Portal de Dados Abertos da ANAC",
         "type": "Transporte Aéreo",
         "category": "Infraestrutura, Transportes e Mobilidade",
@@ -2830,19 +2323,6 @@
         "validated": true
       },
       {
-        "name": "Dados de empresas aéreas e suas operações",
-        "type": "Como utilizar:",
-        "category": "Infraestrutura, Transportes e Mobilidade",
-        "description": "Acesse o portal e utilize o catálogo de dados Filtre por categoria, formato ou palavra-chave Faça download dos conjuntos de dados Consulte os metadados para entender a estrutura das informações DENATRAN - Dados Abertos Portal de dados do Departamento Nacional de Trânsito com informações sobre a frota de veículos, condutores habilitados, multas e infrações em todo o Brasil, permitindo análises sobre o sistema nacional de trânsito.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "DENATRAN - Dados Abertos",
         "type": "Frota Veicular",
         "category": "Infraestrutura, Transportes e Mobilidade",
@@ -2903,19 +2383,6 @@
           "Visualize relatórios estatísticos ou dados brutos",
           "Faça download das informações em formato aberto"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Dados sobre veículos por idade e categoria",
-        "type": "Como utilizar:",
-        "category": "Infraestrutura, Transportes e Mobilidade",
-        "description": "Acesse o portal e selecione a categoria de dados Filtre por estado, período ou tipo de veículo Visualize relatórios estatísticos ou dados brutos Faça download das informações em formato aberto Meio Ambiente e Dados Geográficos IBAMA - Dados Abertos O Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renováveis (IBAMA) disponibiliza dados sobre licenciamento ambiental, fiscalização, qualidade ambiental e biodiversidade.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -3051,19 +2518,6 @@
         "validated": true
       },
       {
-        "name": "Dados sobre queimadas e desmatamento",
-        "type": "Como utilizar:",
-        "category": "Meio Ambiente e Dados Geográficos",
-        "description": "Acesse o portal de dados abertos do IBAMA Navegue pelos conjuntos de dados disponíveis Faça download dos dados em formatos abertos Consulte os sistemas específicos como o SISCOM para dados geoespaciais A Agência Nacional de Águas e Saneamento Básico (ANA) disponibiliza dados sobre recursos hídricos, bacias hidrográficas, qualidade da água e eventos hidrológicos.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "ANA - Dados Abertos",
         "type": "Recursos Hídricos",
         "category": "Meio Ambiente e Dados Geográficos",
@@ -3106,19 +2560,6 @@
           "Faça download dos dados em formatos abertos",
           "Consulte o Portal HidroWeb para dados hidrometeorológicos"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Dados sobre reservatórios e sistemas hídricos",
-        "type": "Como utilizar:",
-        "category": "Meio Ambiente e Dados Geográficos",
-        "description": "Acesse o portal de dados abertos da ANA Navegue pelos conjuntos de dados disponíveis Faça download dos dados em formatos abertos Consulte o Portal HidroWeb para dados hidrometeorológicos INDE - Infraestrutura Nacional de Dados Espaciais Portal que integra dados geoespaciais produzidos por instituições governamentais brasileiras em um único ambiente de acesso, facilitando a descoberta, o uso e o compartilhamento de informações geográficas.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -3193,32 +2634,6 @@
         "validated": true
       },
       {
-        "name": "Bases cartográficas oficiais do Brasil",
-        "type": "Como utilizar:",
-        "category": "Meio Ambiente e Dados Geográficos",
-        "description": "Acesse o visualizador de mapas para combinação e análise de camadas Consulte o catálogo de geosserviços para acesso via WMS, WFS ou WCS Baixe dados em formatos geoespaciais (Shapefile, GeoJSON) Integre os serviços em aplicações próprias de geoprocessamento SEEG - Sistema de Estimativas de Emissões de Gases Principal plataforma de monitoramento de emissões de gases de efeito estufa na América Latina, mantida pelo Observatório do Clima, sendo uma das maiores bases de dados nacionais de emissões do mundo.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Integre os serviços em aplicações próprias de geoprocessamento",
-        "type": "Acessar Geoespacial",
-        "category": "Meio Ambiente e Dados Geográficos",
-        "description": "SEEG - Sistema de Estimativas de Emissões de Gases Principal plataforma de monitoramento de emissões de gases de efeito estufa na América Latina, mantida pelo Observatório do Clima, sendo uma das maiores bases de dados nacionais de emissões do mundo.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "SEEG - Sistema de Estimativas de Emissões de Gases",
         "type": "Climático",
         "category": "Meio Ambiente e Dados Geográficos",
@@ -3279,32 +2694,6 @@
           "Exporte os dados em formato aberto para análises complementares",
           "Consulte relatórios e análises disponíveis sobre as tendências de emissões"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Indicadores comparativos de desempenho climático",
-        "type": "Como utilizar:",
-        "category": "Meio Ambiente e Dados Geográficos",
-        "description": "Acesse as plataformas de visualização de dados Filtre por período, setor ou região geográfica Exporte os dados em formato aberto para análises complementares Consulte relatórios e análises disponíveis sobre as tendências de emissões Projeto que mapeia anualmente a cobertura e uso do solo no Brasil, oferecendo informações sobre mudanças na paisagem e uso da terra em todo o território nacional desde 1985, com base em sensoriamento remoto.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em formato aberto para análises complementares",
-        "type": "",
-        "category": "Meio Ambiente e Dados Geográficos",
-        "description": "Projeto que mapeia anualmente a cobertura e uso do solo no Brasil, oferecendo informações sobre mudanças na paisagem e uso da terra em todo o território nacional desde 1985, com base em sensoriamento remoto.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -3379,19 +2768,6 @@
         "validated": true
       },
       {
-        "name": "Mapeamentos específicos para cada bioma brasileiro",
-        "type": "Como utilizar:",
-        "category": "Meio Ambiente e Dados Geográficos",
-        "description": "Acesse a plataforma e navegue pelos mapas interativos Filtre por região, bioma ou tipo de cobertura Baixe os dados geoespaciais para análises específicas Consulte relatórios e estatísticas sobre as mudanças territoriais Monitoramento Ambiental Plataforma desenvolvida pelo INPE para organização, acesso e uso dos dados geográficos de monitoramento ambiental, permitindo acompanhar as mudanças na cobertura florestal e uso da terra nos biomas brasileiros.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "TerraBrasilis - INPE",
         "type": "Monitoramento Ambiental",
         "category": "Meio Ambiente e Dados Geográficos",
@@ -3452,32 +2828,6 @@
           "Baixe dados em formatos geoespaciais para uso em SIG",
           "Consulte painéis e dashboards com estatísticas atualizadas"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Séries históricas de desmatamento e degradação florestal",
-        "type": "Como utilizar:",
-        "category": "Meio Ambiente e Dados Geográficos",
-        "description": "Acesse a plataforma e selecione o conjunto de dados de interesse Utilize as ferramentas de visualização e análise espacial Baixe dados em formatos geoespaciais para uso em SIG Consulte painéis e dashboards com estatísticas atualizadas Pesquisa Científica e Acadêmica Repositório Institucional da USP Repositório Universitário Plataforma que reúne a produção científica e intelectual da Universidade de São Paulo, incluindo teses, dissertações e artigos, disponibilizando em acesso aberto a pesquisa desenvolvida na maior universidade do país.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize as ferramentas de visualização e análise espacial",
-        "type": "",
-        "category": "Meio Ambiente e Dados Geográficos",
-        "description": "Consulte painéis e dashboards com estatísticas atualizadas Pesquisa Científica e Acadêmica Repositório Institucional da USP Repositório Universitário Plataforma que reúne a produção científica e intelectual da Universidade de São Paulo, incluindo teses, dissertações e artigos, disponibilizando em acesso aberto a pesquisa desenvolvida na maior universidade do país.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -3660,19 +3010,6 @@
         "validated": true
       },
       {
-        "name": "Dados sobre óbitos por armas de fogo",
-        "type": "Como utilizar:",
-        "category": "Segurança e Justiça",
-        "description": "Acesse o Atlas da Violência Navegue pelos diferentes temas disponíveis Selecione os filtros de interesse (estados, municípios, período) Visualize os dados em mapas, gráficos ou tabelas O Conselho Nacional de Justiça (CNJ) disponibiliza dados sobre o funcionamento do Poder Judiciário brasileiro, processos judiciais e outros indicadores da Justiça.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "CNJ - Dados Abertos",
         "type": "Judiciário",
         "category": "Segurança e Justiça",
@@ -3740,19 +3077,6 @@
         "validated": true
       },
       {
-        "name": "Estatísticas do Sistema Carcerário e Sistema Prisional",
-        "type": "Como utilizar:",
-        "category": "Segurança e Justiça",
-        "description": "Acesse o portal de dados abertos do CNJ Consulte o painel Justiça em Números Explore o Datajud e outros sistemas específicos Faça download dos relatórios e bases de dados disponíveis DATAJUD - Base Nacional de Dados do Poder Judiciário Sistema oficial do CNJ que centraliza informações processuais de todos os tribunais brasileiros e serve como fonte primária para estatísticas judiciais, permitindo acompanhar o desempenho do Judiciário.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "DATAJUD - Base Nacional de Dados do Poder Judiciário",
         "type": "Processual",
         "category": "Segurança e Justiça",
@@ -3813,32 +3137,6 @@
           "Baixe relatórios e extratos estatísticos em diversos formatos",
           "Para pesquisadores, solicite acesso às APIs e bases de dados"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Indicadores de desempenho do sistema judiciário",
-        "type": "Como utilizar:",
-        "category": "Segurança e Justiça",
-        "description": "Acesse o portal do CNJ e consulte os painéis estatísticos Visualize dados agregados por tribunal, comarca ou assunto Baixe relatórios e extratos estatísticos em diversos formatos Para pesquisadores, solicite acesso às APIs e bases de dados Plataforma desenvolvida pela Escola Nacional de Formação e Aperfeiçoamento de Magistrados (ENFAM) que reúne decisões vinculantes previstas no art. 927 do CPC, organizando os precedentes judiciais de forma sistematizada.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Para pesquisadores, solicite acesso às APIs e bases de dados",
-        "type": "Acessar Processual",
-        "category": "Segurança e Justiça",
-        "description": "Plataforma desenvolvida pela Escola Nacional de Formação e Aperfeiçoamento de Magistrados (ENFAM) que reúne decisões vinculantes previstas no art. 927 do CPC, organizando os precedentes judiciais de forma sistematizada.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -3931,32 +3229,6 @@
         "validated": true
       },
       {
-        "name": "Teses jurídicas firmadas em julgamentos de recursos repetitivos",
-        "type": "Como utilizar:",
-        "category": "Segurança e Justiça",
-        "description": "Acesse a plataforma e utilize os filtros de pesquisa Selecione o tema jurídico ou tribunal de interesse Consulte a íntegra das decisões e seus fundamentos Utilize os resultados para fundamentação jurídica e pesquisa Consulta Unificada de Jurisprudência - Jusbrasil Ferramenta que unifica a busca por jurisprudência de diversos tribunais brasileiros, facilitando o acesso às decisões judiciais em uma interface intuitiva e com recursos avançados de pesquisa.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize os resultados para fundamentação jurídica e pesquisa",
-        "type": "Acessar Precedentes",
-        "category": "Segurança e Justiça",
-        "description": "Consulta Unificada de Jurisprudência - Jusbrasil Ferramenta que unifica a busca por jurisprudência de diversos tribunais brasileiros, facilitando o acesso às decisões judiciais em uma interface intuitiva e com recursos avançados de pesquisa.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Consulta Unificada de Jurisprudência - Jusbrasil",
         "type": "Jurisprudência",
         "category": "Segurança e Justiça",
@@ -4042,32 +3314,6 @@
         "validated": true
       },
       {
-        "name": "Conexões com legislação relacionada",
-        "type": "Como utilizar:",
-        "category": "Segurança e Justiça",
-        "description": "Acesse o portal e utilize a busca unificada Filtre por tribunal, período ou tipo de decisão Leia os acórdãos na íntegra ou resumos Compare decisões sobre o mesmo tema em diferentes tribunais Pesquisa de Jurisprudência - STJ Sistema de busca oficial do Superior Tribunal de Justiça que permite acesso à jurisprudência do STJ, incluindo acórdãos, súmulas, decisões monocráticas e informativos jurisprudenciais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Compare decisões sobre o mesmo tema em diferentes tribunais",
-        "type": "Acessar Jurisprudência",
-        "category": "Segurança e Justiça",
-        "description": "Pesquisa de Jurisprudência - STJ Sistema de busca oficial do Superior Tribunal de Justiça que permite acesso à jurisprudência do STJ, incluindo acórdãos, súmulas, decisões monocráticas e informativos jurisprudenciais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Pesquisa de Jurisprudência - STJ",
         "type": "Superior",
         "category": "Segurança e Justiça",
@@ -4146,32 +3392,6 @@
           "Filtre por tipo de decisão, órgão julgador ou relator",
           "Consulte a íntegra dos acórdãos e repositórios oficiais"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Pesquisa temática de julgados",
-        "type": "Como utilizar:",
-        "category": "Segurança e Justiça",
-        "description": "Acesse o sistema de pesquisa jurisprudencial Utilize operadores de busca para refinar pesquisas Filtre por tipo de decisão, órgão julgador ou relator Consulte a íntegra dos acórdãos e repositórios oficiais Tecnologia e Inovação Portal de Dados Abertos da PRODESP Plataforma da empresa de tecnologia do Estado de São Paulo que disponibiliza dados sobre serviços digitais e tecnologia pública, oferecendo informações sobre transformação digital da gestão governamental.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize operadores de busca para refinar pesquisas",
-        "type": "",
-        "category": "Segurança e Justiça",
-        "description": "Consulte a íntegra dos acórdãos e repositórios oficiais Tecnologia e Inovação Portal de Dados Abertos da PRODESP Plataforma da empresa de tecnologia do Estado de São Paulo que disponibiliza dados sobre serviços digitais e tecnologia pública, oferecendo informações sobre transformação digital da gestão governamental.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -4370,32 +3590,6 @@
         "access_type": "Verificar",
         "country": "Brasil",
         "validated": true
-      },
-      {
-        "name": "Gere tabelas personalizadas para análise",
-        "type": "Exporte os dados em diversos formatos",
-        "category": "Agricultura e Pecuária",
-        "description": "Dados Abertos do Ministério da Cultura Portal de dados abertos do MinC que disponibiliza informações sobre políticas culturais, projetos incentivados e equipamentos culturais, oferecendo transparência sobre investimentos e ações no setor cultural brasileiro.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em diversos formatos",
-        "type": "Acessar Agropecuária",
-        "category": "Agricultura e Pecuária",
-        "description": "Dados Abertos do Ministério da Cultura Portal de dados abertos do MinC que disponibiliza informações sobre políticas culturais, projetos incentivados e equipamentos culturais, oferecendo transparência sobre investimentos e ações no setor cultural brasileiro.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
       }
     ],
     "Energia": [
@@ -4496,19 +3690,6 @@
           "Faça download dos dados em formatos abertos",
           "Consulte o SIGA (Sistema de Informações de Geração da ANEEL) para dados específicos"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Dados sobre qualidade do serviço e fiscalização",
-        "type": "Como utilizar:",
-        "category": "Energia",
-        "description": "Acesse o portal de dados abertos da ANEEL Navegue pelos conjuntos de dados disponíveis Faça download dos dados em formatos abertos Consulte o SIGA (Sistema de Informações de Geração da ANEEL) para dados específicos EPE - Publicações e Dados Abertos Planejamento Energético A Empresa de Pesquisa Energética (EPE) disponibiliza dados e estudos sobre o planejamento energético brasileiro, abrangendo diversos setores como petróleo, gás natural, biocombustíveis e energia elétrica.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -4630,19 +3811,6 @@
         "access_type": "Verificar",
         "country": "Brasil",
         "validated": true
-      },
-      {
-        "name": "Dados históricos e em tempo real da operação",
-        "type": "Como utilizar:",
-        "category": "Energia",
-        "description": "Acesse o portal de dados abertos do ONS Navegue pelos conjuntos de dados disponíveis Use as APIs disponíveis para acesso programático Faça download dos dados em formatos como CSV e JSON Fundações de Amparo à Pesquisa FAPESP - Fundação de Amparo à Pesquisa do Estado de São Paulo Principal agência de fomento à pesquisa científica e tecnológica de São Paulo, disponibiliza dados sobre projetos financiados, bolsas concedidas e resultados de pesquisas apoiadas pela fundação.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
       }
     ],
     "Pesquisas e Censos do IBGE": [
@@ -4707,19 +3875,6 @@
           "Baixe os microdados para análises estatísticas detalhadas",
           "Consulte a documentação e os dicionários de variáveis"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Séries históricas de indicadores socioeconômicos",
-        "type": "Como utilizar:",
-        "category": "Pesquisas e Censos do IBGE",
-        "description": "Acesse os microdados da PNAD no site do IBGE Use o SIDRA para tabelas agregadas da PNAD Contínua Baixe os microdados para análises estatísticas detalhadas Consulte a documentação e os dicionários de variáveis POF - Pesquisa de Orçamentos Familiares A Pesquisa de Orçamentos Familiares (POF) é realizada pelo IBGE para investigar a composição dos gastos e do consumo das famílias brasileiras, além de outros aspectos das condições de vida da população.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -4794,19 +3949,6 @@
         "validated": true
       },
       {
-        "name": "Dados para cálculo da cesta básica e índices de preços",
-        "type": "Como utilizar:",
-        "category": "Pesquisas e Censos do IBGE",
-        "description": "Acesse os resultados da POF no site do IBGE Consulte as tabelas e publicações disponíveis Baixe os microdados para análises específicas Use a documentação para entender a metodologia da pesquisa MUNIC e ESTADIC - Pesquisas de Informações Básicas Administração Pública A Pesquisa de Informações Básicas Municipais (MUNIC) e a Pesquisa de Informações Básicas Estaduais (ESTADIC) fornecem informações sobre a estrutura, dinâmica e funcionamento das instituições públicas municipais e estaduais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "MUNIC e ESTADIC - Pesquisas de Informações Básicas",
         "type": "Administração Pública",
         "category": "Pesquisas e Censos do IBGE",
@@ -4867,19 +4009,6 @@
           "Baixe as bases de dados completas para análises específicas",
           "Use os suplementos temáticos para informações detalhadas"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Recursos humanos e institucionais das administrações",
-        "type": "Como utilizar:",
-        "category": "Pesquisas e Censos do IBGE",
-        "description": "Acesse as pesquisas MUNIC e ESTADIC no site do IBGE Consulte as tabelas e publicações por tema Baixe as bases de dados completas para análises específicas Use os suplementos temáticos para informações detalhadas PNSB - Pesquisa Nacional de Saneamento Básico A Pesquisa Nacional de Saneamento Básico (PNSB) investiga as condições do saneamento básico do país junto às prefeituras municipais e empresas contratadas para a prestação desses serviços.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -4954,19 +4083,6 @@
         "validated": true
       },
       {
-        "name": "Tarifas, receitas e investimentos no setor",
-        "type": "Como utilizar:",
-        "category": "Pesquisas e Censos do IBGE",
-        "description": "Acesse a PNSB no site do IBGE Consulte as tabelas por tema e região Baixe os resultados em formato de planilha Use o Atlas de Saneamento para visualização geográfica CNEFE - Cadastro Nacional de Endereços para Fins Estatísticos O CNEFE é um banco de dados com interface espacial implementado pelo IBGE para uso nas pesquisas domiciliares, contendo os endereços de todos os domicílios e estabelecimentos do país.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "CNEFE - Cadastro Nacional de Endereços para Fins Estatísticos",
         "type": "Cadastro Territorial",
         "category": "Pesquisas e Censos do IBGE",
@@ -5027,19 +4143,6 @@
           "Baixe os arquivos por Unidade da Federação",
           "Use em sistemas de informações geográficas (SIG)"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Classificação de estabelecimentos por tipo",
-        "type": "Como utilizar:",
-        "category": "Pesquisas e Censos do IBGE",
-        "description": "Acesse o CNEFE através do site do IBGE Selecione a área geográfica de interesse Baixe os arquivos por Unidade da Federação Use em sistemas de informações geográficas (SIG) Pesquisas e Estatísticas (Outros) CESOP - Centro de Estudos de Opinião Pública Banco de dados de pesquisas de opinião pública da Unicamp, que resgata, organiza e armazena pesquisas por amostragem realizadas no Brasil desde a década de 1990, incluindo pesquisas eleitorais e comportamentais.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -5168,32 +4271,6 @@
         "validated": true
       },
       {
-        "name": "Distribuição geográfica das famílias em vulnerabilidade",
-        "type": "Como utilizar:",
-        "category": "Programas Sociais",
-        "description": "Acesse o portal de dados abertos do Ministério do Desenvolvimento Social Utilize o CECAD para consultas agregadas e relatórios Solicite acesso aos dados identificados via procedimento formal Consulte relatórios e tabulações disponíveis publicamente CECAD - Consulta, Seleção e Extração de Informações do CadÚnico O CECAD é uma ferramenta que permite conhecer as características socioeconômicas das famílias e pessoas incluídas no Cadastro Único, bem como realizar consultas e extrações de dados para análises específicas.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize o CECAD para consultas agregadas e relatórios",
-        "type": "",
-        "category": "Programas Sociais",
-        "description": "Consulte relatórios e tabulações disponíveis publicamente CECAD - Consulta, Seleção e Extração de Informações do CadÚnico O CECAD é uma ferramenta que permite conhecer as características socioeconômicas das famílias e pessoas incluídas no Cadastro Único, bem como realizar consultas e extrações de dados para análises específicas.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "CECAD - Consulta, Seleção e Extração de Informações do CadÚnico",
         "type": "Consulta CadÚnico",
         "category": "Programas Sociais",
@@ -5254,32 +4331,6 @@
           "Defina os filtros e parâmetros para a consulta",
           "Exporte os resultados em formato de tabela ou gráfico"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Estatísticas sobre condições de habitação e acesso a serviços",
-        "type": "Como utilizar:",
-        "category": "Programas Sociais",
-        "description": "Acesse o CECAD com seu login e senha (necessita credenciamento) Selecione o tipo de consulta (Tabulador, Frequência, Extrato) Defina os filtros e parâmetros para a consulta Exporte os resultados em formato de tabela ou gráfico SAGI - Secretaria de Avaliação e Gestão da Informação A SAGI/SAGICAD é responsável pelo desenvolvimento de ferramentas informacionais e produção de dados para o monitoramento e avaliação de programas e políticas do Ministério do Desenvolvimento Social.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os resultados em formato de tabela ou gráfico",
-        "type": "Acessar Consulta CadÚnico",
-        "category": "Programas Sociais",
-        "description": "SAGI - Secretaria de Avaliação e Gestão da Informação A SAGI/SAGICAD é responsável pelo desenvolvimento de ferramentas informacionais e produção de dados para o monitoramento e avaliação de programas e políticas do Ministério do Desenvolvimento Social.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -5372,32 +4423,6 @@
         "validated": true
       },
       {
-        "name": "Relatórios de pesquisas e avaliações de programas",
-        "type": "Como utilizar:",
-        "category": "Programas Sociais",
-        "description": "Acesse o portal da SAGI Navegue pelas ferramentas disponíveis (MI Social, MOPS, IDV, etc.) Selecione indicadores, regiões e períodos de interesse Exporte os dados ou visualizações geradas DATAPREV - Empresa de Tecnologia e Informações da Previdência A DATAPREV é a empresa pública responsável pela gestão da base de dados sociais brasileira, principalmente a do Instituto Nacional do Seguro Social (INSS), processando o pagamento mensal de mais de 36 milhões de benefícios.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados ou visualizações geradas",
-        "type": "Acessar Monitoramento Social",
-        "category": "Programas Sociais",
-        "description": "DATAPREV - Empresa de Tecnologia e Informações da Previdência A DATAPREV é a empresa pública responsável pela gestão da base de dados sociais brasileira, principalmente a do Instituto Nacional do Seguro Social (INSS), processando o pagamento mensal de mais de 36 milhões de benefícios.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "DATAPREV - Empresa de Tecnologia e Informações da Previdência",
         "type": "Previdência Social",
         "category": "Programas Sociais",
@@ -5458,19 +4483,6 @@
           "Utilize o portal Meu INSS para dados individuais (com autenticação)",
           "Acesse painéis e relatórios estatísticos disponíveis"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize o portal Meu INSS para dados individuais (com autenticação)",
-        "type": "",
-        "category": "Programas Sociais",
-        "description": "Saúde e Epidemiologia DATASUS - Informações de Saúde (TABNET) O DATASUS é o departamento de informática do Sistema Único de Saúde que disponibiliza informações sobre saúde no Brasil. O TABNET é sua principal ferramenta para tabulação de dados.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -5547,32 +4559,6 @@
         "validated": true
       },
       {
-        "name": "Dados sobre servidores públicos federais",
-        "type": "Como utilizar:",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Acesse o portal de dados abertos da CGU Navegue pelos conjuntos de dados disponíveis Utilize ferramentas específicas como o Portal da Transparência Faça download dos dados em formatos abertos (CSV, JSON, XML) Fala.BR - Plataforma Integrada de Ouvidoria e Acesso à Informação O Fala.BR é uma plataforma que integra os canais de atendimento ao cidadão, permitindo o registro de manifestações de ouvidoria e pedidos de acesso à informação a órgãos e entidades do poder público.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize ferramentas específicas como o Portal da Transparência",
-        "type": "",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Fala.BR - Plataforma Integrada de Ouvidoria e Acesso à Informação O Fala.BR é uma plataforma que integra os canais de atendimento ao cidadão, permitindo o registro de manifestações de ouvidoria e pedidos de acesso à informação a órgãos e entidades do poder público.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Fala.BR - Plataforma Integrada de Ouvidoria e Acesso à Informação",
         "type": "Participação Cidadã",
         "category": "Transparência, Controle e Administração Pública",
@@ -5633,32 +4619,6 @@
           "Consulte dados estatísticos disponíveis",
           "Acompanhe o andamento das manifestações registradas"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Relatórios de transparência dos órgãos públicos",
-        "type": "Como utilizar:",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Acesse a plataforma Fala.BR Registre manifestações ou pedidos de acesso à informação Consulte dados estatísticos disponíveis Acompanhe o andamento das manifestações registradas TCU - Tribunal de Contas da União O Tribunal de Contas da União (TCU) é o órgão de controle externo do governo federal que auxilia o Congresso Nacional na fiscalização contábil, financeira, orçamentária, operacional e patrimonial da União.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Registre manifestações ou pedidos de acesso à informação",
-        "type": "Consulte dados estatísticos disponíveis",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Acompanhe o andamento das manifestações registradas TCU - Tribunal de Contas da União O Tribunal de Contas da União (TCU) é o órgão de controle externo do governo federal que auxilia o Congresso Nacional na fiscalização contábil, financeira, orçamentária, operacional e patrimonial da União.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -5733,32 +4693,6 @@
         "validated": true
       },
       {
-        "name": "Dados sobre obras públicas e transferências governamentais",
-        "type": "Como utilizar:",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Acesse o portal do TCU e navegue pelos sistemas disponíveis Utilize ferramentas como o e-TCU para consulta de processos Consulte a jurisprudência e acórdãos no sistema Pesquisa Jurisprudencial Acesse painéis e relatórios específicos disponibilizados Painel Resolveu? - CGU Ferramenta desenvolvida pela Controladoria-Geral da União que apresenta informações sobre manifestações de ouvidoria (denúncias, reclamações, solicitações, sugestões e elogios) recebidas por órgãos federais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize ferramentas como o e-TCU para consulta de processos",
-        "type": "",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Acesse painéis e relatórios específicos disponibilizados Painel Resolveu? - CGU Ferramenta desenvolvida pela Controladoria-Geral da União que apresenta informações sobre manifestações de ouvidoria (denúncias, reclamações, solicitações, sugestões e elogios) recebidas por órgãos federais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Painel Resolveu? - CGU",
         "type": "Ouvidoria",
         "category": "Transparência, Controle e Administração Pública",
@@ -5819,32 +4753,6 @@
           "Visualize gráficos e estatísticas de desempenho",
           "Exporte os dados em formato aberto para análises específicas"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Séries históricas sobre participação social",
-        "type": "Como utilizar:",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Acesse o painel e navegue pelos dashboards disponíveis Filtre por órgão, tipo de manifestação ou período Visualize gráficos e estatísticas de desempenho Exporte os dados em formato aberto para análises específicas Painel de Compras - Governo Federal Contratações Públicas Ferramenta que apresenta os dados de compras públicas realizadas pelo Governo Federal, oferecendo informações sobre licitações, contratos, fornecedores e preços praticados na administração pública federal.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em formato aberto para análises específicas",
-        "type": "Acessar Ouvidoria",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Painel de Compras - Governo Federal Contratações Públicas Ferramenta que apresenta os dados de compras públicas realizadas pelo Governo Federal, oferecendo informações sobre licitações, contratos, fornecedores e preços praticados na administração pública federal.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -5919,32 +4827,6 @@
         "validated": true
       },
       {
-        "name": "Séries históricas de preços e valores contratados",
-        "type": "Como utilizar:",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Acesse o painel e navegue pelos diferentes módulos Filtre por órgão, período ou tipo de contratação Visualize gráficos comparativos e estatísticas Exporte os dados em formato aberto para análises detalhadas Portal da Transparência - Estados e Municípios Transparência Subnacional Plataforma que reúne links para os portais de transparência dos estados e municípios brasileiros, permitindo acesso centralizado às informações sobre orçamento, despesas, receitas e contratos dessas entidades federativas.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em formato aberto para análises detalhadas",
-        "type": "Acessar Contratações Públicas",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Portal da Transparência - Estados e Municípios Transparência Subnacional Plataforma que reúne links para os portais de transparência dos estados e municípios brasileiros, permitindo acesso centralizado às informações sobre orçamento, despesas, receitas e contratos dessas entidades federativas.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Portal da Transparência - Estados e Municípios",
         "type": "Transparência Subnacional",
         "category": "Transparência, Controle e Administração Pública",
@@ -5987,19 +4869,6 @@
           "Consulte dados sobre receitas, despesas e contratos",
           "Utilize as ferramentas de busca para informações específicas"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Dados sobre licitações e contratos subnacionais",
-        "type": "Como utilizar:",
-        "category": "Transparência, Controle e Administração Pública",
-        "description": "Acesse o portal e selecione o estado ou município de interesse Navegue pelo portal de transparência específico da localidade Consulte dados sobre receitas, despesas e contratos Utilize as ferramentas de busca para informações específicas",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -6120,45 +4989,6 @@
         "validated": true
       },
       {
-        "name": "Perfis completos de municípios e regiões metropolitanas",
-        "type": "Como utilizar:",
-        "category": "Desenvolvimento Humano e Social",
-        "description": "Acesse a plataforma e selecione o município ou região de interesse Visualize dados e indicadores específicos por tema Compare diferentes localidades e períodos Exporte os dados em diversos formatos para análises próprias IVS - Índice de Vulnerabilidade Social Vulnerabilidade Social Ferramenta que identifica falhas de oferta de serviços públicos básicos e situações de vulnerabilidade social, desenvolvida pelo IPEA como complemento ao IDHM, permitindo avaliar realidades municipais, estaduais e regionais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Compare diferentes localidades e períodos",
-        "type": "",
-        "category": "Desenvolvimento Humano e Social",
-        "description": "IVS - Índice de Vulnerabilidade Social Vulnerabilidade Social Ferramenta que identifica falhas de oferta de serviços públicos básicos e situações de vulnerabilidade social, desenvolvida pelo IPEA como complemento ao IDHM, permitindo avaliar realidades municipais, estaduais e regionais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em diversos formatos para análises próprias",
-        "type": "Acessar Indicadores Sociais",
-        "category": "Desenvolvimento Humano e Social",
-        "description": "IVS - Índice de Vulnerabilidade Social Vulnerabilidade Social Ferramenta que identifica falhas de oferta de serviços públicos básicos e situações de vulnerabilidade social, desenvolvida pelo IPEA como complemento ao IDHM, permitindo avaliar realidades municipais, estaduais e regionais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "IVS - Índice de Vulnerabilidade Social",
         "type": "Vulnerabilidade Social",
         "category": "Desenvolvimento Humano e Social",
@@ -6219,32 +5049,6 @@
           "Compare dados entre diferentes períodos e localidades",
           "Baixe os relatórios completos ou dados específicos em diversos formatos"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Mapas temáticos de desigualdades territoriais",
-        "type": "Como utilizar:",
-        "category": "Desenvolvimento Humano e Social",
-        "description": "Acesse o portal e navegue pelos mapas interativos Selecione a região e os indicadores de interesse Compare dados entre diferentes períodos e localidades Baixe os relatórios completos ou dados específicos em diversos formatos O IPEADATA é uma base de dados macroeconômicos, financeiros e regionais do Brasil mantida pelo Instituto de Pesquisa Econômica Aplicada (IPEA).",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Compare dados entre diferentes períodos e localidades",
-        "type": "",
-        "category": "Desenvolvimento Humano e Social",
-        "description": "O IPEADATA é uma base de dados macroeconômicos, financeiros e regionais do Brasil mantida pelo Instituto de Pesquisa Econômica Aplicada (IPEA).",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -6339,32 +5143,6 @@
         "validated": true
       },
       {
-        "name": "Séries históricas de tendências de opinião",
-        "type": "Como utilizar:",
-        "category": "Pesquisas e Estatísticas (Outros)",
-        "description": "Acesse o portal do CESOP Consulte o catálogo de pesquisas disponíveis Solicite acesso aos dados brutos para pesquisa acadêmica Utilize as informações em análises longitudinais de opinião pública Estatísticas Estaduais (SP) Plataforma de dados estatísticos da Fundação SEADE (Sistema Estadual de Análise de Dados) de São Paulo, com foco em informações socioeconômicas paulistas, disponibilizando indicadores e estatísticas para municípios e regiões.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize as informações em análises longitudinais de opinião pública",
-        "type": "Acessar Opinião Pública",
-        "category": "Pesquisas e Estatísticas (Outros)",
-        "description": "Estatísticas Estaduais (SP) Plataforma de dados estatísticos da Fundação SEADE (Sistema Estadual de Análise de Dados) de São Paulo, com foco em informações socioeconômicas paulistas, disponibilizando indicadores e estatísticas para municípios e regiões.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "SEADE Repositório",
         "type": "Estatísticas Estaduais (SP)",
         "category": "Pesquisas e Estatísticas (Outros)",
@@ -6432,32 +5210,6 @@
         "validated": true
       },
       {
-        "name": "Dados sobre COVID-19 e outras estatísticas específicas",
-        "type": "Como utilizar:",
-        "category": "Pesquisas e Estatísticas (Outros)",
-        "description": "Acesse o repositório e explore as bases temáticas Selecione os indicadores de interesse Filtre por município ou região Exporte os dados em formatos abertos para análise Observatório das Metrópoles Rede de pesquisa que produz estudos e informações sobre as regiões metropolitanas brasileiras, com análises sobre governança, desigualdades e políticas urbanas, oferecendo indicadores e comparativos entre metrópoles.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em formatos abertos para análise",
-        "type": "Acessar Estatísticas Estaduais (SP)",
-        "category": "Pesquisas e Estatísticas (Outros)",
-        "description": "Observatório das Metrópoles Rede de pesquisa que produz estudos e informações sobre as regiões metropolitanas brasileiras, com análises sobre governança, desigualdades e políticas urbanas, oferecendo indicadores e comparativos entre metrópoles.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Observatório das Metrópoles",
         "type": "Estudos Urbanos",
         "category": "Pesquisas e Estatísticas (Outros)",
@@ -6518,32 +5270,6 @@
           "Faça download de relatórios e análises específicas",
           "Utilize os mapas temáticos para visualização de dados"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Estudos sobre governança metropolitana",
-        "type": "Como utilizar:",
-        "category": "Pesquisas e Estatísticas (Outros)",
-        "description": "Acesse o portal e consulte os estudos disponíveis Navegue pelos indicadores metropolitanos Faça download de relatórios e análises específicas Utilize os mapas temáticos para visualização de dados Portais de Dados Gerais Portal Brasileiro de Dados Abertos O Portal Brasileiro de Dados Abertos é o portal central que reúne dados públicos de diversas instituições governamentais brasileiras. É o ponto de partida para explorar a maioria das bases de dados disponíveis.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize os mapas temáticos para visualização de dados",
-        "type": "Acessar Estudos Urbanos",
-        "category": "Pesquisas e Estatísticas (Outros)",
-        "description": "Portais de Dados Gerais Portal Brasileiro de Dados Abertos O Portal Brasileiro de Dados Abertos é o portal central que reúne dados públicos de diversas instituições governamentais brasileiras. É o ponto de partida para explorar a maioria das bases de dados disponíveis.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -6691,19 +5417,6 @@
         "validated": true
       },
       {
-        "name": "Dados de pesquisa e conjuntos de dados científicos",
-        "type": "Como utilizar:",
-        "category": "Pesquisa Científica e Acadêmica",
-        "description": "Acesse o portal e utilize a busca por tema ou autor Filtre por unidade, programa ou ano Baixe os documentos em formato digital Explore as coleções temáticas disponíveis Repositório da Produção Científica e Intelectual da Unicamp Repositório Universitário Plataforma que reúne e preserva a produção científica e acadêmica da Universidade Estadual de Campinas, disponibilizando pesquisas e trabalhos para acesso público e gratuito, contribuindo para a disseminação do conhecimento.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Repositório da Produção Científica e Intelectual da Unicamp",
         "type": "Repositório Universitário",
         "category": "Pesquisa Científica e Acadêmica",
@@ -6782,19 +5495,6 @@
           "Faça download dos documentos completos",
           "Visualize estatísticas de acesso e citação"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Produções técnicas e patentes desenvolvidas na universidade",
-        "type": "Como utilizar:",
-        "category": "Pesquisa Científica e Acadêmica",
-        "description": "Acesse o repositório e utilize os filtros de busca Explore por faculdade, instituto ou departamento Faça download dos documentos completos Visualize estatísticas de acesso e citação BDTD - Biblioteca Digital Brasileira de Teses e Dissertações Plataforma que integra os sistemas de informação de teses e dissertações de instituições de ensino e pesquisa do Brasil, permitindo o acesso a textos completos da produção acadêmica nacional de pós-graduação.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -6887,19 +5587,6 @@
         "validated": true
       },
       {
-        "name": "Referências bibliográficas e dados de autoridade",
-        "type": "Como utilizar:",
-        "category": "Pesquisa Científica e Acadêmica",
-        "description": "Acesse a plataforma e utilize a busca avançada Filtre por instituição, área do conhecimento ou data Visualize os metadados e resumos das pesquisas Faça download dos textos completos em formato PDF SciELO - Scientific Electronic Library Online Periódicos Científicos Biblioteca eletrônica que abrange uma coleção selecionada de periódicos científicos brasileiros e latino-americanos, disponibilizando artigos científicos em texto completo e de acesso aberto em diversas áreas do conhecimento.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "SciELO - Scientific Electronic Library Online",
         "type": "Periódicos Científicos",
         "category": "Pesquisa Científica e Acadêmica",
@@ -6985,32 +5672,6 @@
         "validated": true
       },
       {
-        "name": "Dados bibliométricos de publicações brasileiras",
-        "type": "Como utilizar:",
-        "category": "Pesquisa Científica e Acadêmica",
-        "description": "Acesse o portal e navegue pelas coleções de periódicos Utilize a busca avançada por autor, título ou assunto Filtre por área de conhecimento ou data de publicação Faça download dos artigos em PDF ou visualize online CNPq - Plataforma Lattes Currículos Acadêmicos Base de dados de currículos e instituições de pesquisa do Brasil, mantida pelo CNPq, sendo um padrão nacional para registro da vida acadêmica e profissional de pesquisadores e estudantes.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize a busca avançada por autor, título ou assunto",
-        "type": "",
-        "category": "Pesquisa Científica e Acadêmica",
-        "description": "Faça download dos artigos em PDF ou visualize online CNPq - Plataforma Lattes Currículos Acadêmicos Base de dados de currículos e instituições de pesquisa do Brasil, mantida pelo CNPq, sendo um padrão nacional para registro da vida acadêmica e profissional de pesquisadores e estudantes.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "CNPq - Plataforma Lattes",
         "type": "Currículos Acadêmicos",
         "category": "Pesquisa Científica e Acadêmica",
@@ -7071,32 +5732,6 @@
           "Utilize ferramentas de análise de produção científica",
           "Extraia dados para relatórios e avaliações institucionais"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Redes de colaboração científica",
-        "type": "Como utilizar:",
-        "category": "Pesquisa Científica e Acadêmica",
-        "description": "Acesse a plataforma e utilize a busca por nome ou CPF Consulte currículos individuais para informações detalhadas Utilize ferramentas de análise de produção científica Extraia dados para relatórios e avaliações institucionais Pesquisas e Censos do IBGE A Pesquisa Nacional por Amostra de Domicílios (PNAD) e sua versão contínua (PNAD-C) são pesquisas realizadas pelo IBGE para produzir informações sobre características demográficas e socioeconômicas da população brasileira.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize ferramentas de análise de produção científica",
-        "type": "",
-        "category": "Pesquisa Científica e Acadêmica",
-        "description": "Pesquisas e Censos do IBGE A Pesquisa Nacional por Amostra de Domicílios (PNAD) e sua versão contínua (PNAD-C) são pesquisas realizadas pelo IBGE para produzir informações sobre características demográficas e socioeconômicas da população brasileira.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -7173,19 +5808,6 @@
         "validated": true
       },
       {
-        "name": "Utilize as APIs para integração com aplicações",
-        "type": "Acessar Políticas Culturais",
-        "category": "Cultura e Artes",
-        "description": "SNIIC - Sistema Nacional de Informações e Indicadores Culturais Indicadores Culturais Plataforma que integra dados e indicadores culturais de diversas fontes, proporcionando um panorama do setor cultural brasileiro e subsidiando a formulação, implementação e avaliação de políticas culturais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "SNIIC - Sistema Nacional de Informações e Indicadores Culturais",
         "type": "Indicadores Culturais",
         "category": "Cultura e Artes",
@@ -7246,45 +5868,6 @@
           "Visualize mapas interativos e dashboards",
           "Exporte os dados em formatos abertos para análise"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Estatísticas de emprego e economia criativa",
-        "type": "Como utilizar:",
-        "category": "Cultura e Artes",
-        "description": "Acesse a plataforma e selecione o tipo de informação desejada Utilize os filtros por região, setor cultural ou período Visualize mapas interativos e dashboards Exporte os dados em formatos abertos para análise Mapa Cultural - Plataforma Colaborativa Plataforma colaborativa que reúne informações sobre eventos, agentes, espaços e projetos culturais, permitindo a gestão cultural compartilhada entre poder público e sociedade civil, com mapeamento georreferenciado.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize os filtros por região, setor cultural ou período",
-        "type": "Visualize mapas interativos e dashboards",
-        "category": "Cultura e Artes",
-        "description": "Exporte os dados em formatos abertos para análise Mapa Cultural - Plataforma Colaborativa Plataforma colaborativa que reúne informações sobre eventos, agentes, espaços e projetos culturais, permitindo a gestão cultural compartilhada entre poder público e sociedade civil, com mapeamento georreferenciado.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte os dados em formatos abertos para análise",
-        "type": "Acessar Indicadores Culturais",
-        "category": "Cultura e Artes",
-        "description": "Mapa Cultural - Plataforma Colaborativa Plataforma colaborativa que reúne informações sobre eventos, agentes, espaços e projetos culturais, permitindo a gestão cultural compartilhada entre poder público e sociedade civil, com mapeamento georreferenciado.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -7359,32 +5942,6 @@
         "validated": true
       },
       {
-        "name": "Estatísticas sobre a distribuição cultural por território",
-        "type": "Como utilizar:",
-        "category": "Cultura e Artes",
-        "description": "Acesse a plataforma e navegue pelo mapa interativo Filtre por tipo de espaço, evento ou agente cultural Consulte informações detalhadas sobre cada ponto no mapa Exporte dados em formato aberto ou utilize as APIs disponíveis Base de Dados da FUNARTE Repositório de dados da Fundação Nacional de Artes que reúne informações sobre as artes no Brasil, incluindo dados sobre fomento, produção artística, patrimônio e circulação de espetáculos em diversas linguagens.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Exporte dados em formato aberto ou utilize as APIs disponíveis",
-        "type": "Acessar Mapeamento Cultural",
-        "category": "Cultura e Artes",
-        "description": "Base de Dados da FUNARTE Repositório de dados da Fundação Nacional de Artes que reúne informações sobre as artes no Brasil, incluindo dados sobre fomento, produção artística, patrimônio e circulação de espetáculos em diversas linguagens.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "Base de Dados da FUNARTE",
         "type": "Fomento às Artes",
         "category": "Cultura e Artes",
@@ -7445,19 +6002,6 @@
           "Consulte relatórios e estudos sobre as artes no Brasil",
           "Baixe documentos e publicações para referência"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Estatísticas de ocupação dos espaços culturais da Funarte",
-        "type": "Como utilizar:",
-        "category": "Cultura e Artes",
-        "description": "Acesse o portal da Funarte e navegue pelos dados disponíveis Selecione a área artística ou tipo de informação desejada Consulte relatórios e estudos sobre as artes no Brasil Baixe documentos e publicações para referência TSE - Repositório de Dados Eleitorais Portal do Tribunal Superior Eleitoral que centraliza dados sobre eleições, eleitorado, candidaturas e resultados eleitorais no Brasil, permitindo análises sobre o processo democrático brasileiro.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -7534,32 +6078,6 @@
         "validated": true
       },
       {
-        "name": "Indicadores de transformação digital do setor público",
-        "type": "Como utilizar:",
-        "category": "Tecnologia e Inovação",
-        "description": "Acesse o portal e navegue pelos conjuntos de dados Filtre por área de serviço ou período Baixe os dados em formatos abertos Utilize as informações para análises de transformação digital OISP - Observatório de Inovação no Setor Público Plataforma que mapeia e divulga iniciativas inovadoras na administração pública brasileira, compartilhando práticas, ferramentas e métodos que contribuem para transformar o serviço público e melhorar o atendimento ao cidadão.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize as informações para análises de transformação digital",
-        "type": "Acessar Governo Digital (SP)",
-        "category": "Tecnologia e Inovação",
-        "description": "OISP - Observatório de Inovação no Setor Público Plataforma que mapeia e divulga iniciativas inovadoras na administração pública brasileira, compartilhando práticas, ferramentas e métodos que contribuem para transformar o serviço público e melhorar o atendimento ao cidadão.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "OISP - Observatório de Inovação no Setor Público",
         "type": "Inovação Pública",
         "category": "Tecnologia e Inovação",
@@ -7627,19 +6145,6 @@
         "validated": true
       },
       {
-        "name": "Dados sobre desafios e soluções governamentais",
-        "type": "Como utilizar:",
-        "category": "Tecnologia e Inovação",
-        "description": "Acesse a plataforma e navegue pelo mapa de inovações Filtre por tema, região ou tipo de iniciativa Explore casos práticos e lições aprendidas Faça download de metodologias e ferramentas disponíveis DCTI - Dados de Ciência, Tecnologia e Inovação Plataforma do Ministério da Ciência, Tecnologia e Inovações que disponibiliza dados sobre investimentos, produção científica, patentes e indicadores de CT&I no Brasil, oferecendo um panorama do sistema nacional de ciência e tecnologia.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "DCTI - Dados de Ciência, Tecnologia e Inovação",
         "type": "Indicadores CT&I",
         "category": "Tecnologia e Inovação",
@@ -7700,32 +6205,6 @@
           "Visualize gráficos e tabelas interativas",
           "Faça download dos dados em formato aberto para análises específicas"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Dados sobre projetos financiados com recursos públicos",
-        "type": "Como utilizar:",
-        "category": "Tecnologia e Inovação",
-        "description": "Acesse a plataforma e selecione o tema de interesse Utilize os filtros disponíveis para refinar a busca Visualize gráficos e tabelas interativas Faça download dos dados em formato aberto para análises específicas Transparência, Controle e Administração Pública CGU - Controladoria-Geral da União A Controladoria-Geral da União (CGU) é o órgão de controle interno do Governo Federal responsável por atividades relacionadas à defesa do patrimônio público, transparência e combate à corrupção.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize os filtros disponíveis para refinar a busca",
-        "type": "Visualize gráficos e tabelas interativas",
-        "category": "Tecnologia e Inovação",
-        "description": "Faça download dos dados em formato aberto para análises específicas Transparência, Controle e Administração Pública CGU - Controladoria-Geral da União A Controladoria-Geral da União (CGU) é o órgão de controle interno do Governo Federal responsável por atividades relacionadas à defesa do patrimônio público, transparência e combate à corrupção.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -7802,32 +6281,6 @@
         "validated": true
       },
       {
-        "name": "Dados sobre acordos de cooperação e parcerias",
-        "type": "Como utilizar:",
-        "category": "Fundações de Amparo à Pesquisa",
-        "description": "Acesse a Biblioteca Virtual da FAPESP Consulte dados sobre auxílios e bolsas concedidas Explore relatórios de atividades e indicadores Utilize a busca por área do conhecimento ou pesquisador FAPERJ - Fundação de Amparo à Pesquisa do Estado do Rio de Janeiro Agência de fomento à pesquisa do Rio de Janeiro, oferece dados sobre projetos, bolsas e programas de apoio à ciência, tecnologia e inovação no estado, promovendo o desenvolvimento científico fluminense.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Utilize a busca por área do conhecimento ou pesquisador",
-        "type": "Acessar Fomento (SP)",
-        "category": "Fundações de Amparo à Pesquisa",
-        "description": "FAPERJ - Fundação de Amparo à Pesquisa do Estado do Rio de Janeiro Agência de fomento à pesquisa do Rio de Janeiro, oferece dados sobre projetos, bolsas e programas de apoio à ciência, tecnologia e inovação no estado, promovendo o desenvolvimento científico fluminense.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
         "name": "FAPERJ - Fundação de Amparo à Pesquisa do Estado do Rio de Janeiro",
         "type": "Fomento (RJ)",
         "category": "Fundações de Amparo à Pesquisa",
@@ -7888,19 +6341,6 @@
           "Busque por área de conhecimento ou instituição",
           "Acesse relatórios e publicações institucionais"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Relatórios de gestão e prestação de contas",
-        "type": "Como utilizar:",
-        "category": "Fundações de Amparo à Pesquisa",
-        "description": "Acesse o portal da FAPERJ e navegue pelos programas Consulte resultados de editais e projetos aprovados Busque por área de conhecimento ou instituição Acesse relatórios e publicações institucionais FAPEMIG - Fundação de Amparo à Pesquisa do Estado de Minas Gerais Fundação de apoio à pesquisa em Minas Gerais, disponibiliza informações sobre programas de fomento, projetos financiados, bolsas e resultados de pesquisas científicas e tecnológicas no estado.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
@@ -7973,19 +6413,6 @@
         "access_type": "Verificar",
         "country": "Brasil",
         "validated": true
-      },
-      {
-        "name": "Relatórios de atividades e investimentos",
-        "type": "Como utilizar:",
-        "category": "Fundações de Amparo à Pesquisa",
-        "description": "Acesse o site da FAPEMIG e explore os programas Consulte a lista de projetos e bolsistas apoiados Busque por área do conhecimento ou palavra-chave Acesse publicações e relatórios institucionais Infraestrutura, Transportes e Mobilidade SNIS - Sistema Nacional de Informações sobre Saneamento O SNIS é o maior e mais importante sistema de informações do setor saneamento no Brasil, reunindo dados sobre água, esgotos, resíduos sólidos e águas pluviais.",
-        "info_available": [],
-        "how_to_use": [],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
       }
     ],
     "Dados Eleitorais": [
@@ -8050,19 +6477,6 @@
           "Baixe os dados em formato aberto (CSV, TXT)",
           "Consulte as estatísticas e relatórios disponíveis"
         ],
-        "url": "",
-        "source": "original_brazilian_list",
-        "access_type": "Verificar",
-        "country": "Brasil",
-        "validated": true
-      },
-      {
-        "name": "Dados sobre partidos políticos e filiação partidária",
-        "type": "Como utilizar:",
-        "category": "Dados Eleitorais",
-        "description": "Acesse o repositório e selecione o tipo de dado desejado Filtre por ano da eleição, cargo ou localidade Baixe os dados em formato aberto (CSV, TXT) Consulte as estatísticas e relatórios disponíveis Desenvolvimento Humano e Social Atlas Brasil - Desenvolvimento Humano Plataforma que disponibiliza o Índice de Desenvolvimento Humano Municipal (IDHM) e mais de 330 indicadores socioeconômicos para municípios, UFs e regiões metropolitanas brasileiras, desenvolvida pelo PNUD, IPEA e FJP.",
-        "info_available": [],
-        "how_to_use": [],
         "url": "",
         "source": "original_brazilian_list",
         "access_type": "Verificar",
