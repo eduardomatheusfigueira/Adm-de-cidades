@@ -14,6 +14,7 @@ import catalogData from '../data/catalog.json';
 const CatalogView = () => {
   const [activeTab, setActiveTab] = useState('brazil'); // 'brazil' or 'international'
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todas'); // New state for category filter
 
   // Helper to group array by key
   const groupByKey = (array, key) => {
@@ -23,6 +24,21 @@ const CatalogView = () => {
     }, {});
   };
 
+  // Get all unique categories for the filter dropdown
+  const availableCategories = useMemo(() => {
+    if (activeTab === 'brazil') {
+      return ['Todas', ...Object.keys(catalogData.brazilian_databases).sort()];
+    } else {
+      const categories = new Set(catalogData.international_databases.map(item => item.category).filter(Boolean));
+      return ['Todas', ...Array.from(categories).sort()];
+    }
+  }, [activeTab]);
+
+  // Reset category when tab changes
+  React.useEffect(() => {
+    setSelectedCategory('Todas');
+  }, [activeTab]);
+
   // Process and filter data
   const filteredData = useMemo(() => {
     const term = searchTerm.toLowerCase();
@@ -31,6 +47,9 @@ const CatalogView = () => {
     if (activeTab === 'brazil') {
       // Brazilian data is already grouped by category object
       Object.keys(catalogData.brazilian_databases).forEach(category => {
+        // Filter by category first
+        if (selectedCategory !== 'Todas' && category !== selectedCategory) return;
+
         const items = catalogData.brazilian_databases[category].filter(item =>
           (item.name && item.name.toLowerCase().includes(term)) ||
           (item.description && item.description.toLowerCase().includes(term)) ||
@@ -42,17 +61,22 @@ const CatalogView = () => {
       });
     } else {
       // International data is an array
-      const items = catalogData.international_databases.filter(item =>
-        (item.name && item.name.toLowerCase().includes(term)) ||
-        (item.description && item.description.toLowerCase().includes(term)) ||
-        (item.institution && item.institution.toLowerCase().includes(term)) ||
-        (item.category && item.category.toLowerCase().includes(term))
-      );
+      const items = catalogData.international_databases.filter(item => {
+        // Filter by category first
+        if (selectedCategory !== 'Todas' && item.category !== selectedCategory) return false;
+
+        return (
+          (item.name && item.name.toLowerCase().includes(term)) ||
+          (item.description && item.description.toLowerCase().includes(term)) ||
+          (item.institution && item.institution.toLowerCase().includes(term)) ||
+          (item.category && item.category.toLowerCase().includes(term))
+        );
+      });
       // Group international items by category for display consistency
       data = groupByKey(items, 'category');
     }
     return data;
-  }, [activeTab, searchTerm]);
+  }, [activeTab, searchTerm, selectedCategory]);
 
   // Helper to render details list
   const renderDetailList = (items) => {
@@ -85,15 +109,27 @@ const CatalogView = () => {
           </button>
         </div>
 
-        <div className="search-bar">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Pesquisar por nome, descrição, tema..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <i className="fas fa-search search-icon"></i>
+        <div className="search-bar-container">
+            <div className="search-bar">
+            <input
+                type="text"
+                className="search-input"
+                placeholder="Pesquisar por nome, descrição, tema..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <i className="fas fa-search search-icon"></i>
+            </div>
+            
+            <select 
+                className="category-filter"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+                {availableCategories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                ))}
+            </select>
         </div>
       </div>
 
@@ -101,7 +137,7 @@ const CatalogView = () => {
       {sections.length === 0 ? (
         <div className="no-results">
           <h3>Nenhum resultado encontrado</h3>
-          <p>Tente outros termos de pesquisa.</p>
+          <p>Tente outros termos de pesquisa ou limpe os filtros.</p>
         </div>
       ) : (
         sections.map(category => (
@@ -169,7 +205,15 @@ const CatalogView = () => {
                           Acessar {source.access_type ? `(${source.access_type})` : 'Base'}
                         </a>
                       ) : (
-                        <span className="link-unavailable">Link não disponível</span>
+                        <a 
+                            href={`https://www.google.com/search?q=${encodeURIComponent(source.name + ' dados')}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="card-link-button google-search-button"
+                        >
+                            <i className="fab fa-google link-icon"></i>
+                            Pesquisar no Google
+                        </a>
                       )}
                     </div>
                   </div>
