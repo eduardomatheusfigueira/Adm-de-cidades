@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useContext } from 'react'; // Adicionado useContext
-import { DataContext } from '../contexts/DataContext'; // Importado DataContext
+import React, { useState, useMemo, useContext } from 'react';
+import { DataContext } from '../contexts/DataContext';
+import '../styles/CitySearch.css';
 
 function CitySearch({
   // cities = [], // Removido - virá do context
@@ -12,11 +13,11 @@ function CitySearch({
 
   const cityNames = useMemo(() =>
     (cities || []).map(city => ({ // Adicionado fallback para cities ser undefined/null inicialmente
-    name: city.Nome_Municipio || 'Nome Indisponível',
-    code: city.Codigo_Municipio,
-    lat: parseFloat(city.Latitude_Municipio),
-    lng: parseFloat(city.Longitude_Municipio)
-  })).filter(city => city.name && city.code && !isNaN(city.lat) && !isNaN(city.lng)), [cities]); // Adicionado city.code no filter
+      name: city.Nome_Municipio || 'Nome Indisponível',
+      code: city.Codigo_Municipio,
+      lat: parseFloat(city.Latitude_Municipio),
+      lng: parseFloat(city.Longitude_Municipio)
+    })).filter(city => city.name && city.code && !isNaN(city.lat) && !isNaN(city.lng)), [cities]); // Adicionado city.code no filter
 
   const handleInputChange = (event) => {
     const value = event.target.value;

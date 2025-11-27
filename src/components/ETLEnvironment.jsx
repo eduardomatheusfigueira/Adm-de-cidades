@@ -1,97 +1,33 @@
 import React, { useState } from 'react';
-import ETLEditData from './ETLEditData'; // Import the data editing component
-import ETLProcessor from './ETL/ETLProcessor'; // Import the new indicator ETL component
-import TransformacaoMunicipios from './ETL/TransformacaoMunicipios'; // Import the new transformation component
-import '../styles/DataVisualizationEnvironment.css';
+import Sidebar from './Sidebar';
+import ETLEditData from './ETLEditData';
+import ETLProcessor from './ETL/ETLProcessor';
+import TransformacaoMunicipios from './ETL/TransformacaoMunicipios';
+import TransformacaoSNIS from './ETL/TransformacaoSNIS';
+import TransformacaoIndicePosicional from './ETL/TransformacaoIndicePosicional';
+import TransformacaoIPEADATA from './ETL/TransformacaoIPEADATA';
+import TransformacaoDATASUS from './ETL/TransformacaoDATASUS';
+import TransformacaoFINBRA from './ETL/TransformacaoFINBRA';
+import TransformacaoIBGE from './ETL/TransformacaoIBGE';
+import TransformacaoCodigoMunicipio from './ETL/TransformacaoCodigoMunicipio';
 import '../styles/ETLEnvironment.css';
 
-const ETLEnvironment = ({
-  initialMunicipalitiesData,
-  initialIndicatorsData,
-  municipalitiesHeaders,
-  indicatorsHeaders
-}) => {
-  const [selectedETL, setSelectedETL] = useState('municipios'); // 'municipios', 'indicadores', 'editar', 'transformacao'
-  const [etlStatus, setEtlStatus] = useState('idle');
-  const [selectedTransformation, setSelectedTransformation] = useState('municipios'); // 'municipios', etc.
+const ETLMunicipiosView = () => {
   const [logMessages, setLogMessages] = useState([]);
-  const [inputFiles, setInputFiles] = useState({
-    populacao: null,
-    altitude: null,
-    longitude: null,
-    latitude: null,
-    geometria: null,
-    snis: null, // Novo estado para o arquivo SNIS
-  });
+  const [etlStatus, setEtlStatus] = useState('idle');
+  const [inputFiles, setInputFiles] = useState({});
   const [outputFolder, setOutputFolder] = useState('./data');
   const [outputFilename, setOutputFilename] = useState('municipios');
-
-  const regioesPorEstado = {
-    'RO': 'N', 'AC': 'N', 'AM': 'N', 'RR': 'N', 'PA': 'N', 'AP': 'N', 'TO': 'N',
-    'MA': 'NE', 'PI': 'NE', 'CE': 'NE', 'RN': 'NE', 'PB': 'NE', 'PE': 'NE', 'AL': 'NE', 'SE': 'NE', 'BA': 'NE',
-    'MG': 'SE', 'ES': 'SE', 'RJ': 'SE', 'SP': 'SE',
-    'PR': 'S', 'SC': 'S', 'RS': 'S',
-    'MS': 'CO', 'MT': 'CO', 'GO': 'CO', 'DF': 'CO'
-  };
 
   const addLogMessage = (message) => {
     setLogMessages(prev => [...prev, { time: new Date().toLocaleTimeString(), message }]);
   };
 
-  const handleFileChange = (fileType, event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setInputFiles(prev => ({ ...prev, [fileType]: file }));
-      addLogMessage(`Arquivo ${file.name} selecionado para ${fileType}`);
+  const handleFileChange = (key, e) => {
+    if (e.target.files[0]) {
+      setInputFiles(prev => ({ ...prev, [key]: e.target.files[0] }));
+      addLogMessage(`Arquivo selecionado para ${key}: ${e.target.files[0].name}`);
     }
-  };
-
-  // Nova função para lidar com a seleção do arquivo SNIS
-  const handleSNISFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setInputFiles(prev => ({ ...prev, snis: file }));
-      addLogMessage(`Arquivo SNIS ${file.name} selecionado`);
-    }
-  };
-
-  const simulateETLProcess = async () => {
-    const requiredFiles = ['populacao', 'altitude', 'longitude', 'latitude', 'geometria'];
-    const missingFiles = requiredFiles.filter(fileType => !inputFiles[fileType]);
-
-    if (missingFiles.length > 0) {
-      alert(`Por favor, selecione todos os arquivos necessários. Faltando: ${missingFiles.join(', ')}`);
-      return;
-    }
-
-    setEtlStatus('running');
-    addLogMessage('Iniciando processo ETL para geração de dados de municípios...');
-
-    // Simulação do processamento do arquivo SNIS
-    if (inputFiles.snis) {
-      addLogMessage('Iniciando processamento do arquivo SNIS...');
-      await simulateStep('Lendo e limpando o arquivo SNIS (simulação)...', 1000);
-      await simulateStep('Reestruturando os dados do SNIS (simulação)...', 1500);
-      await simulateStep('Convertendo os dados para o formato desejado (simulação)...', 1200);
-      await simulateStep('Arquivo SNIS processado com sucesso (simulação)!', 1000);
-    }
-
-    const fullOutputPathCSV = `${outputFolder}/${outputFilename}.csv`;
-    const fullOutputPathGeoJSON = `${outputFolder}/${outputFilename}.geojson`;
-
-    await simulateStep('Limpando e processando arquivo CSV de população...', 1000);
-    await simulateStep('Carregando dados de territórios...', 1500);
-    await simulateStep('Associando dados de população ao dataframe de territórios...', 800);
-    await simulateStep('Carregando e processando dados de altitude, longitude e latitude...', 1200);
-    await simulateStep('Associando dados geográficos ao dataframe de territórios...', 1000);
-    await simulateStep('Criando coluna de regiões baseada nos estados...', 500);
-    await simulateStep('Carregando GeoJSON com geometrias dos municípios...', 1800);
-    await simulateStep('Realizando merge entre dados de territórios e geometrias...', 1500);
-    await simulateStep(`Exportando CSV sem geometria para ${fullOutputPathCSV}`, 1000);
-    await simulateStep(`Exportando GeoJSON com geometria para ${fullOutputPathGeoJSON}`, 1200);
-
-    addLogMessage('Processo ETL concluído com sucesso!');
-    setEtlStatus('completed');
   };
 
   const simulateStep = async (message, delay) => {
@@ -99,243 +35,152 @@ const ETLEnvironment = ({
     return new Promise(resolve => setTimeout(resolve, delay));
   };
 
-  const handleRunETL = () => {
-    if (etlStatus === 'running') {
-      alert('Um processo ETL já está em execução. Aguarde a conclusão.');
-      return;
-    }
-
-    simulateETLProcess();
-  };
-
-  const handleClearLog = () => {
-    setLogMessages([]);
-    setEtlStatus('idle');
+  const runETL = async () => {
+    setEtlStatus('running');
+    addLogMessage('Iniciando ETL de Municípios...');
+    await simulateStep('Lendo arquivos de entrada...', 1000);
+    await simulateStep('Processando dados populacionais...', 1500);
+    await simulateStep('Unificando geometrias...', 2000);
+    await simulateStep('Exportando resultados...', 1000);
+    addLogMessage('ETL concluído com sucesso!');
+    setEtlStatus('completed');
   };
 
   return (
-    <div className="data-visualization-environment etl-environment">
-      <div className="data-visualization-header">
-        <h1>Ambiente ETL</h1>
-        <div className="view-selector">
-          <button
-            className={`view-button ${selectedETL === 'municipios' ? 'active' : ''}`}
-            onClick={() => setSelectedETL('municipios')}
-          >
-            ETL Municípios
-          </button>
-          <button
-            className={`view-button ${selectedETL === 'indicadores' ? 'active' : ''}`}
-            onClick={() => setSelectedETL('indicadores')}
-          >
-            ETL Indicadores
-          </button>
-          <button
-            className={`view-button ${selectedETL === 'editar' ? 'active' : ''}`}
-            onClick={() => setSelectedETL('editar')}
-          >
-            Editar Dados
-          </button>
-          <button
-            className={`view-button ${selectedETL === 'transformacao' ? 'active' : ''}`}
-            onClick={() => setSelectedETL('transformacao')}
-          >
-            Processos de Transformação
-          </button>
-        </div>
-      </div>
+    <div className="etl-view-container fade-in">
+      <h2>ETL de Municípios</h2>
+      <p className="description-text">
+        Processamento e unificação de dados municipais a partir de múltiplas fontes (CSV, GeoJSON).
+      </p>
 
-      <div className="data-visualization-container">
-        {/* Render ETL Config/Log for 'municipios' and 'indicadores' */}
-        {(selectedETL === 'municipios' || selectedETL === 'indicadores') && ! (selectedETL === 'transformacao') && (
-          <>
-            <div className="data-visualization-sidebar">
-              <h3>Configuração ETL</h3>
-
-              {selectedETL === 'municipios' && (
-                <div className="etl-config-section">
-                  <h4>ETL de Municípios</h4>
-                  <p>Esta função processa dados de municípios brasileiros, combinando informações geográficas e administrativas, incluindo dados do SNIS.</p>
-
-                  <div className="file-input-group">
-                    <label>Arquivo de População:</label>
-                    <input
-                      type="file"
-                      accept=".csv"
-                      onChange={(e) => handleFileChange('populacao', e)}
-                    />
-                    <span className="file-status">
-                      {inputFiles.populacao ? '✓' : '⨯'}
-                    </span>
-                  </div>
-
-                  <div className="file-input-group">
-                    <label>Arquivo de Altitude:</label>
-                    <input
-                      type="file"
-                      accept=".csv"
-                      onChange={(e) => handleFileChange('altitude', e)}
-                    />
-                    <span className="file-status">
-                      {inputFiles.altitude ? '✓' : '⨯'}
-                    </span>
-                  </div>
-
-                  <div className="file-input-group">
-                    <label>Arquivo de Longitude:</label>
-                    <input
-                      type="file"
-                      accept=".csv"
-                      onChange={(e) => handleFileChange('longitude', e)}
-                    />
-                    <span className="file-status">
-                      {inputFiles.longitude ? '✓' : '⨯'}
-                    </span>
-                  </div>
-
-                  <div className="file-input-group">
-                    <label>Arquivo de Latitude:</label>
-                    <input
-                      type="file"
-                      accept=".csv"
-                      onChange={(e) => handleFileChange('latitude', e)}
-                    />
-                    <span className="file-status">
-                      {inputFiles.latitude ? '✓' : '⨯'}
-                    </span>
-                  </div>
-
-                  <div className="file-input-group">
-                    <label>Arquivo de Geometria (GeoJSON):</label>
-                    <input
-                      type="file"
-                      accept=".geojson,.json"
-                      onChange={(e) => handleFileChange('geometria', e)}
-                    />
-                    <span className="file-status">
-                      {inputFiles.geometria ? '✓' : '⨯'}
-                    </span>
-                  </div>
-
-                  {/* Campo de entrada para o arquivo SNIS */}
-                  <div className="file-input-group">
-                    <label>Arquivo SNIS:</label>
-                    <input
-                      type="file"
-                      accept=".csv"
-                      onChange={handleSNISFileChange}
-                    />
-                    <span className="file-status">
-                      {inputFiles.snis ? '✓' : '⨯'}
-                    </span>
-                  </div>
-
-                  <div className="output-path-group">
-                    <label>Diretório de Saída:</label>
-                    <input
-                      type="text"
-                      value={outputFolder}
-                      onChange={(e) => setOutputFolder(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="output-path-group">
-                    <label>Nome do Arquivo de Saída (sem extensão):</label>
-                    <input
-                      type="text"
-                      value={outputFilename}
-                      onChange={(e) => setOutputFilename(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {selectedETL === 'indicadores' && (
-                <div className="etl-config-section">
-                  {/* Render the new ETLProcessor component here */}
-                  <ETLProcessor />
-                </div>
-              )}
-
-              <div className="etl-actions">
-                <button
-                  onClick={handleRunETL}
-                  disabled={etlStatus === 'running' || selectedETL === 'indicadores'} // Disable run for indicators for now
-                  className={etlStatus === 'running' ? 'running' : ''}
-                >
-                  {etlStatus === 'running' ? 'Executando...' : 'Executar ETL'}
-                </button>
-                <button onClick={handleClearLog}>Limpar Log</button>
-              </div>
-            </div>
-
-            <div className="data-visualization-content">
-              <div className="etl-content">
-                <h2>Log de Execução ETL</h2>
-
-                <div className="etl-status-bar">
-                  <span className="status-label">Status:</span>
-                  <span className={`status-value status-${etlStatus}`}>
-                    {etlStatus === 'idle' ? 'Pronto' :
-                      etlStatus === 'running' ? 'Em execução' :
-                        'Concluído'}
+      <div className="etl-grid">
+        <div className="etl-config-panel">
+          <h3>Configuração</h3>
+          <div className="file-inputs">
+            {['populacao', 'altitude', 'longitude', 'latitude', 'geometria', 'snis'].map(key => (
+              <div key={key} className="file-input-group">
+                <label>{key.charAt(0).toUpperCase() + key.slice(1)}:</label>
+                <div className="custom-file-input">
+                  <input type="file" onChange={(e) => handleFileChange(key, e)} />
+                  <span className={`status-indicator ${inputFiles[key] ? 'success' : ''}`}>
+                    {inputFiles[key] ? '✓' : 'Obrigatório'}
                   </span>
                 </div>
-
-                <div className="etl-log">
-                  {logMessages.length === 0 ? (
-                    <p className="empty-log">Nenhuma atividade registrada. Clique em "Executar ETL" para iniciar o processo.</p>
-                  ) : (
-                    logMessages.map((log, index) => (
-                      <div key={index} className="log-entry">
-                        <span className="log-time">[{log.time}]</span>
-                        <span className="log-message">{log.message}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                <div className="etl-note">
-                  <p>
-                    <b>Observação:</b> Esta é uma simulação do processo ETL. No ambiente real, o script Python
-                    utilizaria bibliotecas como <code>pandas</code>, <code>geopandas</code> e <code>ipeadatapy</code>
-                    para processar os dados, incluindo a padronização dos dados do SNIS. Devido às limitações do WebContainer, estamos simulando o fluxo de trabalho.
-                  </p>
-                </div>
               </div>
+            ))}
+          </div>
+          <div className="output-config">
+            <div className="input-group">
+              <label>Pasta de Saída</label>
+              <input type="text" value={outputFolder} onChange={(e) => setOutputFolder(e.target.value)} />
             </div>
-          </>
-        )}
+            <div className="input-group">
+              <label>Nome do Arquivo</label>
+              <input type="text" value={outputFilename} onChange={(e) => setOutputFilename(e.target.value)} />
+            </div>
+          </div>
+          <button
+            className="btn btn-primary run-btn"
+            onClick={runETL}
+            disabled={etlStatus === 'running'}
+          >
+            {etlStatus === 'running' ? 'Processando...' : 'Executar ETL'}
+          </button>
+        </div>
 
-        {/* Render Data Editor */}
-        {selectedETL === 'editar' && Array.isArray(indicatorsHeaders) && indicatorsHeaders.length > 0 && (
+        <div className="etl-log-panel">
+          <h3>Log de Execução</h3>
+          <div className="log-window">
+            {logMessages.length === 0 ? (
+              <p className="empty-log">Aguardando início do processo...</p>
+            ) : (
+              logMessages.map((msg, idx) => (
+                <div key={idx} className="log-entry">
+                  <span className="log-time">[{msg.time}]</span>
+                  <span className="log-msg">{msg.message}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TransformationView = () => {
+  const [activeTab, setActiveTab] = useState('municipios');
+
+  const tabs = [
+    { id: 'municipios', label: 'Municípios' },
+    { id: 'snis', label: 'SNIS' },
+    { id: 'ipeadata', label: 'IPEADATA' },
+    { id: 'datasus', label: 'DATASUS' },
+    { id: 'finbra', label: 'FINBRA' },
+    { id: 'ibge', label: 'IBGE/SIDRA' },
+    { id: 'codigomun', label: 'Cód. Município' },
+    { id: 'indice', label: 'Índice Pos.' },
+  ];
+
+  return (
+    <div className="transformation-view-container fade-in">
+      <h2>Processos de Transformação</h2>
+      <div className="tabs-header">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div className="tab-content">
+        {activeTab === 'municipios' && <TransformacaoMunicipios />}
+        {activeTab === 'snis' && <TransformacaoSNIS />}
+        {activeTab === 'ipeadata' && <TransformacaoIPEADATA />}
+        {activeTab === 'datasus' && <TransformacaoDATASUS />}
+        {activeTab === 'finbra' && <TransformacaoFINBRA />}
+        {activeTab === 'ibge' && <TransformacaoIBGE />}
+        {activeTab === 'codigomun' && <TransformacaoCodigoMunicipio />}
+        {activeTab === 'indice' && <TransformacaoIndicePosicional />}
+      </div>
+    </div>
+  );
+};
+
+const ETLEnvironment = ({ initialMunicipalitiesData, initialIndicatorsData, municipalitiesHeaders, indicatorsHeaders }) => {
+  const [activeView, setActiveView] = useState('municipios');
+
+  const sidebarItems = [
+    { id: 'municipios', label: 'ETL Municípios', icon: 'fa-map' },
+    { id: 'indicadores', label: 'ETL Indicadores', icon: 'fa-chart-bar' },
+    { id: 'editar', label: 'Editar Dados', icon: 'fa-edit' },
+    { id: 'transformacao', label: 'Transformação', icon: 'fa-cogs' },
+  ];
+
+  return (
+    <div className="etl-environment-container">
+      <Sidebar
+        title="ETL & Dados"
+        items={sidebarItems}
+        activeItem={activeView}
+        onItemClick={setActiveView}
+      />
+
+      <div className="etl-content-area">
+        {activeView === 'municipios' && <ETLMunicipiosView />}
+        {activeView === 'indicadores' && <ETLProcessor />}
+        {activeView === 'editar' && (
           <ETLEditData
             initialMunicipalitiesData={initialMunicipalitiesData}
             initialIndicatorsData={initialIndicatorsData}
             municipalitiesHeaders={municipalitiesHeaders}
-            indicatorsHeaders={indicatorsHeaders} // Pass only if valid
+            indicatorsHeaders={indicatorsHeaders}
           />
         )}
-
-        {/* Render Transformation Processes Section */}
-        {selectedETL === 'transformacao' && (
-          <div className="transformation-process-section">
-            <div className="data-visualization-sidebar transformation-sidebar">
-              <h3>Processos</h3>
-              <button
-                className={`sub-nav-button ${selectedTransformation === 'municipios' ? 'active' : ''}`}
-                onClick={() => setSelectedTransformation('municipios')}
-              >
-                Municípios
-              </button>
-              {/* Add more buttons here for other transformation processes */}
-            </div>
-            <div className="data-visualization-content transformation-content">
-              {selectedTransformation === 'municipios' && <TransformacaoMunicipios />}
-              {/* Add conditional rendering for other transformation components */}
-            </div>
-          </div>
-        )}
+        {activeView === 'transformacao' && <TransformationView />}
       </div>
     </div>
   );

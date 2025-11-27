@@ -1,50 +1,198 @@
-body {
+:root {
+  /* Color Palette - Slate & Blue Theme */
+  --primary-color: #0F172A;
+  /* Slate 900 */
+  --primary-light: #334155;
+  /* Slate 700 */
+  --secondary-color: #3B82F6;
+  /* Blue 500 */
+  --secondary-dark: #2563EB;
+  /* Blue 600 */
+  --accent-color: #0EA5E9;
+  /* Sky 500 */
+
+  --background-color: #F8FAFC;
+  /* Slate 50 */
+  --surface-color: #FFFFFF;
+  --surface-hover: #F1F5F9;
+  /* Slate 100 */
+
+  --text-primary: #1E293B;
+  /* Slate 800 */
+  --text-secondary: #64748B;
+  /* Slate 500 */
+  --text-light: #94A3B8;
+  /* Slate 400 */
+  --text-inverse: #FFFFFF;
+
+  --border-color: #E2E8F0;
+  /* Slate 200 */
+
+  --success-color: #10B981;
+  /* Emerald 500 */
+  --warning-color: #F59E0B;
+  /* Amber 500 */
+  --error-color: #EF4444;
+  /* Red 500 */
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 300ms ease-in-out;
+}
+
+* {
+  box-sizing: border-box;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Utility Classes */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
 }
 
-.app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
+.card {
+  background-color: var(--surface-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
 }
 
-.main-content {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  /* Enable flexbox for main-content */
-  justify-content: space-between;
-  /* Space out child elements */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+  gap: 0.5rem;
+  font-size: 0.9rem;
 }
 
-/* Ensure the main area for non-map environments takes full space */
-.main-content-area {
+.btn-primary {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary-dark);
+}
+
+.btn-secondary {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--text-secondary);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover {
+  background-color: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Map Environment Styles */
+.map-container {
   width: 100%;
   height: 100%;
-  /* Ensure it takes full height too */
-  overflow: auto;
-  /* Allow scrolling within this area if content overflows */
+  position: relative;
+  background-color: #e5e7eb;
+  /* Placeholder color */
 }
 
-.map-container {
+.top-left-controls {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.top-right-controls {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
 .map-loading {
@@ -58,59 +206,30 @@ code {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 10;
+  z-index: 20;
 }
 
 .loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #3498db;
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--secondary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-sm);
 }
 
-.app-footer {
-  background-color: #2c3e50;
-  color: white;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-  z-index: 5;
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-.coordinates {
-  font-family: monospace;
-}
-
-.footer-copyright {
-  font-size: 0.8rem;
-  opacity: 0.8;
-}
-
-.city-popup {
-  max-width: 300px;
-}
-
-.map-popup h3 {
-  margin: 0 0 10px 0;
-  color: #2c3e50;
-  font-size: 1.1rem;
-}
-
-.map-popup p {
-  margin: 5px 0;
-  font-size: 0.9rem;
-}
-
-.map-popup small {
-  color: #7f8c8d;
-  font-style: italic;
-}
-
+/* Modal Styles */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -122,152 +241,70 @@ code {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
+  background-color: var(--surface-color);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
   width: 90%;
   max-width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
 }
 
 .modal-content h3 {
-  margin-top: 0;
-  color: #2c3e50;
+  margin-bottom: var(--spacing-lg);
+  color: var(--primary-color);
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-md);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-xs);
   font-weight: 500;
+  color: var(--text-primary);
 }
 
 .form-group select {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: inherit;
 }
 
 .button-group {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.import-button,
-.cancel-button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
 }
 
 .import-button {
-  background-color: #3498db;
+  background-color: var(--secondary-color);
   color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
 }
 
 .cancel-button {
-  background-color: #e74c3c;
-  color: white;
-}
-
-/* Make sure the data visualization environment takes full space when active */
-.data-visualization-environment {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 4;
-  /* Below menus but above map */
-  background-color: white;
-}
-
-/* City Search Box Styles */
-.city-search-container {
-  position: absolute;
-  top: 20px;
-  /* Adjust spacing from top */
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-  /* Ensure it's above the map and other controls */
-  background-color: rgba(255, 255, 255, 0.7);
-  /* White background with 70% opacity */
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 350px;
-  /* Slightly wider */
-  opacity: 0.7;
-  /* Apply 70% opacity to the whole container initially */
-  transition: opacity 0.3s ease, background-color 0.3s ease;
-  /* Smooth transition for hover effect */
-}
-
-/* Hover/Focus styles removed for debugging */
-/* .city-search-container:hover,
-.city-search-container:focus-within {
-  opacity: 1;
-  background-color: white;
-} */
-
-
-.city-search-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  /* Include padding and border in the element's total width and height */
-  font-size: 1rem;
-}
-
-.city-search-suggestions {
-  list-style: none;
-  padding: 0;
-  margin: 8px 0 0 0;
-  background-color: white;
-  /* Suggestions list opaque */
-  border: 1px solid #ccc;
-  /* Adjusted border */
-  border-radius: 4px;
-  max-height: 150px;
-  overflow-y: auto;
-  position: absolute;
-  width: calc(100% - 20px);
-  /* Match container width minus padding */
-  left: 10px;
-  /* Align with container padding */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.city-search-suggestions li {
-  padding: 10px 12px;
+  background-color: transparent;
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
   cursor: pointer;
-  border-bottom: 1px solid #eee;
+  font-weight: 500;
 }
 
-.city-search-suggestions li:last-child {
-  border-bottom: none;
-}
-
-.city-search-suggestions li:hover {
-  background-color: #f0f0f0;
-}
-
-/* Style to hide map container by removing it from layout */
-.map-container.hidden-map {
-  display: none;
-  /* Completely remove from layout */
+.cancel-button:hover {
+  background-color: var(--surface-hover);
+  color: var(--text-primary);
 }

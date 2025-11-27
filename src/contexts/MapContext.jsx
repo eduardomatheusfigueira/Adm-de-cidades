@@ -15,7 +15,7 @@ export const MapProvider = ({ children }) => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isMapLoading, setIsMapLoading] = useState(true);
   // mapStyle é gerenciado localmente aqui, mas pode ser movido para UIContext se necessário globalmente
-  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/light-v11');
+  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/outdoors-v12');
 
   const { geojsonData, indicadoresData, filteredCsvData } = useContext(DataContext);
   // Consumindo diretamente do UIContext, sem valores padrão aqui
@@ -25,58 +25,72 @@ export const MapProvider = ({ children }) => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZWR1YXJkb21hdGhldXNmaWd1ZWlyYSIsImEiOiJjbTgwd2tqbzYwemRrMmpwdGVka2FrMG5nIn0.NfOWy2a0J-YHP4mdKs_TAQ';
   }, []);
 
-  useEffect(() => {
-    if (activeEnvironment === 'map' && mapContainer.current) {
-      if (!map.current) {
-        console.log("[MapContext] Initializing Mapbox map...");
-        setIsMapLoading(true);
-        map.current = new mapboxgl.Map({
-          container: mapContainer.current,
-          style: mapStyle, // Usa o estado local mapStyle
-          center: [lng, lat],
-          zoom: zoom
-        });
-        map.current.on('move', () => {
-          setLng(map.current.getCenter().lng);
-          setLat(map.current.getCenter().lat);
-          setZoom(map.current.getZoom());
-        });
-        map.current.on('style.load', () => {
-          console.log("[MapContext] Map style loaded.");
-          setMapLoaded(true);
-          setIsMapLoading(false);
-        });
-        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-      }
-    }
-    return () => {
-      // A condição de limpeza foi ajustada para remover o mapa se o ambiente não for mais 'map'
-      // ou se o componente estiver sendo desmontado (map.current existe mas activeEnvironment não é 'map')
-      if (map.current && activeEnvironment !== 'map') {
-        console.log("[MapContext] Removing Mapbox map instance (env changed or unmount).");
-        map.current.remove();
-        map.current = null;
-        setMapLoaded(false);
-        setIsMapLoading(true);
-      }
-    };
-    // Adicionado mapStyle às dependências para reinicializar se o estilo base mudar E o mapa não existir ou se o ambiente mudar para 'map'.
-  }, [activeEnvironment, mapStyle, lng, lat, zoom]);
+  const currentStyleUrl = useRef(mapStyle);
 
   useEffect(() => {
-    // Verifica se o mapa existe, está carregado, e se o nome do estilo realmente precisa ser atualizado
-    if (map.current && mapLoaded && map.current.getStyle() && map.current.getStyle().name !== mapStyle.split('/').pop()) {
-      console.log(`[MapContext] Changing map style to: ${mapStyle}`);
-      map.current.setStyle(mapStyle);
+    // Initialize map if container is present and map doesn't exist
+    if (mapContainer.current && !map.current) {
+      console.log("[MapContext] Initializing Mapbox map...");
+      setIsMapLoading(true);
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: mapStyle, // Usa o estado local mapStyle
+        center: [lng, lat],
+        zoom: zoom
+      });
+      currentStyleUrl.current = mapStyle; // Sync ref
+
+      map.current.on('move', () => {
+        setLng(map.current.getCenter().lng);
+        setLat(map.current.getCenter().lat);
+        setZoom(map.current.getZoom());
+      });
+      map.current.on('style.load', () => {
+        console.log("[MapContext] Map style loaded.");
+        setMapLoaded(true);
+        setIsMapLoading(false);
+      });
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
     }
-  }, [mapStyle, mapLoaded]);
+
+    return () => {
+      // Only remove map if component unmounts completely (e.g. app reload)
+      // We no longer remove it just because activeEnvironment changed
+      if (map.current && !mapContainer.current) {
+        // This check is a bit tricky since mapContainer.current might still exist in memory.
+        // Better to rely on the fact that we want persistence.
+        // If we really need to cleanup, we might need a separate 'destroy' flag or just let it be.
+        // For now, let's NOT destroy it here to allow persistence.
+      }
+    };
+  }, [lng, lat, zoom]); // Removed activeEnvironment from dependency to avoid re-run
+
+  useEffect(() => {
+    // Resize map when it becomes visible
+    if (activeEnvironment === 'map' && map.current) {
+      // Small delay to ensure DOM has updated style to display: block
+      setTimeout(() => {
+        map.current.resize();
+      }, 100);
+    }
+  }, [activeEnvironment]);
+
+  useEffect(() => {
+    // Only update style if it changed and map is ready
+    if (map.current && mapStyle !== currentStyleUrl.current) {
+      console.log(`[MapContext] Changing map style to: ${mapStyle}`);
+      setMapLoaded(false);
+      map.current.setStyle(mapStyle);
+      currentStyleUrl.current = mapStyle;
+    }
+  }, [mapStyle]);
 
 
   const loadMapData = useCallback(() => {
     console.log("[MapContext] loadMapData called", { filteredCsvDataLength: filteredCsvData?.length, colorAttribute, visualizationConfig });
 
-    if (!map.current || !mapLoaded) {
-      console.log("[MapContext] Map not ready for data loading.");
+    if (!map.current || !mapLoaded || !map.current.isStyleLoaded()) {
+      console.log("[MapContext] Map not ready for data loading (style not loaded).");
       return;
     }
     const currentMapData = filteredCsvData;
@@ -97,14 +111,27 @@ export const MapProvider = ({ children }) => {
     const csvDataMap = new Map(currentMapData.map(city => [String(city.Codigo_Municipio), city]));
     const finalFeatures = [];
 
+    console.log(`[MapContext] Processing ${currentMapData.length} cities from CSV.`);
+
+    // Helper to parse coordinates robustly (handles comma and dot)
+    const parseCoord = (val) => {
+      if (!val) return NaN;
+      if (typeof val === 'number') return val;
+      return parseFloat(val.replace(',', '.'));
+    };
+
+    const bounds = new mapboxgl.LngLatBounds();
+    let hasValidBounds = false;
+
     if (geojsonData && geojsonData.features) {
       geojsonData.features.forEach(feature => {
         if (!feature.properties || feature.properties.CD_MUN === undefined) return;
         const cdMun = String(feature.properties.CD_MUN);
         const cityData = csvDataMap.get(cdMun);
         if (cityData) {
-          const lon = parseFloat(cityData.Longitude_Municipio);
-          const lat = parseFloat(cityData.Latitude_Municipio);
+          const lon = parseCoord(cityData.Longitude_Municipio);
+          const lat = parseCoord(cityData.Latitude_Municipio);
+
           const properties = {
             ...feature.properties, ...cityData, CD_MUN: cdMun, NAME: cityData.Nome_Municipio,
             LEVEL: 'Municípios', AREA: parseFloat(cityData.Area_Municipio),
@@ -113,6 +140,7 @@ export const MapProvider = ({ children }) => {
             REGIAO: cityData.Sigla_Regiao,
             custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`
           };
+
           if (visualizationConfig && visualizationConfig.type === 'indicator' && indicadoresData) {
             const { year, indicator, valueType } = visualizationConfig;
             const cityIndicator = indicadoresData.find(ind =>
@@ -124,16 +152,26 @@ export const MapProvider = ({ children }) => {
               properties.visualization_value = valueType === 'value' ? properties.indicator_value : properties.indicator_position;
             } else properties.visualization_value = null;
           } else if (currentAttributeForColoring !== 'visualization_value') delete properties.visualization_value;
+
           finalFeatures.push({ ...feature, properties });
-          csvDataMap.delete(cdMun);
+          // csvDataMap.delete(cdMun); // Keep to generate point
         }
       });
     }
 
+    let pointsGenerated = 0;
     csvDataMap.forEach(cityData => {
-      const lon = parseFloat(cityData.Longitude_Municipio);
-      const lat = parseFloat(cityData.Latitude_Municipio);
-      if (isNaN(lon) || isNaN(lat) || lon === 0 || lat === 0) return;
+      const lon = parseCoord(cityData.Longitude_Municipio);
+      const lat = parseCoord(cityData.Latitude_Municipio);
+
+      if (isNaN(lon) || isNaN(lat) || lon === 0 || lat === 0) {
+        // console.warn(`[MapContext] Invalid coordinates for ${cityData.Nome_Municipio}`);
+        return;
+      }
+
+      bounds.extend([lon, lat]);
+      hasValidBounds = true;
+
       const properties = {
         CD_MUN: String(cityData.Codigo_Municipio), NAME: cityData.Nome_Municipio, LEVEL: 'Municípios',
         AREA: parseFloat(cityData.Area_Municipio), CAPITAL: cityData.Capital === 'true',
@@ -141,6 +179,7 @@ export const MapProvider = ({ children }) => {
         LONGITUDE: lon, LATITUDE: lat, REGIAO: cityData.Sigla_Regiao, ...cityData,
         custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`
       };
+
       if (visualizationConfig && visualizationConfig.type === 'indicator' && indicadoresData) {
         const { year, indicator, valueType } = visualizationConfig;
         const cityIndicator = indicadoresData.find(ind =>
@@ -153,7 +192,17 @@ export const MapProvider = ({ children }) => {
         } else properties.visualization_value = null;
       }
       finalFeatures.push({ type: 'Feature', properties, geometry: { type: 'Point', coordinates: [lon, lat] } });
+      pointsGenerated++;
     });
+
+    console.log(`[MapContext] Generated ${finalFeatures.length} features (${pointsGenerated} points).`);
+
+    // Fit bounds if we have valid data and it's the first load or explicit update
+    if (hasValidBounds && map.current) {
+      // Only fit bounds if we haven't manually moved significantly? 
+      // For now, let's fit bounds on data load to ensure visibility as requested.
+      map.current.fitBounds(bounds, { padding: 50, maxZoom: 14 });
+    }
 
     const combinedGeoJson = { type: 'FeatureCollection', features: finalFeatures };
     const attributeValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => v !== undefined && v !== null);
@@ -171,7 +220,13 @@ export const MapProvider = ({ children }) => {
       map.current.addLayer({
         id: 'sectors-point-layer', type: 'circle', source: 'sectors',
         filter: ['==', ['geometry-type'], 'Point'],
-        paint: { 'circle-radius': 5, 'circle-color': colorRenderScaleExpression, 'circle-opacity': 0.7 }
+        paint: {
+          'circle-radius': 6,
+          'circle-color': colorRenderScaleExpression,
+          'circle-opacity': 0.9,
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#ffffff'
+        }
       });
 
       const layers = ['sectors-fill-layer', 'sectors-point-layer'];
@@ -183,11 +238,8 @@ export const MapProvider = ({ children }) => {
           const features = map.current.queryRenderedFeatures(e.point, { layers: [layerId] });
           if (!features.length) return;
           const feature = features[0];
-          // Usa setSelectedCityInfo diretamente do UIContext consumido no topo do MapProvider
           if (setSelectedCityInfo) {
             setSelectedCityInfo(feature);
-          } else {
-            console.warn("[MapContext] setSelectedCityInfo não está disponível no UIContext ao clicar no mapa.")
           }
         });
       });

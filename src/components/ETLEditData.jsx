@@ -30,7 +30,7 @@ const ETLEditData = ({
     setMunicipalitiesData(updatedData);
   };
 
-   const handleEditIndicator = (rowIndex, field, value) => {
+  const handleEditIndicator = (rowIndex, field, value) => {
     const updatedData = [...indicatorsData];
     updatedData[rowIndex] = { ...updatedData[rowIndex], [field]: value };
     setIndicatorsData(updatedData);
@@ -38,21 +38,21 @@ const ETLEditData = ({
 
   const handleDeleteMunicipality = (rowIndex) => {
     if (window.confirm(`Tem certeza que deseja excluir a linha ${rowIndex + 1} dos municípios?`)) {
-        setMunicipalitiesData(municipalitiesData.filter((_, index) => index !== rowIndex));
+      setMunicipalitiesData(municipalitiesData.filter((_, index) => index !== rowIndex));
     }
   };
 
   const handleDeleteIndicator = (rowIndex) => {
-     if (window.confirm(`Tem certeza que deseja excluir a linha ${rowIndex + 1} dos indicadores?`)) {
-        setIndicatorsData(indicatorsData.filter((_, index) => index !== rowIndex));
-     }
+    if (window.confirm(`Tem certeza que deseja excluir a linha ${rowIndex + 1} dos indicadores?`)) {
+      setIndicatorsData(indicatorsData.filter((_, index) => index !== rowIndex));
+    }
   };
 
   // Placeholder for saving - could generate CSV text
   const generateCSV = (headers, data) => {
-      const headerRow = headers.join(',');
-      const dataRows = data.map(row => headers.map(header => row[header] ?? '').join(','));
-      return [headerRow, ...dataRows].join('\n');
+    const headerRow = headers.join(',');
+    const dataRows = data.map(row => headers.map(header => row[header] ?? '').join(','));
+    return [headerRow, ...dataRows].join('\n');
   }
 
   const downloadFile = (filename, content) => {
@@ -68,33 +68,33 @@ const ETLEditData = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url); // Clean up
     } else {
-        alert("Seu navegador não suporta o download automático. O conteúdo CSV foi logado no console.");
-        console.log(`--- Conteúdo para ${filename} ---`);
-        console.log(content);
+      alert("Seu navegador não suporta o download automático. O conteúdo CSV foi logado no console.");
+      console.log(`--- Conteúdo para ${filename} ---`);
+      console.log(content);
     }
   };
 
   const handleSaveChanges = () => {
     console.log("Generating files for download...");
     try {
-        if (municipalitiesData.length > 0 && municipalitiesHeaders.length > 0) {
-            const munCSV = generateCSV(municipalitiesHeaders, municipalitiesData);
-            downloadFile('municipios_editado.csv', munCSV);
-        } else {
-            console.log("Nenhum dado de município para salvar.");
-        }
+      if (municipalitiesData.length > 0 && municipalitiesHeaders.length > 0) {
+        const munCSV = generateCSV(municipalitiesHeaders, municipalitiesData);
+        downloadFile('municipios_editado.csv', munCSV);
+      } else {
+        console.log("Nenhum dado de município para salvar.");
+      }
 
-        if (indicatorsData.length > 0 && indicatorsHeaders.length > 0) {
-            const indCSV = generateCSV(indicatorsHeaders, indicatorsData);
-            downloadFile('indicadores_editado.csv', indCSV);
-        } else {
-             console.log("Nenhum dado de indicador para salvar.");
-        }
-        alert("Arquivos CSV editados estão sendo baixados (municipios_editado.csv e/ou indicadores_editado.csv).");
+      if (indicatorsData.length > 0 && indicatorsHeaders.length > 0) {
+        const indCSV = generateCSV(indicatorsHeaders, indicatorsData);
+        downloadFile('indicadores_editado.csv', indCSV);
+      } else {
+        console.log("Nenhum dado de indicador para salvar.");
+      }
+      alert("Arquivos CSV editados estão sendo baixados (municipios_editado.csv e/ou indicadores_editado.csv).");
 
     } catch (error) {
-        console.error("Erro ao gerar arquivos para download:", error);
-        alert("Ocorreu um erro ao tentar gerar os arquivos para download. Verifique o console.");
+      console.error("Erro ao gerar arquivos para download:", error);
+      alert("Ocorreu um erro ao tentar gerar os arquivos para download. Verifique o console.");
     }
   };
 
@@ -104,18 +104,18 @@ const ETLEditData = ({
   // This is a basic heuristic, might need refinement
   const numericColumns = new Set(['populacao', 'latitude', 'longitude', 'altitude', 'pib', 'area']); // Add known numeric cols
   if (municipalitiesData.length > 0) {
-      municipalitiesHeaders.forEach(h => {
-          if (!isNaN(parseFloat(municipalitiesData[0][h]))) {
-              numericColumns.add(h);
-          }
-      });
+    municipalitiesHeaders.forEach(h => {
+      if (!isNaN(parseFloat(municipalitiesData[0][h]))) {
+        numericColumns.add(h);
+      }
+    });
   }
-   if (indicatorsData.length > 0) {
-      indicatorsHeaders.forEach(h => {
-          if (!isNaN(parseFloat(indicatorsData[0][h]))) {
-              numericColumns.add(h);
-          }
-      });
+  if (indicatorsData.length > 0) {
+    indicatorsHeaders.forEach(h => {
+      if (!isNaN(parseFloat(indicatorsData[0][h]))) {
+        numericColumns.add(h);
+      }
+    });
   }
 
 
@@ -155,12 +155,12 @@ const ETLEditData = ({
             </tbody>
           </table>
         </div>
-      ) : !isLoading && <p>Nenhum dado de município carregado ou encontrado.</p>}
+      ) : <p>Nenhum dado de município carregado ou encontrado.</p>}
 
 
       {/* Indicators Table */}
       <h3>Indicadores ({indicatorsData.length})</h3>
-       {indicatorsData.length > 0 ? (
+      {indicatorsData.length > 0 ? (
         <div className="editable-table-placeholder">
           <table>
             <thead>
@@ -172,7 +172,7 @@ const ETLEditData = ({
             <tbody>
               {indicatorsData.map((ind, index) => (
                 <tr key={`ind-${index}`}>
-                   {indicatorsHeaders.map(header => (
+                  {indicatorsHeaders.map(header => (
                     <td key={header}>
                       <input
                         type={numericColumns.has(header) ? 'number' : 'text'}
@@ -189,7 +189,7 @@ const ETLEditData = ({
             </tbody>
           </table>
         </div>
-       ) : !isLoading && <p>Nenhum dado de indicador carregado ou encontrado.</p>}
+      ) : <p>Nenhum dado de indicador carregado ou encontrado.</p>}
 
 
       <div className="edit-actions">

@@ -16,6 +16,7 @@ export const UIProvider = ({ children }) => {
   const [showGeometryImportModal, setShowGeometryImportModal] = useState(false);
   const [geometryImportData, setGeometryImportData] = useState(null); // Dados do arquivo GeoJSON importado
   const [municipalityCodeField, setMunicipalityCodeField] = useState(''); // Campo selecionado no modal
+  const [geometryPropertyKeys, setGeometryPropertyKeys] = useState([]); // Chaves das propriedades do GeoJSON
 
   // Função para lidar com a aplicação de filtros (parte que estava em App.jsx)
   // A outra parte (applyFiltersToCsvData) está no DataContext
@@ -31,7 +32,7 @@ export const UIProvider = ({ children }) => {
     setVisualizationConfig(config);
     // Se a visualização for por atributo, atualiza o colorAttribute também
     if (config && config.type === 'attribute' && config.attribute) {
-        setColorAttribute(config.attribute);
+      setColorAttribute(config.attribute);
     }
     // Se for por indicador, o MapContext usará 'visualization_value' e o colorAttribute aqui não é o primário para cor.
     // Mas pode ser útil manter o último atributo selecionado se o usuário voltar para visualização por atributo.
@@ -40,6 +41,15 @@ export const UIProvider = ({ children }) => {
   // Função para abrir o modal de importação de geometria (parte de handleImportGeometry de App.jsx)
   const openGeometryImportModal = useCallback((fileData) => {
     setGeometryImportData(fileData); // Salva os dados do arquivo lido
+
+    // Extrair chaves das propriedades do primeiro feature para popular o select
+    if (fileData && fileData.features && fileData.features.length > 0 && fileData.features[0].properties) {
+      const keys = Object.keys(fileData.features[0].properties);
+      setGeometryPropertyKeys(keys);
+    } else {
+      setGeometryPropertyKeys([]);
+    }
+
     setShowGeometryImportModal(true);  // Abre o modal
   }, []);
 
@@ -51,6 +61,7 @@ export const UIProvider = ({ children }) => {
       setShowGeometryImportModal(false);
       setGeometryImportData(null);
       setMunicipalityCodeField('');
+      setGeometryPropertyKeys([]);
     } else {
       alert('Por favor, selecione o arquivo de geometria e o campo de código do município.');
     }
@@ -71,6 +82,7 @@ export const UIProvider = ({ children }) => {
     // setGeometryImportData, // Gerenciado por openGeometryImportModal e submitGeometryImport
     municipalityCodeField,
     setMunicipalityCodeField, // Expor para App.jsx controlar o campo do modal
+    geometryPropertyKeys, // Expor para App.jsx popular o select
     handleFilterSettingsChange, // Chamado por VisualizationMenu/App.jsx
     handleVisualizationConfigChange, // Chamado por VisualizationMenu/App.jsx
     openGeometryImportModal, // Chamado por FilterMenu/App.jsx

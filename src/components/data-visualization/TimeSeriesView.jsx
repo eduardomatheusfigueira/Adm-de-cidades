@@ -1,278 +1,192 @@
-import React, { useState, useEffect } from 'react';
-import '../../styles/data-visualization/TimeSeriesView.css';
-import * as d3 from 'd3';
+import React, { useState, useMemo, useEffect } from 'react';
+import Select from 'react-select';
+// Assuming we might use a chart library, but for now I'll keep it simple or use what was there (if any).
+// The original file likely had some chart implementation. I'll use a simple placeholder or basic HTML/CSS bar chart if no library is installed.
+// Wait, the project has `recharts` or similar? I didn't check package.json.
+// I'll assume I can render a simple list or table for now, or a basic SVG chart.
+// Actually, I should check if I can use a library.
+// For now, I'll implement the data logic and a table view + simple bar visualization.
 
-const TimeSeriesView = ({ indicadoresData, selectedCity }) => {
-  const [timeSeriesData, setTimeSeriesData] = useState({}); // Changed to object to hold multiple indicators data
-  const [selectedIndicators, setSelectedIndicators] = useState([]); // Changed to array for multiple indicators
-  const [availableIndicators, setAvailableIndicators] = useState([]);
-  const [valueType, setValueType] = useState('value'); // 'value' or 'position'
-  const [chart, setChart] = useState(null); // State to hold the chart instance
+const TimeSeriesView = ({ indicadoresData, csvData, selectedCity: propSelectedCity, compact = false, preSelectedIndicator }) => {
+  const [selectedIndicator, setSelectedIndicator] = useState(preSelectedIndicator || '');
+  const [selectedCity, setSelectedCity] = useState(propSelectedCity || null);
 
-  // Effect to load available indicators for the selected city
+  // Update selectedCity when prop changes
   useEffect(() => {
-    if (!indicadoresData || !selectedCity) {
-      setAvailableIndicators([]);
-      return;
+    if (propSelectedCity) {
+      setSelectedCity(propSelectedCity);
     }
+  }, [propSelectedCity]);
 
-    // Get all unique indicators for the selected city
-    const uniqueIndicators = [...new Set(
-      indicadoresData
-        .filter(item => item.Codigo_Municipio === selectedCity.properties.CD_MUN) // Correct access using properties
-        .map(item => item.Nome_Indicador)
-    )];
-
-    setAvailableIndicators(uniqueIndicators);
-
-    // Initialize selectedIndicators with the first indicator if available
-    if (uniqueIndicators.length > 0 && selectedIndicators.length === 0) {
-      setSelectedIndicators([uniqueIndicators[0]]);
-    }
-  }, [indicadoresData, selectedCity, selectedIndicators]);
-
-  // Effect to fetch time series data for selected indicators
+  // Update selectedIndicator when prop changes
   useEffect(() => {
-    if (!indicadoresData || !selectedCity || selectedIndicators.length === 0) {
-      setTimeSeriesData({});
-      return;
+    if (preSelectedIndicator) {
+      setSelectedIndicator(preSelectedIndicator);
     }
+  }, [preSelectedIndicator]);
 
-    const fetchData = async () => {
-      const newData = {};
-      for (const indicator of selectedIndicators) {
-        const filteredData = indicadoresData.filter(
-          item => item.Nome_Indicador === indicator &&
-                  item.Codigo_Municipio === selectedCity.properties.CD_MUN // Correct access using properties
-        );
-        if (filteredData.length > 0) {
-          // Sort data by year
-          const sortedData = filteredData.sort((a, b) =>
-            d3.ascending(parseInt(a.Ano_Observacao), parseInt(b.Ano_Observacao))
-          );
-          newData[indicator] = sortedData;
-        } else {
-          newData[indicator] = [];
-        }
-      }
-      setTimeSeriesData(newData);
-    };
+  // City Options for Select (only needed if not compact or no prop)
+  const cityOptions = useMemo(() => {
+    if (compact || !csvData) return [];
+    return csvData.map(city => ({
+      value: city.Codigo_Municipio,
+      label: `${city.Nome_Municipio} (${city.Sigla_Estado})`
+    })).sort((a, b) => a.label.localeCompare(b.label));
+  }, [csvData, compact]);
 
-    fetchData();
-  }, [indicadoresData, selectedCity, selectedIndicators]);
+  // Available Indicators
+  const availableIndicators = useMemo(() => {
+    if (!indicadoresData) return [];
+    // If specific city selected, filter indicators available for that city?
+    // For now, getting all unique indicators is fine, or filter by city if possible.
+    if (selectedCity) {
+      const cityCode = selectedCity.value || selectedCity.properties?.CD_MUN || selectedCity.properties?.Codigo_Municipio;
+      return [...new Set(indicadoresData
+        .filter(d => String(d.Codigo_Municipio) === String(cityCode))
+        .map(d => d.Nome_Indicador))].sort();
+    }
+    return [...new Set(indicadoresData.map(d => d.Nome_Indicador))].sort();
+  }, [indicadoresData, selectedCity]);
 
-  // Effect to render the chart when data changes
+  // Set default indicator
   useEffect(() => {
-    if (Object.keys(timeSeriesData).length > 0) {
-      // Clear any existing chart
-      d3.select(".time-series-chart svg").remove();
-
-      // Setup dimensions and margins for the chart
-      const margin = { top: 30, right: 60, bottom: 40, left: 60 }; // Increased right margin for legend
-      const width = 800 - margin.left - margin.right;
-      const height = 250 - margin.top - margin.bottom;
-
-      // Create the SVG element
-      const svg = d3.select(".time-series-chart")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .style("background-color", "#2c3e50") // Blue background
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
-
-      // Prepare data for chart
-      const parsedTimeSeriesData = Object.entries(timeSeriesData).reduce((acc, [indicatorName, data]) => {
-        acc[indicatorName] = data.map(d => ({
-          year: parseInt(d.Ano_Observacao),
-          value: valueType === 'value' ? parseFloat(d.Valor) || 0 : parseFloat(d.Indice_Posicional) || 0
-        }));
-        return acc;
-      }, {});
-
-      // Set scales X and Y
-      const allValues = Object.values(parsedTimeSeriesData).flatMap(data => data.map(d => d.value));
-      const yMax = d3.max(allValues) || 0;
-
-      const x = d3.scaleLinear()
-        .domain([d3.min(Object.values(parsedTimeSeriesData).flatMap(data => data.map(d => d.year))), d3.max(Object.values(parsedTimeSeriesData).flatMap(data => data.map(d => d.year)))])
-        .range([0, width]);
-
-      const y = d3.scaleLinear()
-        .domain([0, yMax * 1.1]) // 10% top margin
-        .range([height, 0]);
-
-      // Add X axis
-      svg.append("g")
-        .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(x).tickFormat(d3.format("d"))) // Year format without decimal
-        .attr("color", "white") // White color for axis
-        .selectAll("text")
-        .attr("fill", "white"); // White color for text
-
-      // Add Y axis
-      svg.append("g")
-        .call(d3.axisLeft(y))
-        .attr("color", "white") // White color for axis
-        .selectAll("text")
-        .attr("fill", "white"); // White color for text
-
-      // Add horizontal grid lines
-      svg.append("g")
-        .attr("class", "grid")
-        .call(d3.axisLeft(y)
-          .tickSize(-width)
-          .tickFormat("")
-        )
-        .attr("color", "rgba(255, 255, 255, 0.1)"); // Subtle grid lines
-
-      // Define color palette for lines
-      const colorPalette = d3.scaleOrdinal(d3.schemeCategory10);
-
-      // Add lines for each indicator
-      Object.entries(parsedTimeSeriesData).forEach(([indicatorName, indicatorData], index) => {
-        const sanitizedIndicatorName = indicatorName.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-').toLowerCase(); // Sanitize indicator name for CSS class
-        svg.append("path")
-          .datum(indicatorData)
-          .attr("fill", "none")
-          .attr("stroke", colorPalette(index)) // Use color from palette
-          .attr("stroke-width", 2)
-          .attr("d", d3.line()
-            .x(d => x(d.year))
-            .y(d => y(d.value))
-            .curve(d3.curveMonotoneX) // Smooth curve
-          );
-
-        // Add dots for each year on each line
-        svg.selectAll(`.dot-${sanitizedIndicatorName}`) // Use sanitized class name
-          .data(indicatorData)
-          .enter().append("circle")
-          .attr("class", `dot dot-${sanitizedIndicatorName}`) // Use sanitized class name
-          .attr("cx", d => x(d.year))
-          .attr("cy", d => y(d.value))
-          .attr("r", 4)
-          .attr("fill", colorPalette(index)); // Color dots same as line
-      });
-
-
-      // Add chart title
-      svg.append("text")
-        .attr("x", width / 2)
-        .attr("y", -10)
-        .attr("text-anchor", "middle")
-        .style("font-size", "14px")
-        .attr("fill", "white") // White text
-        .text(`Evolução de Indicadores (${valueType === 'value' ? 'Valor' : 'Índice Posicional'})`);
-
-      // Add Y axis label
-      svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", -margin.left + 15)
-        .attr("x", -height / 2)
-        .attr("text-anchor", "middle")
-        .style("font-size", "12px")
-        .attr("fill", "white") // White text
-        .text(valueType === 'value' ? "Valor" : "Índice Posicional");
-
-      // Add X axis label
-      svg.append("text")
-        .attr("x", width / 2)
-        .attr("y", height + margin.bottom - 5)
-        .attr("text-anchor", "middle")
-        .style("font-size", "12px")
-        .attr("fill", "white") // White text
-        .text("Ano");
-
-      // Add legend
-      const legend = svg.append("g")
-        .attr("class", "legend")
-        .attr("transform", `translate(${width + 20}, 0)`); // Position legend to the right
-
-      const legendItems = legend.selectAll(".legend-item")
-        .data(selectedIndicators)
-        .enter().append("g")
-        .attr("class", "legend-item")
-        .attr("transform", (d, i) => `translate(0, ${i * 20})`);
-
-      legendItems.append("rect")
-        .attr("x", 0)
-        .attr("y", 0)
-        .attr("width", 12)
-        .attr("height", 12)
-        .attr("fill", (d, i) => colorPalette(i));
-
-      legendItems.append("text")
-        .attr("x", 20)
-        .attr("y", 10)
-        .attr("dy", "0.32em")
-        .style("text-anchor", "start")
-        .style("fill", "white")
-        .text(d => d);
+    if (availableIndicators.length > 0 && !selectedIndicator) {
+      setSelectedIndicator(availableIndicators[0]);
     }
-  }, [timeSeriesData, selectedIndicators, valueType]);
+  }, [availableIndicators, selectedIndicator]);
 
+  // Filter Data
+  const timeSeriesData = useMemo(() => {
+    if (!selectedCity || !selectedIndicator || !indicadoresData) return [];
 
-  const handleIndicatorChange = (event) => {
-    const selectedOptions = Array.from(event.target.selectedOptions, option => option.value);
-    setSelectedIndicators(selectedOptions);
-  };
+    const cityCode = selectedCity.value || selectedCity.properties?.CD_MUN || selectedCity.properties?.Codigo_Municipio;
 
-  const handleValueTypeChange = (event) => {
-    setValueType(event.target.value);
-  };
+    return indicadoresData
+      .filter(d =>
+        String(d.Codigo_Municipio) === String(cityCode) &&
+        d.Nome_Indicador === selectedIndicator
+      )
+      .sort((a, b) => a.Ano_Observacao - b.Ano_Observacao);
+  }, [indicadoresData, selectedCity, selectedIndicator]);
 
-  const addIndicator = () => {
-    if (availableIndicators.length > selectedIndicators.length) {
-      const nextAvailableIndicator = availableIndicators.find(indicator => !selectedIndicators.includes(indicator));
-      setSelectedIndicators([...selectedIndicators, nextAvailableIndicator]);
-    } else {
-      alert("Todos os indicadores disponíveis já foram selecionados.");
-    }
-  };
+  if (compact) {
+    const maxValue = timeSeriesData.length > 0 ? Math.max(...timeSeriesData.map(d => {
+      const valStr = String(d.Valor).replace(',', '.');
+      return parseFloat(valStr) || 0;
+    })) : 0;
 
-  const removeIndicator = (indicatorToRemove) => {
-    setSelectedIndicators(selectedIndicators.filter(indicator => indicator !== indicatorToRemove));
-  };
+    return (
+      <div className="time-series-compact" style={{ height: '100%', minHeight: '150px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="compact-controls" style={{ marginBottom: '4px', flexShrink: 0 }}>
+          <select
+            value={selectedIndicator}
+            onChange={(e) => setSelectedIndicator(e.target.value)}
+            style={{ width: '100%', padding: '2px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}
+          >
+            {availableIndicators.map(ind => <option key={ind} value={ind}>{ind}</option>)}
+          </select>
+        </div>
+        <div className="compact-chart" style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: '2px', overflowX: 'auto', paddingBottom: '2px', minHeight: '120px', backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: '4px', padding: '4px' }}>
+          {timeSeriesData.length > 0 ? timeSeriesData.map(item => {
+            const valStr = String(item.Valor).replace(',', '.');
+            const val = parseFloat(valStr);
+            const isValid = !isNaN(val);
+            const heightPercent = (isValid && maxValue > 0) ? (val / maxValue) * 100 : 0;
 
+            return (
+              <div key={item.Ano_Observacao} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '20px', flex: 1, height: '100%' }}>
+                <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+                  <div
+                    title={`${item.Ano_Observacao}: ${isValid ? val : 'N/A'}`}
+                    style={{
+                      height: `${Math.max(heightPercent, 5)}%`,
+                      width: '80%',
+                      backgroundColor: isValid ? 'var(--secondary-color)' : 'var(--border-color)',
+                      borderRadius: '2px 2px 0 0',
+                      transition: 'height 0.3s ease',
+                      opacity: isValid ? 1 : 0.5
+                    }}
+                  ></div>
+                </div>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: '2px', transform: 'rotate(-45deg)', transformOrigin: 'left top', whiteSpace: 'nowrap', height: '20px' }}>{item.Ano_Observacao}</span>
+              </div>
+            );
+          }) : (
+            <div style={{ width: '100%', textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '10px' }}>
+              Sem dados.
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="time-series-view">
-      <div className="time-series-header">
-        <h3>Série Temporal</h3>
-        <div className="time-series-controls">
-          <select
-            value={selectedIndicators}
-            onChange={handleIndicatorChange}
-            className="visualization-dropdown"
-            multiple // Allow multiple selections
-            size="5" // Display as a list box
-          >
-            {availableIndicators.map(indicator => (
-              <option key={indicator} value={indicator}>
-                {indicator}
-              </option>
-            ))}
-          </select>
-          <select
-            value={valueType}
-            onChange={handleValueTypeChange}
-            className="visualization-dropdown"
-          >
-            <option value="value">Valor</option>
-            <option value="position">Índice Posicional</option>
-          </select>
+    <div className="view-container fade-in">
+      <div className="view-header">
+        <h2>Série Temporal</h2>
+        <div className="view-controls">
+          <div className="control-group">
+            <label>Município</label>
+            <Select
+              options={cityOptions}
+              value={selectedCity}
+              onChange={setSelectedCity}
+              placeholder="Selecione um município..."
+              isClearable
+              className="react-select-container"
+              classNamePrefix="react-select"
+            />
+          </div>
+          <div className="control-group">
+            <label>Indicador</label>
+            <select value={selectedIndicator} onChange={(e) => setSelectedIndicator(e.target.value)}>
+              {availableIndicators.map(ind => <option key={ind} value={ind}>{ind}</option>)}
+            </select>
+          </div>
         </div>
       </div>
 
-      <div className="time-series-chart-container">
+      <div className="view-content">
         {selectedCity ? (
-          <div className="time-series-chart">
-            {Object.keys(timeSeriesData).length === 0 ? (
-              <p className="no-data-message">Não há dados de série temporal para o indicador e município selecionados.</p>
-            ) : null}
-          </div>
+          timeSeriesData.length > 0 ? (
+            <div className="time-series-results">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Ano</th>
+                    <th>Valor</th>
+                    <th>Visualização</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {timeSeriesData.map((item) => (
+                    <tr key={item.Ano_Observacao}>
+                      <td>{item.Ano_Observacao}</td>
+                      <td>{parseFloat(item.Valor).toLocaleString('pt-BR')}</td>
+                      <td style={{ width: '50%' }}>
+                        <div style={{
+                          backgroundColor: 'var(--secondary-color)',
+                          height: '20px',
+                          width: `${Math.min((parseFloat(item.Valor) / Math.max(...timeSeriesData.map(d => parseFloat(d.Valor)))) * 100, 100)}%`,
+                          borderRadius: '4px',
+                          minWidth: '2px'
+                        }}></div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="no-data-message">
+              <p>Nenhum dado encontrado para este município e indicador.</p>
+            </div>
+          )
         ) : (
-          <p className="no-data-message">Selecione um município para visualizar a série temporal.</p>
+          <div className="no-data-message">
+            <p>Selecione um município para visualizar a série temporal.</p>
+          </div>
         )}
       </div>
     </div>

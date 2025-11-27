@@ -1,266 +1,176 @@
-/* ETL Environment Styles */
-.etl-environment {
+.etl-environment-container {
   display: flex;
-  flex-direction: column;
   height: 100%;
+  width: 100%;
+  background-color: var(--background-color);
 }
 
-.etl-config-section {
-  margin-bottom: 20px;
-  padding: 10px;
-  background-color: #f5f5f5;
-  border-radius: 5px;
+.etl-content-area {
+  flex: 1;
+  padding: var(--spacing-lg);
+  overflow-y: auto;
 }
 
-.etl-config-section h4 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  color: #333;
+.etl-view-container,
+.transformation-view-container {
+  background: var(--surface-color);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  min-height: 100%;
 }
 
-.file-input-group, .output-path-group {
-  margin-bottom: 10px;
+.etl-view-container h2,
+.transformation-view-container h2 {
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.description-text {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ETL Grid Layout */
+.etl-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xl);
+}
+
+@media (max-width: 1024px) {
+  .etl-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.etl-config-panel,
+.etl-log-panel {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-md);
 }
 
-.file-input-group label, .output-path-group label {
-  margin-bottom: 5px;
-  font-weight: bold;
-  font-size: 0.9em;
+.etl-config-panel h3,
+.etl-log-panel h3 {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--spacing-xs);
 }
 
-.file-input-group input[type="file"] {
-  padding: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: white;
-}
-
-.output-path-group input[type="text"] {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.file-status {
-  margin-left: 5px;
-  font-weight: bold;
-}
-
-.file-status:empty::before {
-  content: "⨯";
-  color: #ff4d4d;
-}
-
-.etl-actions {
-  margin-top: 20px;
-  display: flex;
-  gap: 10px;
-}
-
-.etl-actions button {
-  padding: 8px 15px;
-  border: none;
-  border-radius: 4px;
-  background-color: #4CAF50;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.etl-actions button:hover {
-  background-color: #45a049;
-}
-
-.etl-actions button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.etl-actions button.running {
-  background-color: #ff9800;
-  animation: pulse 1.5s infinite;
-}
-
-.etl-content {
-  height: 100%;
+.file-input-group {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-xs);
 }
 
-.etl-status-bar {
+.file-input-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.custom-file-input {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
+  gap: var(--spacing-sm);
 }
 
-.status-label {
-  font-weight: bold;
-  margin-right: 10px;
+.status-indicator {
+  font-size: 0.8rem;
+  color: var(--error-color);
 }
 
-.status-value {
-  padding: 3px 8px;
-  border-radius: 3px;
+.status-indicator.success {
+  color: var(--success-color);
   font-weight: bold;
 }
 
-.status-idle {
-  background-color: #e0e0e0;
-  color: #555;
+.output-config {
+  display: flex;
+  gap: var(--spacing-md);
 }
 
-.status-running {
-  background-color: #ffeb3b;
-  color: #333;
-  animation: pulse 1.5s infinite;
-}
-
-.status-completed {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.etl-log {
+.input-group {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.input-group input {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.run-btn {
+  margin-top: var(--spacing-md);
+  align-self: flex-start;
+}
+
+/* Log Window */
+.log-window {
+  background: #1E293B;
+  /* Slate 800 */
+  color: #E2E8F0;
+  /* Slate 200 */
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  height: 400px;
   overflow-y: auto;
-  padding: 10px;
-  background-color: #1e1e1e;
-  color: #f0f0f0;
   font-family: monospace;
-  border-radius: 4px;
-  margin-bottom: 10px;
+  font-size: 0.9rem;
 }
 
 .log-entry {
-  margin-bottom: 5px;
-  line-height: 1.5;
+  margin-bottom: 0.25rem;
 }
 
 .log-time {
-  color: #4fc3f7;
-  margin-right: 8px;
-}
-
-.log-message {
-  color: #ffffff;
+  color: var(--text-secondary);
+  margin-right: var(--spacing-sm);
 }
 
 .empty-log {
-  color: #888;
+  color: var(--text-secondary);
   font-style: italic;
   text-align: center;
-  margin-top: 20px;
+  margin-top: 2rem;
 }
 
-.etl-note {
-  padding: 10px;
-  background-color: #fff3cd;
-  border-left: 4px solid #ffc107;
-  margin-top: 10px;
-}
-
-.etl-note p {
-  margin: 0;
-  font-size: 0.9em;
-}
-
-.etl-note code {
-  background-color: #f8f9fa;
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: monospace;
-}
-
-/* Transformation Process Section Styles */
-
-.transformation-process-section {
+/* Tabs for Transformation */
+.tabs-header {
   display: flex;
-  flex: 1; /* Allow it to take remaining space */
-  height: 100%; /* Ensure it fills the container height */
-  overflow: hidden; /* Prevent internal scrolling issues */
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--spacing-xs);
 }
 
-.transformation-sidebar {
-  width: 250px; /* Adjust width as needed */
-  padding: 15px;
-  background-color: #f8f9fa; /* Light background for the sidebar */
-  border-right: 1px solid #dee2e6;
-  display: flex;
-  flex-direction: column;
-  gap: 10px; /* Space between buttons */
-}
-
-.transformation-sidebar h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: #495057;
-}
-
-.sub-nav-button {
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #495057;
+.tab-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-weight: 500;
   cursor: pointer;
-  text-align: left;
-  transition: background-color 0.2s, color 0.2s;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
 }
 
-.sub-nav-button.active, .sub-nav-button:hover {
-  background-color: #e9ecef;
-  color: #007bff; /* Highlight color */
-  border-color: #adb5bd;
+.tab-btn:hover {
+  background-color: var(--background-color);
+  color: var(--text-primary);
 }
 
-.transformation-content {
-  flex: 1; /* Take remaining horizontal space */
-  padding: 20px;
-  overflow-y: auto; /* Allow scrolling if content overflows */
-  background-color: #fff; /* White background for content */
-}
-
-.transformation-details {
-  /* Add specific styles for the content if needed */
-  line-height: 1.6;
-}
-
-.transformation-details h2 {
-  margin-top: 0;
-  color: #343a40;
-}
-
-.transformation-details code {
-  background-color: #e9ecef;
-  padding: 0.2em 0.4em;
-  margin: 0;
-  font-size: 85%;
-  border-radius: 3px;
-  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-.transformation-details ul {
-  padding-left: 20px;
-}
-
-.view-button.active {
-  background-color: #4CAF50;
+.tab-btn.active {
+  background-color: var(--primary-light);
   color: white;
 }
 
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
-  }
+.tab-content {
+  padding-top: var(--spacing-md);
 }
