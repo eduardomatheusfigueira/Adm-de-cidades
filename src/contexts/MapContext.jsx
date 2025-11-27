@@ -37,9 +37,9 @@ export const MapProvider = ({ children }) => {
           zoom: zoom
         });
         map.current.on('move', () => {
-          setLng(map.current.getCenter().lng.toFixed(4));
-          setLat(map.current.getCenter().lat.toFixed(4));
-          setZoom(map.current.getZoom().toFixed(2));
+          setLng(map.current.getCenter().lng);
+          setLat(map.current.getCenter().lat);
+          setZoom(map.current.getZoom());
         });
         map.current.on('style.load', () => {
           console.log("[MapContext] Map style loaded.");
@@ -60,10 +60,10 @@ export const MapProvider = ({ children }) => {
         setIsMapLoading(true);
       }
     };
-  // Adicionado mapStyle às dependências para reinicializar se o estilo base mudar E o mapa não existir ou se o ambiente mudar para 'map'.
+    // Adicionado mapStyle às dependências para reinicializar se o estilo base mudar E o mapa não existir ou se o ambiente mudar para 'map'.
   }, [activeEnvironment, mapStyle, lng, lat, zoom]);
 
-   useEffect(() => {
+  useEffect(() => {
     // Verifica se o mapa existe, está carregado, e se o nome do estilo realmente precisa ser atualizado
     if (map.current && mapLoaded && map.current.getStyle() && map.current.getStyle().name !== mapStyle.split('/').pop()) {
       console.log(`[MapContext] Changing map style to: ${mapStyle}`);
@@ -98,61 +98,61 @@ export const MapProvider = ({ children }) => {
     const finalFeatures = [];
 
     if (geojsonData && geojsonData.features) {
-        geojsonData.features.forEach(feature => {
-            if (!feature.properties || feature.properties.CD_MUN === undefined) return;
-            const cdMun = String(feature.properties.CD_MUN);
-            const cityData = csvDataMap.get(cdMun);
-            if (cityData) {
-                const lon = parseFloat(cityData.Longitude_Municipio);
-                const lat = parseFloat(cityData.Latitude_Municipio);
-                const properties = {
-                    ...feature.properties, ...cityData, CD_MUN: cdMun, NAME: cityData.Nome_Municipio,
-                    LEVEL: 'Municípios', AREA: parseFloat(cityData.Area_Municipio),
-                    CAPITAL: cityData.Capital === 'true', ESTADO: cityData.Sigla_Estado,
-                    ALTITUDE: parseFloat(cityData.Altitude_Municipio), LONGITUDE: lon, LATITUDE: lat,
-                    REGIAO: cityData.Sigla_Regiao,
-                    custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`
-                };
-                if (visualizationConfig && visualizationConfig.type === 'indicator' && indicadoresData) {
-                    const { year, indicator, valueType } = visualizationConfig;
-                    const cityIndicator = indicadoresData.find(ind =>
-                        String(ind.Codigo_Municipio) === cdMun && ind.Ano_Observacao === year && ind.Nome_Indicador === indicator);
-                    if (cityIndicator) {
-                        properties.indicator_value = parseFloat(cityIndicator.Valor);
-                        properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
-                        properties.indicator_name = indicator; properties.indicator_year = year;
-                        properties.visualization_value = valueType === 'value' ? properties.indicator_value : properties.indicator_position;
-                    } else properties.visualization_value = null;
-                } else if (currentAttributeForColoring !== 'visualization_value') delete properties.visualization_value;
-                finalFeatures.push({ ...feature, properties });
-                csvDataMap.delete(cdMun);
-            }
-        });
+      geojsonData.features.forEach(feature => {
+        if (!feature.properties || feature.properties.CD_MUN === undefined) return;
+        const cdMun = String(feature.properties.CD_MUN);
+        const cityData = csvDataMap.get(cdMun);
+        if (cityData) {
+          const lon = parseFloat(cityData.Longitude_Municipio);
+          const lat = parseFloat(cityData.Latitude_Municipio);
+          const properties = {
+            ...feature.properties, ...cityData, CD_MUN: cdMun, NAME: cityData.Nome_Municipio,
+            LEVEL: 'Municípios', AREA: parseFloat(cityData.Area_Municipio),
+            CAPITAL: cityData.Capital === 'true', ESTADO: cityData.Sigla_Estado,
+            ALTITUDE: parseFloat(cityData.Altitude_Municipio), LONGITUDE: lon, LATITUDE: lat,
+            REGIAO: cityData.Sigla_Regiao,
+            custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`
+          };
+          if (visualizationConfig && visualizationConfig.type === 'indicator' && indicadoresData) {
+            const { year, indicator, valueType } = visualizationConfig;
+            const cityIndicator = indicadoresData.find(ind =>
+              String(ind.Codigo_Municipio) === cdMun && ind.Ano_Observacao === year && ind.Nome_Indicador === indicator);
+            if (cityIndicator) {
+              properties.indicator_value = parseFloat(cityIndicator.Valor);
+              properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
+              properties.indicator_name = indicator; properties.indicator_year = year;
+              properties.visualization_value = valueType === 'value' ? properties.indicator_value : properties.indicator_position;
+            } else properties.visualization_value = null;
+          } else if (currentAttributeForColoring !== 'visualization_value') delete properties.visualization_value;
+          finalFeatures.push({ ...feature, properties });
+          csvDataMap.delete(cdMun);
+        }
+      });
     }
 
     csvDataMap.forEach(cityData => {
-        const lon = parseFloat(cityData.Longitude_Municipio);
-        const lat = parseFloat(cityData.Latitude_Municipio);
-        if (isNaN(lon) || isNaN(lat) || lon === 0 || lat === 0) return;
-        const properties = {
-            CD_MUN: String(cityData.Codigo_Municipio), NAME: cityData.Nome_Municipio, LEVEL: 'Municípios',
-            AREA: parseFloat(cityData.Area_Municipio), CAPITAL: cityData.Capital === 'true',
-            ESTADO: cityData.Sigla_Estado, ALTITUDE: parseFloat(cityData.Altitude_Municipio),
-            LONGITUDE: lon, LATITUDE: lat, REGIAO: cityData.Sigla_Regiao, ...cityData,
-            custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`
-        };
-        if (visualizationConfig && visualizationConfig.type === 'indicator' && indicadoresData) {
-            const { year, indicator, valueType } = visualizationConfig;
-            const cityIndicator = indicadoresData.find(ind =>
-                String(ind.Codigo_Municipio) === properties.CD_MUN && ind.Ano_Observacao === year && ind.Nome_Indicador === indicator);
-            if (cityIndicator) {
-                properties.indicator_value = parseFloat(cityIndicator.Valor);
-                properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
-                properties.indicator_name = indicator; properties.indicator_year = year;
-                properties.visualization_value = valueType === 'value' ? properties.indicator_value : properties.indicator_position;
-            } else properties.visualization_value = null;
-        }
-        finalFeatures.push({ type: 'Feature', properties, geometry: { type: 'Point', coordinates: [lon, lat] } });
+      const lon = parseFloat(cityData.Longitude_Municipio);
+      const lat = parseFloat(cityData.Latitude_Municipio);
+      if (isNaN(lon) || isNaN(lat) || lon === 0 || lat === 0) return;
+      const properties = {
+        CD_MUN: String(cityData.Codigo_Municipio), NAME: cityData.Nome_Municipio, LEVEL: 'Municípios',
+        AREA: parseFloat(cityData.Area_Municipio), CAPITAL: cityData.Capital === 'true',
+        ESTADO: cityData.Sigla_Estado, ALTITUDE: parseFloat(cityData.Altitude_Municipio),
+        LONGITUDE: lon, LATITUDE: lat, REGIAO: cityData.Sigla_Regiao, ...cityData,
+        custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`
+      };
+      if (visualizationConfig && visualizationConfig.type === 'indicator' && indicadoresData) {
+        const { year, indicator, valueType } = visualizationConfig;
+        const cityIndicator = indicadoresData.find(ind =>
+          String(ind.Codigo_Municipio) === properties.CD_MUN && ind.Ano_Observacao === year && ind.Nome_Indicador === indicator);
+        if (cityIndicator) {
+          properties.indicator_value = parseFloat(cityIndicator.Valor);
+          properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
+          properties.indicator_name = indicator; properties.indicator_year = year;
+          properties.visualization_value = valueType === 'value' ? properties.indicator_value : properties.indicator_position;
+        } else properties.visualization_value = null;
+      }
+      finalFeatures.push({ type: 'Feature', properties, geometry: { type: 'Point', coordinates: [lon, lat] } });
     });
 
     const combinedGeoJson = { type: 'FeatureCollection', features: finalFeatures };
@@ -193,10 +193,10 @@ export const MapProvider = ({ children }) => {
       });
     }
     if (map.current.getLayer('sectors-fill-layer')) {
-        map.current.setPaintProperty('sectors-fill-layer', 'fill-color', colorRenderScaleExpression);
+      map.current.setPaintProperty('sectors-fill-layer', 'fill-color', colorRenderScaleExpression);
     }
     if (map.current.getLayer('sectors-point-layer')) {
-        map.current.setPaintProperty('sectors-point-layer', 'circle-color', colorRenderScaleExpression);
+      map.current.setPaintProperty('sectors-point-layer', 'circle-color', colorRenderScaleExpression);
     }
   }, [mapLoaded, filteredCsvData, geojsonData, indicadoresData, colorAttribute, visualizationConfig, map, setSelectedCityInfo]);
 
