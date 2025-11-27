@@ -455,7 +455,10 @@ const DataSourceInfo = () => {
     <div className="data-source-info-environment">
       {/* Header */}
       <div className="data-source-info-header">
-        <h1>Sistema de Informações de Municípios</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', marginBottom: '10px' }}>
+          <img src="/logo_white.png" alt="SisInfo Logo" style={{ height: '50px', width: 'auto' }} />
+          <h1 style={{ margin: 0 }}>Sistema de Informações de Municípios</h1>
+        </div>
         {/* Sub-view Selector Buttons */}
         <div className="sub-view-selector">
           <button
