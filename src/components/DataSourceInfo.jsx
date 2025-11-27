@@ -110,26 +110,26 @@ const CatalogView = () => {
         </div>
 
         <div className="search-bar-container">
-            <div className="search-bar">
+          <div className="search-bar">
             <input
-                type="text"
-                className="search-input"
-                placeholder="Pesquisar por nome, descrição, tema..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+              type="text"
+              className="search-input"
+              placeholder="Pesquisar por nome, descrição, tema..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <i className="fas fa-search search-icon"></i>
-            </div>
-            
-            <select 
-                className="category-filter"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-                {availableCategories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                ))}
-            </select>
+          </div>
+
+          <select
+            className="category-filter"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
+            {availableCategories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -205,14 +205,14 @@ const CatalogView = () => {
                           Acessar {source.access_type ? `(${source.access_type})` : 'Base'}
                         </a>
                       ) : (
-                        <a 
-                            href={`https://www.google.com/search?q=${encodeURIComponent(source.name + ' dados')}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="card-link-button google-search-button"
+                        <a
+                          href={`https://www.google.com/search?q=${encodeURIComponent(source.name + ' dados')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="card-link-button google-search-button"
                         >
-                            <i className="fab fa-google link-icon"></i>
-                            Pesquisar no Google
+                          <i className="fab fa-google link-icon"></i>
+                          Pesquisar no Google
                         </a>
                       )}
                     </div>
@@ -252,7 +252,7 @@ const ImportFormatsView = () => {
         </ul>
         <pre>
           <code>
-{`Codigo_Municipio;Nome_Indicador;Ano_Observacao;Valor;Indice_Posicional
+            {`Codigo_Municipio;Nome_Indicador;Ano_Observacao;Valor;Indice_Posicional
 4106902;Taxa de Mortalidade Infantil;2020;10.5;0.75
 4106902;IDH Municipal;2010;0.762;0.81
 3550308;Taxa de Mortalidade Infantil;2020;8.2;0.92
@@ -277,13 +277,13 @@ const ImportFormatsView = () => {
         </ul>
         <pre>
           <code>
-{`Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital;Longitude_Municipio;Latitude_Municipio;Altitude_Municipio
+            {`Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital;Longitude_Municipio;Latitude_Municipio;Altitude_Municipio
 4106902;Curitiba;PR;S;434.892;true;-49.2776;-25.4296;934
 3550308;São Paulo;SP;SE;1521.11;true;-46.6333;-23.5505;760
 ...`}
           </code>
         </pre>
-         <p><strong>Observação:</strong> Colunas adicionais podem estar presentes no CSV e serão incluídas nas propriedades do município.</p>
+        <p><strong>Observação:</strong> Colunas adicionais podem estar presentes no CSV e serão incluídas nas propriedades do município.</p>
       </section>
 
       <section className="format-section">
@@ -296,7 +296,7 @@ const ImportFormatsView = () => {
         </ul>
         <pre>
           <code>
-{`{
+            {`{
   "type": "FeatureCollection",
   "features": [
     {
@@ -319,7 +319,7 @@ const ImportFormatsView = () => {
 }`}
           </code>
         </pre>
-         <p><strong>Observação:</strong> Se um município já existir (baseado no código), sua geometria será atualizada. Se não existir, será adicionado como um ponto baseado nas coordenadas do CSV de municípios (se disponíveis).</p>
+        <p><strong>Observação:</strong> Se um município já existir (baseado no código), sua geometria será atualizada. Se não existir, será adicionado como um ponto baseado nas coordenadas do CSV de municípios (se disponíveis).</p>
       </section>
 
       <section className="format-section">
@@ -331,7 +331,7 @@ const ImportFormatsView = () => {
         </ul>
         <pre>
           <code>
-{`{
+            {`{
   "municipios": [
     {
       "Codigo_Municipio": "4106902",
@@ -417,7 +417,7 @@ const TransformationView = () => {
         >
           Indicadores IBGE/SIDRA
         </button>
-         <button
+        <button
           className={`sub-nav-button ${selectedTransformation === 'codigomun' ? 'active' : ''}`}
           onClick={() => setSelectedTransformation('codigomun')}
         >
@@ -507,9 +507,24 @@ const DataSourceInfo = () => {
             <h3>Onde encontrar dados para usar no sistema?</h3>
             <p>
               A aba <strong>Catálogo de Bases</strong> reúne links para portais oficiais como IBGE, IPEADATA, DATASUS, Portal da Transparência, entre outros.
-              Além disso, há um link para uma <strong>pasta no Google Drive</strong> com dados prontos para uso no sistema.
               Você pode baixar dados dessas fontes para importar aqui.
             </p>
+
+            <h3>Dados de Exemplo</h3>
+            <p>
+              Não tem seus próprios dados ainda? Sem problemas! Disponibilizamos um conjunto de dados de exemplo para você explorar as funcionalidades do aplicativo.
+            </p>
+            <a
+              href="https://drive.google.com/drive/folders/1cRH2xw-bqfP7na9tE8l7DRPCjS4wM4cf?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="card-link-button"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', backgroundColor: '#34A853', color: 'white', padding: '10px 15px', borderRadius: '5px', textDecoration: 'none', fontWeight: '500' }}
+            >
+              <i className="fab fa-google-drive"></i>
+              Acessar Dados de Exemplo no Google Drive
+            </a>
+
 
             <h3>Como importar e carregar seus dados</h3>
             <p>
@@ -563,7 +578,7 @@ const DataSourceInfo = () => {
         {activeSubView === 'importFormats' && <ImportFormatsView />}
         {activeSubView === 'transformation' && <TransformationView />}
       </div>
-    </div>
+    </div >
   );
 };
 
