@@ -1,0 +1,9 @@
+
+> city-admin@1.0.0 dev
+> vite --port 5173 --strictPort
+
+
+  VITE v4.5.12  ready in 522 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose

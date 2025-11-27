@@ -1,0 +1,293 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "date": "Novembro 2025",
+    "total_databases": "80+"
+  },
+  "brazilian_databases": {
+    "Portais de Dados Gerais": [
+      {
+        "id": "dados-abertos",
+        "name": "Portal Brasileiro de Dados Abertos",
+        "type": "Principal",
+        "description": "O Portal Brasileiro de Dados Abertos é o portal central que reúne dados públicos de diversas instituições governamentais brasileiras. É o ponto de partida para explorar a maioria das bases de dados disponíveis.",
+        "info_available": [
+          "Catálogo de conjuntos de dados de diversos órgãos",
+          "Dados estatísticos, geográficos, financeiros e orçamentários",
+          "Informações sobre programas e políticas públicas",
+          "Dados de todos os setores da administração pública"
+        ],
+        "how_to_use": [
+          "Acesse o portal e use a barra de pesquisa para encontrar conjuntos de dados",
+          "Filtre por organizações, temas ou formatos de dados",
+          "Baixe os dados em formatos como CSV, JSON, XML",
+          "Leia a documentação específica de cada conjunto de dados"
+        ],
+        "url": "https://dados.gov.br/"
+      },
+      {
+        "id": "sidra",
+        "name": "IBGE - SIDRA (Sistema IBGE de Recuperação Automática)",
+        "type": "Estatísticas",
+        "description": "O SIDRA é o principal sistema de dados estatísticos do IBGE, oferecendo acesso a tabelas de dados de diversas pesquisas e censos realizados pelo instituto.",
+        "info_available": [
+          "Dados demográficos (Censo Demográfico, PNAD)",
+          "Indicadores econômicos (PIB, inflação, emprego)",
+          "Dados agropecuários (Censo Agropecuário)",
+          "Informações geográficas e cartográficas",
+          "Estatísticas sociais (educação, saúde, trabalho)"
+        ],
+        "how_to_use": [
+          "Acesse o SIDRA e navegue pelas pesquisas disponíveis",
+          "Selecione variáveis, períodos e localidades de interesse",
+          "Gere tabelas personalizadas para análise",
+          "Exporte os dados em formatos como XLS, CSV ou HTML"
+        ],
+        "url": "https://sidra.ibge.gov.br/"
+      },
+      {
+        "id": "base-dos-dados",
+        "name": "Base dos Dados",
+        "type": "Geral",
+        "description": "A Base dos Dados é uma plataforma que centraliza e padroniza dados públicos brasileiros, tornando-os mais acessíveis e utilizáveis. Embora não seja governamental, reúne dados de fontes oficiais de forma organizada.",
+        "info_available": [
+          "Dados socioeconômicos de diversas fontes governamentais",
+          "Informações sobre eleições, educação, saúde e economia",
+          "Dados tratados e padronizados para análise",
+          "Bases de dados integradas de diferentes órgãos",
+          "Bases preparadas para integrações via SQL e Python"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma e explore os conjuntos de dados disponíveis",
+          "Utilize os filtros para encontrar dados por tema ou fonte",
+          "Faça o download direto ou use a API via Python ou R",
+          "Consulte a documentação para entender a estrutura dos dados",
+          "Consulte diretamente via BigQuery"
+        ],
+        "url": "https://basedosdados.org/"
+      }
+    ],
+    "Economia e Mercado": [
+      {
+        "id": "ipeadata",
+        "name": "IPEADATA",
+        "type": "Economia",
+        "description": "O IPEADATA é uma base de dados macroeconômicos, financeiros e regionais do Brasil mantida pelo Instituto de Pesquisa Econômica Aplicada (IPEA).",
+        "info_available": [
+          "Dados macroeconômicos (inflação, PIB, câmbio, juros)",
+          "Séries históricas financeiras e econômicas",
+          "Indicadores sociais e regionais",
+          "Dados demográficos e geográficos",
+          "Informações sobre mercado de trabalho"
+        ],
+        "how_to_use": [
+          "Acesse o IPEADATA e escolha entre as bases macro, regional ou social",
+          "Use a busca para encontrar séries específicas",
+          "Visualize gráficos ou tabelas das séries temporais",
+          "Exporte os dados em formatos como XLS, CSV ou HTML"
+        ],
+        "url": "http://www.ipeadata.gov.br/"
+      },
+      {
+        "id": "portal-transparencia",
+        "name": "Portal da Transparência",
+        "type": "Orçamento",
+        "description": "O Portal da Transparência do Governo Federal permite o acompanhamento da execução orçamentária e financeira do governo, oferecendo informações sobre receitas, despesas e transferências de recursos.",
+        "info_available": [
+          "Despesas e receitas do governo federal",
+          "Transferências de recursos para estados e municípios",
+          "Dados sobre programas sociais e beneficiários",
+          "Informações sobre servidores públicos",
+          "Contratos, convênios e licitações"
+        ],
+        "how_to_use": [
+          "Acesse o portal e navegue pelos menus temáticos",
+          "Use os filtros para refinar as consultas por órgão, período e tipo",
+          "Explore os dados através dos painéis interativos",
+          "Faça download dos dados em formatos abertos (CSV, JSON)"
+        ],
+        "url": "https://portaldatransparencia.gov.br/"
+      },
+      {
+        "id": "siconfi",
+        "name": "SICONFI - Sistema de Informações Contábeis e Fiscais",
+        "type": "Finanças",
+        "description": "O SICONFI é um sistema do Tesouro Nacional que coleta, armazena e disponibiliza dados contábeis e fiscais de estados, municípios e do Distrito Federal.",
+        "info_available": [
+          "Relatórios fiscais de estados e municípios",
+          "Balanços orçamentários, financeiros e patrimoniais",
+          "Demonstrações contábeis de entes públicos",
+          "Indicadores fiscais e financeiros",
+          "Matriz de saldos contábeis"
+        ],
+        "how_to_use": [
+          "Acesse o SICONFI e navegue pelas opções de consulta",
+          "Selecione o tipo de relatório (DCA, RGF, RREO)",
+          "Escolha o ente federativo, o período e os dados desejados",
+          "Visualize ou exporte os dados em formatos como XLS ou PDF"
+        ],
+        "url": "https://siconfi.tesouro.gov.br/"
+      },
+      {
+        "id": "bcb-estatisticas",
+        "name": "Banco Central - Estatísticas",
+        "type": "Financeiro",
+        "description": "O portal de estatísticas do Banco Central do Brasil disponibiliza dados sobre o sistema financeiro, câmbio, crédito, balanço de pagamentos e outros indicadores econômicos.",
+        "info_available": [
+          "Séries temporais de indicadores econômicos",
+          "Taxas de juros e de câmbio",
+          "Dados sobre crédito e mercado financeiro",
+          "Estatísticas monetárias e de balanço de pagamentos",
+          "Indicadores de inflação e atividade econômica"
+        ],
+        "how_to_use": [
+          "Acesse o Sistema Gerenciador de Séries Temporais (SGS)",
+          "Pesquise por código ou nome da série de interesse",
+          "Defina o período de consulta e visualize os dados",
+          "Exporte os dados em diversos formatos (CSV, XLS, JSON)"
+        ],
+        "url": "https://www.bcb.gov.br/estatisticas"
+      }
+    ],
+    "Emprego e Mercado de Trabalho": [
+      {
+        "id": "caged",
+        "name": "CAGED - Cadastro Geral de Empregados e Desempregados",
+        "type": "Emprego",
+        "description": "O CAGED é um registro administrativo que monitora a evolução do mercado de trabalho formal brasileiro, registrando mensalmente as admissões e demissões de empregados sob o regime da CLT.",
+        "info_available": [
+          "Admissões e desligamentos por setor econômico",
+          "Saldo de empregos por região, estado e município",
+          "Dados por gênero, faixa etária e escolaridade",
+          "Estatísticas sobre salários e ocupações"
+        ],
+        "how_to_use": [
+          "Acesse o painel do Novo CAGED no site do Ministério do Trabalho",
+          "Filtre por período, região, setor econômico ou outras variáveis",
+          "Visualize gráficos e tabelas com os resultados da consulta"
+        ],
+        "url": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/estatisticas-trabalho/novo-caged"
+      },
+      {
+        "id": "rais",
+        "name": "RAIS - Relação Anual de Informações Sociais",
+        "type": "Trabalho",
+        "description": "A RAIS é um registro administrativo anual que fornece informações sobre o mercado de trabalho formal brasileiro, abrangendo todos os tipos de vínculos empregatícios.",
+        "info_available": [
+          "Informações completas sobre todos os vínculos empregatícios formais",
+          "Dados sobre estabelecimentos empregadores",
+          "Estatísticas detalhadas por setor, ocupação, escolaridade e remuneração"
+        ],
+        "how_to_use": [
+          "Acesse a plataforma RAIS no site do Ministério do Trabalho",
+          "Selecione o ano-base e as variáveis de interesse",
+          "Gere tabelas personalizadas com os dados de vínculos e estabelecimentos"
+        ],
+        "url": "https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/estatisticas-trabalho/o-pdet/o-que-e-rais"
+      }
+    ],
+    "Saúde e Epidemiologia": [
+      {
+        "id": "datasus",
+        "name": "DATASUS - Informações de Saúde (TABNET)",
+        "type": "Saúde",
+        "description": "O DATASUS é o departamento de informática do Sistema Único de Saúde que disponibiliza informações sobre saúde no Brasil. O TABNET é sua principal ferramenta para tabulação de dados.",
+        "info_available": [
+          "Estatísticas vitais (nascimentos, óbitos, mortalidade)",
+          "Epidemiologia e morbidade (doenças, agravos)",
+          "Rede assistencial e produção de serviços de saúde",
+          "Indicadores de saúde"
+        ],
+        "how_to_use": [
+          "Acesse o TABNET e escolha a base de dados de interesse",
+          "Selecione as variáveis de linha, coluna e conteúdo",
+          "Defina os filtros e períodos desejados",
+          "Execute a tabulação e exporte os dados (CSV, XLS)"
+        ],
+        "url": "https://datasus.saude.gov.br/informacoes-de-saude-tabnet/"
+      }
+    ],
+    "Educação": [
+      {
+        "id": "inep-dados",
+        "name": "INEP - Dados Abertos",
+        "type": "Educação",
+        "description": "O Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (INEP) disponibiliza dados sobre todos os níveis educacionais do Brasil, desde a educação básica até o ensino superior.",
+        "info_available": [
+          "Microdados do Censo Escolar da Educação Básica",
+          "Microdados do Censo da Educação Superior",
+          "Resultados do Enem, Saeb, Ideb e outros exames",
+          "Indicadores Educacionais"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos do INEP",
+          "Navegue pelos conjuntos de dados disponíveis",
+          "Faça download dos microdados ou das sinopses estatísticas"
+        ],
+        "url": "https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos"
+      }
+    ],
+    "Infraestrutura, Transportes e Mobilidade": [
+      {
+        "id": "snis",
+        "name": "SNIS - Sistema Nacional de Informações sobre Saneamento",
+        "type": "Saneamento",
+        "description": "O SNIS é o maior e mais importante sistema de informações do setor saneamento no Brasil, reunindo dados sobre água, esgotos, resíduos sólidos e águas pluviais.",
+        "info_available": [
+          "Dados sobre abastecimento de água",
+          "Informações sobre coleta e tratamento de esgoto",
+          "Dados sobre manejo de resíduos sólidos",
+          "Informações sobre drenagem e manejo de águas pluviais"
+        ],
+        "how_to_use": [
+          "Acesse a Série Histórica do SNIS",
+          "Escolha o componente de interesse (Água e Esgotos, Resíduos Sólidos ou Águas Pluviais)",
+          "Selecione os indicadores, períodos e localidades desejados"
+        ],
+        "url": "https://app4.mdr.gov.br/serieHistorica/"
+      }
+    ],
+    "Meio Ambiente e Dados Geográficos": [
+      {
+        "id": "ibama-dados",
+        "name": "IBAMA - Dados Abertos",
+        "type": "Ambiental",
+        "description": "O Instituto Brasileiro do Meio Ambiente e dos Recursos Naturais Renováveis (IBAMA) disponibiliza dados sobre licenciamento ambiental, fiscalização, qualidade ambiental e biodiversidade.",
+        "info_available": [
+          "Dados sobre autos de infração e embargos ambientais",
+          "Informações sobre licenciamento ambiental",
+          "Dados sobre acidentes ambientais",
+          "Informações sobre a fauna e flora brasileiras"
+        ],
+        "how_to_use": [
+          "Acesse o portal de dados abertos do IBAMA",
+          "Navegue pelos conjuntos de dados disponíveis",
+          "Faça download dos dados em formatos abertos"
+        ],
+        "url": "https://dadosabertos.ibama.gov.br/"
+      }
+    ],
+    "Segurança e Justiça": [
+      {
+        "id": "atlas-violencia",
+        "name": "Atlas da Violência",
+        "type": "Violência",
+        "description": "O Atlas da Violência é uma plataforma desenvolvida pelo IPEA e pelo Fórum Brasileiro de Segurança Pública que reúne dados sobre homicídios e outros tipos de violência no Brasil.",
+        "info_available": [
+          "Dados sobre homicídios por município, estado e região",
+          "Informações sobre mortes violentas por causa indeterminada",
+          "Dados sobre violência por raça e gênero",
+          "Estatísticas sobre juventude e violência"
+        ],
+        "how_to_use": [
+          "Acesse o Atlas da Violência",
+          "Navegue pelos diferentes temas disponíveis",
+          "Selecione os filtros de interesse (estados, municípios, período)",
+          "Visualize os dados em mapas, gráficos ou tabelas"
+        ],
+        "url": "https://www.ipea.gov.br/atlasviolencia/"
+      }
+    ]
+  },
+  "international_databases": []
+}
