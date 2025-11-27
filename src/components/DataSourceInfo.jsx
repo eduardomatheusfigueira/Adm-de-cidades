@@ -1868,9 +1868,19 @@ const CatalogView = () => {
                       <ol className="details-list ordered">{renderList(source.usage)}</ol>
                     </div>
                   )}
-                  <a href={source.link} target="_blank" rel="noopener noreferrer" className="card-link-button">
-                    <i className="fas fa-external-link-alt link-icon"></i>Acessar {source.type}
-                  </a>
+                  {/* Link Logic handled within mapping for clarity */}
+                  {((source) => {
+                     const hasLink = source.link && source.link.trim() !== "";
+                     const linkUrl = hasLink ? source.link : `https://www.google.com/search?q=${encodeURIComponent(source.title)}`;
+                     const linkText = hasLink ? `Acessar ${source.type}` : "Pesquisar no Google";
+                     const iconClass = hasLink ? 'fa-external-link-alt' : 'fa-search';
+
+                     return (
+                        <a href={linkUrl} target="_blank" rel="noopener noreferrer" className="card-link-button">
+                          <i className={`fas ${iconClass} link-icon`}></i>{linkText}
+                        </a>
+                     );
+                  })(source)}
                 </div>
               </div>
             ))}
