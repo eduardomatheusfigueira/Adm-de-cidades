@@ -1,149 +1,106 @@
-/* DataVisualizationEnvironment.css */
-.data-visualization-environment {
-  display: flex;
-  flex-direction: column; /* Changed to column for overall layout */
-  height: 100%;
-  width: 100%;
-}
-
-.data-visualization-header {
-  padding: 20px;
-  text-align: center;
-  background-color: #2c3e50; /* Updated to theme color */
-  border-bottom: 1px solid #dee2e6;
-  color: white; /* Ensure text is visible on the dark background */
-}
-
-.data-visualization-header h1 {
-  margin: 0;
-  color: white; /* Ensure text is visible on the dark background */
-  font-size: 1.8rem;
-}
-
-.view-selector {
-  display: flex;
-  justify-content: center;
-  margin-top: 15px;
-}
-
-.view-button {
-  padding: 10px 15px;
-  margin: 0 5px;
-  border: none;
-  border-radius: 5px;
-  background-color: #e0e7ec;
-  color: #495057;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.view-button.active {
-  background-color: #007bff;
-  color: white;
-}
-
-.view-button:hover {
-  background-color: #cdd4da;
-}
-
 .data-visualization-container {
-  display: flex; /* Make container flex */
-  flex: 1; /* Allow it to take remaining space */
-  width: 100%;
-  height: 100%;
-}
-
-.data-visualization-sidebar {
-  width: 300px; /* Fixed width for sidebar */
-  background-color: #f8f9fa;
-  border-right: 1px solid #dee2e6;
-  padding: 20px;
   display: flex;
-  flex-direction: column; /* Stack sidebar controls vertically */
-  gap: 15px; /* Spacing between control groups */
-  overflow-y: auto; /* Enable vertical scrolling if content overflows */
-  height: 100%; /* Ensure sidebar takes full height of container */
+  height: 100%;
+  width: 100%;
+  background-color: var(--background-color);
 }
 
-.data-visualization-content {
-  flex: 1; /* Content takes remaining horizontal space */
-  padding: 20px;
-  overflow: auto; /* Enable scrolling for content area */
+.visualization-content-area {
+  flex: 1;
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Common styles for views */
+.view-container {
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.view-header {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.view-header h2 {
+  color: var(--primary-color);
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-sm);
 }
 
 .view-controls {
   display: flex;
-  flex-direction: column; /* Ensure controls are stacked vertically */
-  gap: 15px; /* Spacing between control groups */
-}
-
-
-.control-section-title {
-  color: #343a40;
-  margin-bottom: 10px;
-  font-size: 1.2rem;
-  font-weight: bold;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .control-group {
-  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
 }
 
 .control-group label {
-  display: block;
-  margin-bottom: 5px;
-  color: #495057;
-  font-weight: bold;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .control-group select,
-.control-group input[type="text"],
-.indicator-search-input {
+.control-group input {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  min-width: 200px;
+}
+
+.view-content {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+/* Table Styles */
+.data-table {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  border-collapse: collapse;
   font-size: 0.9rem;
-  box-sizing: border-box; /* Ensure padding is inside the width */
 }
 
-.indicator-list {
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  padding: 10px;
-  background-color: white;
-  max-height: 200px; /* Adjust as needed */
-  overflow-y: auto; /* Enable scroll if list is long */
+.data-table th,
+.data-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
 }
 
-/* Target the p tag specifically for text color */
-.data-visualization-sidebar .indicator-list p.indicator-item {
-  padding: 5px 0;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-  color: #212529; /* Use a standard dark text color */
-  margin: 0;
+.data-table th {
+  background-color: var(--background-color);
+  font-weight: 600;
+  color: var(--text-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-/* Target the p tag for hover/selected states as well */
-.data-visualization-sidebar .indicator-list p.indicator-item:hover,
-.data-visualization-sidebar .indicator-list p.indicator-item.selected {
-  background-color: #e9ecef; /* Slightly different background for hover/select */
-  color: #212529; /* Ensure text remains dark */
+.data-table tr:hover {
+  background-color: var(--background-color);
 }
 
-
-/* Specific styles for comparison controls if needed */
-.comparison-controls .control-group {
-  /* Add specific styling for comparison controls here */
-}
-
-/* Legend container styling */
-.legend-container {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: white;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.05);
+/* Chart Container */
+.chart-container {
+  height: 100%;
+  width: 100%;
+  min-height: 400px;
 }

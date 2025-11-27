@@ -1,6 +1,6 @@
-import React, { useContext } from 'react'; // Adicionado useContext
+import React, { useContext } from 'react';
 import '../styles/Legend.css';
-import { UIContext } from '../contexts/UIContext'; // Importado UIContext
+import { UIContext } from '../contexts/UIContext';
 // Para uma legenda dinâmica completa, precisaríamos também do DataContext e getColorScale
 // import { DataContext } from '../contexts/DataContext';
 // import { getColorScale } from '../utils/colorUtils';
@@ -26,17 +26,17 @@ const Legend = () => { // Removida a prop colorAttribute
     // ou uma escala para numéricos precisaria ser implementada aqui.
     // Exemplo placeholder para Sigla_Regiao:
     if (colorAttribute === 'Sigla_Regiao') {
-        legendItems = [
-            { value: 'Norte', color: 'rgba(255,0,0,0.6)' }, // Cores de exemplo com opacidade
-            { value: 'Nordeste', color: 'rgba(0,255,0,0.6)' },
-            { value: 'Sudeste', color: 'rgba(0,0,255,0.6)' },
-            { value: 'Sul', color: 'rgba(255,255,0,0.6)' },
-            { value: 'Centro-Oeste', color: 'rgba(255,0,255,0.6)' },
-        ];
+      legendItems = [
+        { value: 'Norte', color: 'rgba(255,0,0,0.6)' }, // Cores de exemplo com opacidade
+        { value: 'Nordeste', color: 'rgba(0,255,0,0.6)' },
+        { value: 'Sudeste', color: 'rgba(0,0,255,0.6)' },
+        { value: 'Sul', color: 'rgba(255,255,0,0.6)' },
+        { value: 'Centro-Oeste', color: 'rgba(255,0,255,0.6)' },
+      ];
     } else {
-        // Para outros atributos, poderia ser uma escala numérica ou outras categorias.
-        // Por ora, indicamos que a legenda detalhada será específica.
-        isDynamicScale = true; // Assumindo que outros atributos podem ser numéricos
+      // Para outros atributos, poderia ser uma escala numérica ou outras categorias.
+      // Por ora, indicamos que a legenda detalhada será específica.
+      isDynamicScale = true; // Assumindo que outros atributos podem ser numéricos
     }
   } else {
     return null; // Não renderiza nada se não houver atributo de cor ou config de visualização
@@ -51,9 +51,9 @@ const Legend = () => { // Removida a prop colorAttribute
     <div className="legend">
       <div className="legend-title">{title}</div>
       {isDynamicScale && legendItems.length === 0 && (
-         <p style={{ fontSize: '0.8em', color: '#555', marginTop: '5px', fontStyle: 'italic' }}>
-           (Escala de cores dinâmica)
-         </p>
+        <p style={{ fontSize: '0.8em', color: '#555', marginTop: '5px', fontStyle: 'italic' }}>
+          (Escala de cores dinâmica)
+        </p>
       )}
       {!isDynamicScale && legendItems.map((item) => (
         <div key={item.value} className="legend-item">

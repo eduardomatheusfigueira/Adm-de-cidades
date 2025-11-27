@@ -1,222 +1,505 @@
-/* src/styles/CityInfoBottomBar.css */
+/* CityInfoBottomBar.css */
+
 .city-info-bottom-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: #34495e;
-  color: white;
-  z-index: 1000;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
+  max-width: 1400px;
+  height: 45vh;
+
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-primary);
+
   display: flex;
   flex-direction: column;
-  max-height: 50vh;
+  z-index: 1000;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  /* Slightly smaller base font */
+}
+
+/* Header Compact */
+.bar-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  background: var(--surface-hover);
+  border-bottom: 1px solid var(--border-color);
+  height: 40px;
+  /* Fixed height for the top bar */
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
   overflow: hidden;
 }
 
-/* Header Styles */
-.bar-header {
-  padding: 10px 15px;
-  border-bottom: 1px solid #2c3e50;
+.city-title {
   display: flex;
-  justify-content: flex-start; /* Align items to the start of the header */
-  align-items: center; /* Vertically align items in the header */
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
-.bar-header label {
-  margin-right: 10px;
-  color: white; /* Label color */
+.city-title h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-color);
 }
 
-.bar-header select {
-  padding: 8px;
-  background-color: #2c3e50;
-  color: white;
-  border: 1px solid #1a252f;
-  border-radius: 4px;
-  appearance: none; /* Remove default appearance */
-  -webkit-appearance: none; /* For Safari */
-  -moz-appearance: none; /* For Firefox */
-  background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-  background-repeat: no-repeat;
-  background-position-x: right 8px;
-  background-position-y: center;
-  padding-right: 30px; /* Make space for the dropdown arrow */
-}
-
-.bar-header select::-ms-expand {
-  display: none; /* Hide the default dropdown arrow in IE */
-}
-
-
-.bar-content {
-  display: flex;
-  padding: 15px;
-  overflow-y: auto;
-  max-height: calc(50vh - 100px); /* Adjusted max-height to account for header */
-  color: white; /* Set default text color to white */
-}
-
-.city-info-column {
-  flex: 1;
-  padding-right: 15px;
-}
-
-.indicator-columns {
-  flex: 2;
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.indicator-column {
-  flex: 1;
-  min-width: 200px;
-  margin-right: 15px;
-}
-
-.column-title {
+.state-badge {
+  background: var(--secondary-color);
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
   font-weight: bold;
-  margin-bottom: 10px;
-  text-align: center;
-  color: white; /* Ensure column titles are white */
 }
 
-.indicator-card {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  padding: 10px;
-  margin-bottom: 10px;
-  color: white; /* Ensure indicator cards text is white */
+.vertical-divider {
+  width: 1px;
+  height: 20px;
+  background-color: var(--border-color);
+  margin: 0 5px;
 }
 
-.indicator-name {
-  font-weight: bold;
-  color: white; /* Ensure indicator names are white */
-}
-
-.indicator-value {
-  margin-top: 5px;
-  color: #f0f0f0; /* Increased contrast for index value */
-}
-
-.city-selector select,
-.year-selector-indicators select {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  background-color: #2c3e50;
-  color: white;
-  border: 1px solid #1a252f;
-  border-radius: 4px;
-}
-
-.navigation-area {
-  border-top: 1px solid #2c3e50;
-}
-
-.pages-navigation {
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0;
-}
-
-.page-button {
+.close-button {
   background: none;
   border: none;
-  color: white;
-  padding: 10px 15px;
+  color: var(--text-light);
+  font-size: 1.2rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  border-radius: 5px;
-}
-
-.page-button:hover {
-  background-color: #2c3e50;
-}
-
-.page-button.active {
-  background-color: #2c3e50;
-  font-weight: bold;
-}
-
-.page-content-container {
-  width: 100%;
-  padding: 10px;
-  color: white; /* Ensure page content text is white */
-}
-
-.indicators-list {
-  display: flex;
-  flex-direction: column;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.indicator-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  color: white; /* Ensure indicator item text is white */
-}
-
-.year-selector {
-  margin-top: 15px;
-}
-
-.year-selector select {
-  padding: 8px;
-  background-color: #2c3e50;
-  color: white;
-  border: 1px solid #1a252f;
-  border-radius: 4px;
+  padding: 0 5px;
+  line-height: 1;
+  transition: color 0.2s;
   margin-left: 10px;
 }
 
-.download-button {
-  background-color: #3498db;
-  color: white;
+.close-button:hover {
+  color: var(--text-primary);
+}
+
+/* Tabs Inline */
+.bar-tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 2px;
+  /* Hide scrollbar */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.bar-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-button {
+  background: none;
   border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
+  color: var(--text-secondary);
+  padding: 0 10px;
+  height: 40px;
+  /* Match header height */
+  font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
-  margin-top: 10px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+.tab-button:hover {
+  color: var(--primary-color);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.tab-button.active {
+  color: var(--secondary-color);
+  border-bottom-color: var(--secondary-color);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+/* Content Area */
+.bar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  /* Reduced padding */
+  position: relative;
+  background: var(--surface-color);
+}
+
+/* Scrollbar styling */
+.bar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bar-content::-webkit-scrollbar-track {
+  background: var(--surface-hover);
+}
+
+.bar-content::-webkit-scrollbar-thumb {
+  background: var(--text-light);
+  border-radius: 3px;
+}
+
+/* --- Overview Tab --- */
+.overview-tab {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* Reduced gap */
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  /* Smaller min width */
+  gap: 8px;
+  /* Reduced gap */
+}
+
+.stat-card {
+  background: var(--surface-hover);
+  padding: 8px;
+  /* Reduced padding */
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  /* Reduced */
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 0.9rem;
+  /* Reduced */
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.stat-value small {
+  font-size: 0.65rem;
+  color: var(--text-light);
+  margin-left: 2px;
+  font-weight: normal;
+}
+
+.city-description {
+  font-size: 0.8rem;
+  /* Reduced */
+  color: var(--text-secondary);
+  line-height: 1.4;
+  padding: 8px;
+  background: var(--surface-hover);
+  border-radius: var(--radius-md);
+}
+
+/* --- Indicators Tab --- */
+.indicators-tab {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Reduced gap */
+}
+
+.indicators-controls {
+  display: flex;
+  gap: 6px;
+  /* Reduced gap */
+}
+
+.search-input {
+  flex: 1;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  /* Reduced padding */
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  /* Reduced */
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.sort-button {
+  background: var(--surface-hover);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0 8px;
+  /* Reduced padding */
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.75rem;
+  /* Reduced */
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.sort-button:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.indicators-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  /* Reduced gap */
+}
+
+.indicator-item {
+  background: var(--surface-color);
+  padding: 6px 10px;
+  /* Reduced padding */
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.indicator-item:hover {
+  background: var(--surface-hover);
+}
+
+.indicator-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  /* Minimal gap */
+}
+
+.indicator-name {
+  font-size: 0.8rem;
+  /* Reduced */
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.indicator-unit {
+  font-size: 0.7rem;
+  /* Reduced */
+  color: var(--text-light);
+}
+
+.indicator-stats {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.indicator-value {
+  display: block;
+  font-size: 0.85rem;
+  /* Reduced */
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.indicator-rank {
+  font-size: 0.65rem;
+  /* Reduced */
+  padding: 1px 5px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.indicator-rank.good {
+  color: #065f46;
+  /* Emerald 800 */
+  background: #d1fae5;
+  /* Emerald 100 */
+}
+
+.indicator-rank.bad {
+  color: #991b1b;
+  /* Red 800 */
+  background: #fee2e2;
+  /* Red 100 */
+}
+
+/* --- Time Series & Comparison Tabs --- */
+.time-series-tab,
+.comparison-tab {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Reduced gap */
+}
+
+.chart-controls {
+  display: flex;
+  gap: 8px;
+  /* Reduced gap */
+  align-items: center;
+  flex-wrap: wrap;
+  padding-bottom: 6px;
+  /* Reduced padding */
+  border-bottom: 1px solid var(--border-color);
+}
+
+.chart-controls label {
+  font-size: 0.8rem;
+  /* Reduced */
+  color: var(--text-secondary);
+  margin-right: 3px;
+  font-weight: 500;
+}
+
+.indicator-select,
+.year-select {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 3px 6px;
+  /* Reduced padding */
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  /* Reduced */
+}
+
+.indicator-select:focus,
+.year-select:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+}
+
+.chart-container {
+  flex: 1;
+  min-height: 0;
+  background: var(--surface-color);
+  border-radius: var(--radius-md);
+  padding: 5px 0;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+}
+
+.control-group.full-width {
+  flex: 1;
+}
+
+.react-select-container {
+  flex: 1;
+  min-width: 180px;
+}
+
+.no-data-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+/* --- Export Tab --- */
+.export-tab {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.export-content {
+  text-align: center;
+  max-width: 400px;
+  padding: 15px;
+  /* Reduced padding */
+  background: var(--surface-hover);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+}
+
+.export-content h3 {
+  margin-bottom: 8px;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  /* Reduced */
+}
+
+.export-content p {
+  color: var(--text-secondary);
+  margin-bottom: 15px;
+  line-height: 1.4;
+  font-size: 0.85rem;
+  /* Reduced */
+}
+
+.export-stats {
+  margin-bottom: 15px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.download-button {
+  background: var(--secondary-color);
+  border: none;
+  padding: 8px 16px;
+  /* Reduced padding */
+  border-radius: var(--radius-md);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+  /* Reduced */
 }
 
 .download-button:hover {
-  background-color: #2980b9;
-}
-
-/* Styles for comparison view */
-.comparison-controls {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.comparison-selectors {
-  display: flex;
-  flex-direction: column;
-  width: 48%;
-}
-
-.selector-group {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-  color: white; /* Ensure selector group text is white */
-}
-
-.selector-group label {
-  width: 100px;
-  margin-right: 10px;
-  color: white; /* Ensure selector labels are white */
-}
-
-.selector-group select {
-  flex: 1;
-  padding: 8px;
-  background-color: #2c3e50;
-  color: white;
-  border: 1px solid #1a252f;
-  border-radius: 4px;
+  background: var(--secondary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }

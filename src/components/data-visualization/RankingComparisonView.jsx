@@ -1,274 +1,133 @@
-import React, { useState, useEffect } from 'react';
-import RadarChart from './RadarChart'; // Import RadarChart
-import '../../styles/data-visualization/RankingComparisonView.css';
+import React, { useState, useMemo, useEffect } from 'react';
 
-const RankingComparisonView = ({
-  csvData,
-  indicadoresData,
-  leftYear,
-  leftIndicator,
-  rightYear,
-  rightIndicator,
-  onCitySelect,
-  cities // Prop for city selectors (assuming this comes from parent)
-}) => {
-  // State for rankings
-  const [leftRanking, setLeftRanking] = useState([]);
-  const [rightRanking, setRightRanking] = useState([]);
+const RankingComparisonView = ({ indicadoresData, csvData }) => {
+  const [leftConfig, setLeftConfig] = useState({ year: '', indicator: '' });
+  const [rightConfig, setRightConfig] = useState({ year: '', indicator: '' });
 
-  // State for filters
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState('all');
-  const [selectedState, setSelectedState] = useState('all');
+  // Extract unique years and indicators
+  const availableYears = useMemo(() => {
+    if (!indicadoresData) return [];
+    return [...new Set(indicadoresData.map(d => d.Ano_Observacao))].sort((a, b) => b - a);
+  }, [indicadoresData]);
 
-  // State for UI interactions
-  const [highlightedCities, setHighlightedCities] = useState([]);
-  const [selectedCityLeft, setSelectedCityLeft] = useState(''); // State for left city selector (stores Codigo_Municipio)
-  const [selectedCityRight, setSelectedCityRight] = useState(''); // State for right city selector (stores Codigo_Municipio)
+  const availableIndicators = useMemo(() => {
+    if (!indicadoresData) return [];
+    return [...new Set(indicadoresData.map(d => d.Nome_Indicador))].sort();
+  }, [indicadoresData]);
 
-  // State for Radar Charts
-  const [leftRadarData, setLeftRadarData] = useState([]);
-  const [leftRadarIndicators, setLeftRadarIndicators] = useState([]);
-  const [rightRadarData, setRightRadarData] = useState([]);
-  const [rightRadarIndicators, setRightRadarIndicators] = useState([]);
-
-  // --- Data Processing ---
-
-  // Extract unique regions and states for filter dropdowns
-  const uniqueRegions = csvData ? [...new Set(csvData.map(city => city.Sigla_Regiao))].filter(Boolean).sort() : [];
-  const uniqueStates = csvData ? [...new Set(csvData.map(city => city.Sigla_Estado))].filter(Boolean).sort() : [];
-
-  // Get available states based on selected region
-  const availableStates = selectedRegion === 'all'
-    ? uniqueStates
-    : csvData ? [...new Set(csvData
-      .filter(city => city.Sigla_Regiao === selectedRegion)
-      .map(city => city.Sigla_Estado)
-    )].sort() : [];
-
-  // Prepare ranking data (common function)
-  const prepareRankingData = (year, indicator) => {
-    if (!csvData || !indicadoresData || !year || !indicator) {
-      return [];
+  // Set defaults
+  useEffect(() => {
+    if (availableYears.length > 0 && availableIndicators.length > 0) {
+      if (!leftConfig.year) setLeftConfig(prev => ({ ...prev, year: availableYears[0], indicator: availableIndicators[0] }));
+      if (!rightConfig.year) setRightConfig(prev => ({ ...prev, year: availableYears[0], indicator: availableIndicators[0] }));
     }
-    const indicatorData = indicadoresData.filter(
-      ind => ind.Ano_Observacao === year && ind.Nome_Indicador === indicator
+  }, [availableYears, availableIndicators, leftConfig.year, rightConfig.year]);
+
+  const getData = (config) => {
+    if (!config.year || !config.indicator || !indicadoresData) return [];
+    const filtered = indicadoresData.filter(d =>
+      d.Ano_Observacao === config.year &&
+      d.Nome_Indicador === config.indicator
     );
-    if (indicatorData.length === 0) return [];
 
-    const ranking = indicatorData.map(ind => {
-      const city = csvData.find(c => c.Codigo_Municipio === ind.Codigo_Municipio);
-      if (!city) return null;
+    return filtered.map(item => {
+      const cityInfo = csvData?.find(c => c.Codigo_Municipio === item.Codigo_Municipio);
       return {
-        codigo: ind.Codigo_Municipio,
-        nome: city.Nome_Municipio,
-        estado: city.Sigla_Estado,
-        regiao: city.Sigla_Regiao,
-        capital: city.Capital?.toLowerCase() === 'true' || city.Capital === '1',
-        valor: parseFloat(ind.Valor),
-        original_position: parseInt(ind.Indice_Posicional, 10),
-        city: city
+        ...item,
+        Nome_Municipio: cityInfo?.Nome_Municipio || item.Nome_Municipio || item.Codigo_Municipio,
+        Sigla_Estado: cityInfo?.Sigla_Estado || item.Sigla_Estado || ''
       };
-    }).filter(Boolean);
-
-    let filteredRanking = [...ranking];
-    if (selectedRegion !== 'all') filteredRanking = filteredRanking.filter(item => item.regiao === selectedRegion);
-    if (selectedState !== 'all') filteredRanking = filteredRanking.filter(item => item.estado === selectedState);
-    if (searchTerm) {
-      const normalizedSearchTerm = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      filteredRanking = filteredRanking.filter(item => item.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normalizedSearchTerm));
-    }
-    filteredRanking.sort((a, b) => b.valor - a.valor); // Sort by value desc
-    return filteredRanking.map((item, index) => ({ ...item, displayRank: index + 1 }));
+    }).sort((a, b) => parseFloat(b.Valor) - parseFloat(a.Valor));
   };
 
-  // Prepare left ranking data
-  useEffect(() => {
-    const data = prepareRankingData(leftYear, leftIndicator);
-    setLeftRanking(data);
-  }, [csvData, indicadoresData, leftYear, leftIndicator, searchTerm, selectedRegion, selectedState]);
+  const leftData = useMemo(() => getData(leftConfig), [leftConfig, indicadoresData, csvData]);
+  const rightData = useMemo(() => getData(rightConfig), [rightConfig, indicadoresData, csvData]);
 
-  // Prepare right ranking data
-  useEffect(() => {
-    const data = prepareRankingData(rightYear, rightIndicator);
-    setRightRanking(data);
-  }, [csvData, indicadoresData, rightYear, rightIndicator, searchTerm, selectedRegion, selectedState]);
-
-  // Define key indicators for Radar Chart
-  const keyIndicatorNamesForRadar = [
-    'POP_TOT - População total do município do ano de referência (Fonte: IBGE)',
-    'PIB_CAP - PIB per capita a preços correntes (Fonte: IBGE)',
-    'IDHM - Índice de Desenvolvimento Humano Municipal (Fonte: PNUD)',
-    'Despesas Empenhadas em Educação e Cultura',
-    'Despesas Empenhadas em Saúde e Saneamento',
-    'Receita Tributária'
-  ];
-
-  // Prepare Left Radar Data
-  useEffect(() => {
-    if (!selectedCityLeft || !leftYear || !indicadoresData) {
-      setLeftRadarData([]); setLeftRadarIndicators([]); return;
-    }
-    const cityData = indicadoresData.filter(ind =>
-      ind.Codigo_Municipio === selectedCityLeft &&
-      ind.Ano_Observacao === leftYear &&
-      keyIndicatorNamesForRadar.includes(ind.Nome_Indicador)
-    );
-    if (cityData.length >= 3) {
-      cityData.sort((a, b) => a.Nome_Indicador.localeCompare(b.Nome_Indicador));
-      setLeftRadarIndicators(cityData.map(ind => ind.Nome_Indicador));
-      setLeftRadarData(cityData.map(ind => parseFloat(ind.Indice_Posicional) || 0));
-    } else {
-      setLeftRadarData([]); setLeftRadarIndicators([]);
-    }
-  }, [selectedCityLeft, leftYear, indicadoresData]); // Removed keyIndicatorNamesForRadar dependency
-
-  // Prepare Right Radar Data
-  useEffect(() => {
-    if (!selectedCityRight || !rightYear || !indicadoresData) {
-      setRightRadarData([]); setRightRadarIndicators([]); return;
-    }
-     const cityData = indicadoresData.filter(ind =>
-      ind.Codigo_Municipio === selectedCityRight &&
-      ind.Ano_Observacao === rightYear &&
-      keyIndicatorNamesForRadar.includes(ind.Nome_Indicador)
-    );
-    if (cityData.length >= 3) {
-      cityData.sort((a, b) => a.Nome_Indicador.localeCompare(b.Nome_Indicador));
-      setRightRadarIndicators(cityData.map(ind => ind.Nome_Indicador));
-      setRightRadarData(cityData.map(ind => parseFloat(ind.Indice_Posicional) || 0));
-    } else {
-      setRightRadarData([]); setRightRadarIndicators([]);
-    }
-  }, [selectedCityRight, rightYear, indicadoresData]); // Removed keyIndicatorNamesForRadar dependency
-
-
-  // --- Event Handlers ---
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-  const handleRegionChange = (e) => { setSelectedRegion(e.target.value); setSelectedState('all'); };
-  const handleStateChange = (e) => setSelectedState(e.target.value);
-  const handleCityHover = (cityCode) => setHighlightedCities([cityCode]);
-  const handleCityClick = (city) => { if (onCitySelect) onCitySelect(city); };
-  const handleCitySelectLeft = (event) => setSelectedCityLeft(event.target.value);
-  const handleCitySelectRight = (event) => setSelectedCityRight(event.target.value);
-
-  // Find common cities for highlighting (optional)
-  const commonCities = (leftRanking.length > 0 && rightRanking.length > 0)
-    ? leftRanking.filter(lc => rightRanking.some(rc => rc.codigo === lc.codigo)).map(c => c.codigo)
-    : [];
-
-  // Get city names for display
-  const leftCityName = csvData?.find(c => c.Codigo_Municipio === selectedCityLeft)?.Nome_Municipio || selectedCityLeft;
-  const rightCityName = csvData?.find(c => c.Codigo_Municipio === selectedCityRight)?.Nome_Municipio || selectedCityRight;
-
-  // --- Render Logic ---
   return (
-    <div className="ranking-comparison-view">
-      <div className="comparison-header">
+    <div className="view-container fade-in">
+      <div className="view-header">
         <h2>Comparação de Rankings</h2>
-        {/* Filters */}
-        <div className="comparison-filters">
-          <div className="search-filter"> <input type="text" placeholder="Buscar município..." value={searchTerm} onChange={handleSearchChange} className="search-input"/> </div>
-          <div className="region-filter"> <select value={selectedRegion} onChange={handleRegionChange}> <option value="all">Todas as Regiões</option> {uniqueRegions.map(region => (<option key={region} value={region}>{region}</option>))} </select> </div>
-          <div className="state-filter"> <select value={selectedState} onChange={handleStateChange} disabled={selectedRegion === 'all' && availableStates.length === 0}> <option value="all">Todos os Estados</option> {availableStates.map(state => (<option key={state} value={state}>{state}</option>))} </select> </div>
-        </div>
       </div>
 
-      {/* City Selectors */}
-      <div className="city-selection-container">
-        <div className="city-selector left-city-selector">
-          <label htmlFor="city-select-left">Selecionar Cidade 1:</label>
-          <select id="city-select-left" value={selectedCityLeft} onChange={handleCitySelectLeft}>
-            <option value="">Selecione uma cidade</option>
-            {csvData && csvData.map(city => (
-              <option key={city.Codigo_Municipio} value={city.Codigo_Municipio}>
-                {city.Nome_Municipio} ({city.Sigla_Estado})
-              </option>
-            ))}
-          </select>
+      <div className="comparison-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', height: '100%', overflow: 'hidden' }}>
+        {/* Left Panel */}
+        <div className="comparison-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+          <div className="panel-controls" style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--background-color)', borderRadius: 'var(--radius-md)' }}>
+            <h3>Ranking 1</h3>
+            <div className="control-group">
+              <label>Ano</label>
+              <select value={leftConfig.year} onChange={(e) => setLeftConfig({ ...leftConfig, year: e.target.value })}>
+                {availableYears.map(year => <option key={year} value={year}>{year}</option>)}
+              </select>
+            </div>
+            <div className="control-group">
+              <label>Indicador</label>
+              <select value={leftConfig.indicator} onChange={(e) => setLeftConfig({ ...leftConfig, indicator: e.target.value })}>
+                {availableIndicators.map(ind => <option key={ind} value={ind}>{ind}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="panel-content" style={{ flex: 1, overflow: 'auto' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Pos</th>
+                  <th>Município</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leftData.map((item, index) => (
+                  <tr key={item.Codigo_Municipio}>
+                    <td>{index + 1}º</td>
+                    <td>{item.Nome_Municipio}</td>
+                    <td>{parseFloat(item.Valor).toLocaleString('pt-BR')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div className="city-selector right-city-selector">
-          <label htmlFor="city-select-right">Selecionar Cidade 2:</label>
-          <select id="city-select-right" value={selectedCityRight} onChange={handleCitySelectRight}>
-            <option value="">Selecione outra cidade</option>
-             {csvData && csvData.map(city => (
-              <option key={city.Codigo_Municipio} value={city.Codigo_Municipio}>
-                {city.Nome_Municipio} ({city.Sigla_Estado})
-              </option>
-            ))}
-          </select>
+
+        {/* Right Panel */}
+        <div className="comparison-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+          <div className="panel-controls" style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--background-color)', borderRadius: 'var(--radius-md)' }}>
+            <h3>Ranking 2</h3>
+            <div className="control-group">
+              <label>Ano</label>
+              <select value={rightConfig.year} onChange={(e) => setRightConfig({ ...rightConfig, year: e.target.value })}>
+                {availableYears.map(year => <option key={year} value={year}>{year}</option>)}
+              </select>
+            </div>
+            <div className="control-group">
+              <label>Indicador</label>
+              <select value={rightConfig.indicator} onChange={(e) => setRightConfig({ ...rightConfig, indicator: e.target.value })}>
+                {availableIndicators.map(ind => <option key={ind} value={ind}>{ind}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="panel-content" style={{ flex: 1, overflow: 'auto' }}>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Pos</th>
+                  <th>Município</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rightData.map((item, index) => (
+                  <tr key={item.Codigo_Municipio}>
+                    <td>{index + 1}º</td>
+                    <td>{item.Nome_Municipio}</td>
+                    <td>{parseFloat(item.Valor).toLocaleString('pt-BR')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-
-      {/* Rankings Container */}
-      {(leftRanking.length > 0 || rightRanking.length > 0) ? (
-        <div className="rankings-container">
-          {/* Left Ranking Column */}
-          {leftRanking.length > 0 ? (
-            <div className="ranking-column left-ranking">
-              <h3>{leftIndicator || 'Ranking 1'} ({leftYear || 'Ano'})</h3>
-              {/* Render Left Radar Chart */}
-              {selectedCityLeft && leftRadarData.length > 0 && (
-                <div className="radar-chart-container">
-                  <h4>Perfil Radar: {leftCityName}</h4>
-                  <RadarChart data={leftRadarData} indicators={leftRadarIndicators} />
-                </div>
-              )}
-              <div className="ranking-table-container">
-                <table className="ranking-table">
-                  <thead><tr><th>Posição</th><th>Município</th><th>UF</th><th>Valor</th></tr></thead>
-                  <tbody>
-                    {leftRanking.map((item) => (
-                      <tr key={item.codigo} className={`${highlightedCities.includes(item.codigo) ? 'highlighted' : ''} ${commonCities.includes(item.codigo) ? 'common-city' : ''}`} onMouseEnter={() => handleCityHover(item.codigo)} onMouseLeave={() => setHighlightedCities([])} onClick={() => handleCityClick(item.city)}>
-                        <td className="position-cell">{item.displayRank}</td>
-                        <td>{item.nome}</td>
-                        <td>{item.estado}</td>
-                        <td className="value-cell">{item.valor?.toLocaleString('pt-BR') ?? '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : ( <div className="ranking-column no-data-message"> <p>Não há dados para {leftIndicator || 'Ranking 1'} em {leftYear || 'Ano'}.</p> </div> )}
-
-          {/* Right Ranking Column */}
-          {rightRanking.length > 0 ? (
-            <div className="ranking-column right-ranking">
-              <h3>{rightIndicator || 'Ranking 2'} ({rightYear || 'Ano'})</h3>
-              {/* Render Right Radar Chart */}
-              {selectedCityRight && rightRadarData.length > 0 && (
-                <div className="radar-chart-container">
-                   <h4>Perfil Radar: {rightCityName}</h4>
-                  <RadarChart data={rightRadarData} indicators={rightRadarIndicators} />
-                </div>
-              )}
-              <div className="ranking-table-container">
-                <table className="ranking-table">
-                   <thead><tr><th>Posição</th><th>Município</th><th>UF</th><th>Valor</th></tr></thead>
-                   <tbody>
-                    {rightRanking.map((item) => (
-                      <tr key={item.codigo} className={`${highlightedCities.includes(item.codigo) ? 'highlighted' : ''} ${commonCities.includes(item.codigo) ? 'common-city' : ''}`} onMouseEnter={() => handleCityHover(item.codigo)} onMouseLeave={() => setHighlightedCities([])} onClick={() => handleCityClick(item.city)}>
-                        <td className="position-cell">{item.displayRank}</td>
-                        <td>{item.nome}</td>
-                        <td>{item.estado}</td>
-                        <td className="value-cell">{item.valor?.toLocaleString('pt-BR') ?? '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-           ) : ( <div className="ranking-column no-data-message"> <p>Não há dados para {rightIndicator || 'Ranking 2'} em {rightYear || 'Ano'}.</p> </div> )}
-        </div>
-      ) : (
-        <div className="no-data-message full-width"> <p>Selecione indicadores e anos válidos para ambos os rankings para visualizar a comparação.</p> </div>
-      )}
-
-      {/* Selected Cities Display (Placeholder) */}
-      {/* <div className="selected-cities-display">
-        {selectedCityLeft && selectedCityRight && ( <p> Comparando cidades (IDs): {selectedCityLeft} e {selectedCityRight} </p> )}
-      </div> */}
     </div>
   );
 };
