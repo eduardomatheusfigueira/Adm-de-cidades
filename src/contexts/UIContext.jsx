@@ -11,6 +11,7 @@ export const UIProvider = ({ children }) => {
   const [colorAttribute, setColorAttribute] = useState('Sigla_Regiao'); // Default
   const [visualizationConfig, setVisualizationConfig] = useState(null);
   const [activeEnvironment, setActiveEnvironment] = useState('dataSourceInfo'); // Default
+  const [legendConfigByKey, setLegendConfigByKey] = useState({});
 
   // Estados para o modal de importação de geometria
   const [showGeometryImportModal, setShowGeometryImportModal] = useState(false);
@@ -67,6 +68,23 @@ export const UIProvider = ({ children }) => {
     }
   }, [geometryImportData, municipalityCodeField, processGeometryImportInternal]);
 
+  const updateLegendConfig = useCallback((legendKey, config) => {
+    if (!legendKey) return;
+    setLegendConfigByKey(prev => ({
+      ...prev,
+      [legendKey]: config
+    }));
+  }, []);
+
+  const clearLegendConfig = useCallback((legendKey) => {
+    if (!legendKey) return;
+    setLegendConfigByKey(prev => {
+      const next = { ...prev };
+      delete next[legendKey];
+      return next;
+    });
+  }, []);
+
   const value = {
     selectedCityInfo,
     setSelectedCityInfo,
@@ -76,6 +94,9 @@ export const UIProvider = ({ children }) => {
     setVisualizationConfig, // Expor diretamente se necessário
     activeEnvironment,
     setActiveEnvironment,
+    legendConfigByKey,
+    updateLegendConfig,
+    clearLegendConfig,
     showGeometryImportModal,
     setShowGeometryImportModal, // Expor para App.jsx controlar o modal
     geometryImportData,
