@@ -7,6 +7,26 @@ import indicadoresCsvDataRaw from '../../data/indicadores.csv?raw';
 
 export const DataContext = createContext();
 
+const REQUIRED_MUNICIPIOS_COLUMNS = [
+  'Codigo_Municipio',
+  'Nome_Municipio',
+  'Sigla_Estado',
+  'Sigla_Regiao',
+  'Area_Municipio',
+  'Capital',
+  'Altitude_Municipio',
+  'Longitude_Municipio',
+  'Latitude_Municipio'
+];
+
+const mergeHeaders = (currentHeaders = [], incomingHeaders = []) => {
+  const normalizedIncoming = incomingHeaders
+    .map((header) => header?.trim())
+    .filter(Boolean);
+
+  return [...new Set([...currentHeaders, ...normalizedIncoming])];
+};
+
 // Função de parsing de CSV (movida de App.jsx)
 function parseCSVData(csvText) {
   if (!csvText || typeof csvText !== 'string') {
@@ -138,13 +158,24 @@ export const DataProvider = ({ children }) => {
         Papa.parse(file, {
           header: true,
           delimiter: ';',
+          transformHeader: (header) => header.trim(),
           skipEmptyLines: true,
           complete: (results) => {
+            const importedHeaders = mergeHeaders([], results.meta?.fields || []);
+            const missingRequiredColumns = REQUIRED_MUNICIPIOS_COLUMNS.filter(
+              (column) => !importedHeaders.includes(column)
+            );
+
+            if (missingRequiredColumns.length > 0) {
+              alert(`O arquivo não contém todas as colunas obrigatórias de municípios. Faltando: ${missingRequiredColumns.join(', ')}`);
+              return;
+            }
+
             if (results.data && results.data.length > 0) {
               const newMunicipios = results.data.filter(row =>
                 row.Codigo_Municipio && row.Nome_Municipio && row.Sigla_Estado &&
                 row.Sigla_Regiao && row.Area_Municipio && row.Capital !== undefined &&
-                row.Longitude_Municipio && row.Latitude_Municipio
+                row.Altitude_Municipio && row.Longitude_Municipio && row.Latitude_Municipio
               );
               if (newMunicipios.length > 0) {
                 setCsvData(prevCsvData => {
@@ -152,6 +183,7 @@ export const DataProvider = ({ children }) => {
                     setFilteredCsvData(updated); // Atualiza filteredCsvData também
                     return updated;
                 });
+                setCsvHeaders(prevHeaders => mergeHeaders(prevHeaders, importedHeaders));
                 alert(`${newMunicipios.length} municípios importados com sucesso!`);
                 // Nota: A chamada loadMapData que estava aqui será tratada pelo MapContext/App.jsx
                 // ao observar mudanças em filteredCsvData ou csvData.
@@ -273,6 +305,8 @@ ${newCount} novos adicionados.`);
             if (profile.municipios) {
               setCsvData(profile.municipios);
               setFilteredCsvData(profile.municipios); // Reset filtered data
+              const profileHeaders = Object.keys(profile.municipios[0] || {});
+              setCsvHeaders(mergeHeaders([], profileHeaders));
             }
             if (profile.indicadores) {
               setIndicadoresData(profile.indicadores);
