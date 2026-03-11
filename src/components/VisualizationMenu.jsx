@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
 import '../styles/VisualizationMenu.css';
 import { DataContext } from '../contexts/DataContext';
 import { MapContext } from '../contexts/MapContext';
@@ -106,27 +106,37 @@ const VisualizationMenu = ({
     onFiltersApplied(csvData, 'Sigla_Regiao'); // Chama a prop de AppContent
   };
 
-  const numericAttributes = csvHeaders ? csvHeaders.filter(header => header.match(/^(Altitude_Municipio|Area_Municipio)$/)) : [];
-  const categoricalAttributes = csvHeaders ? csvHeaders.filter(key =>
-    !key.match(/^(Longitude_Municipio|Latitude_Municipio|Altitude_Municipio|Area_Municipio|Codigo_Municipio|Nome_Municipio)$/)
-  ).sort() : [];
+  const excludedAttributesForVisualization = useMemo(() => new Set([
+  ]), []);
+  const { visualizationAttributes, categoricalAttributes, numericAttributes } = useMemo(() => {
+    const availableHeaders = csvHeaders || [];
+    const attributes = availableHeaders.filter((header) => !excludedAttributesForVisualization.has(header));
 
-  useEffect(() => {
-    if (indicadoresData && indicadoresData.length > 0) {
-      const indicators = [...new Set(indicadoresData.map(ind => ind.Nome_Indicador))].sort();
-      setAvailableIndicators(indicators);
-    }
-  }, [indicadoresData]);
+    const isNumericAttribute = (attribute) => {
+      if (!csvData || csvData.length === 0) return false;
+      const values = csvData
+        .map((row) => row?.[attribute])
+        .filter((value) => value !== undefined && value !== null && `${value}`.trim() !== '');
+      if (values.length === 0) return false;
 
-  useEffect(() => {
-    if (currentSelectedIndicator && indicadoresData && indicadoresData.length > 0) {
-      const years = [...new Set(
-        indicadoresData
-          .filter(ind => ind.Nome_Indicador === currentSelectedIndicator)
-          .map(ind => ind.Ano_Observacao)
-      )].sort((a, b) => b - a);
-      setAvailableYears(years);
-      if (years.length > 0) setCurrentSelectedYear(years[0]);
+      return values.every((value) => !Number.isNaN(parseFloat(value)));
+    };
+
+    const categorical = [];
+    const numeric = [];
+    attributes.forEach((attribute) => {
+      if (isNumericAttribute(attribute)) {
+        numeric.push(attribute);
+      } else {
+        categorical.push(attribute);
+      }
+    });
+    return {
+      visualizationAttributes: attributes,
+      categoricalAttributes: categorical.sort(),
+      numericAttributes: numeric.sort()
+    };
+  }, [csvHeaders, csvData, excludedAttributesForVisualization]);
       else setCurrentSelectedYear('');
     } else {
       setAvailableYears([]);
