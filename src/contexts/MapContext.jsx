@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useRef, useContext, useCallb
 import mapboxgl from 'mapbox-gl';
 import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
-import { getColorScale } from '../utils/colorUtils';
+import { getColorScale, getLegendKey } from '../utils/colorUtils';
 
 export const MapContext = createContext();
 
@@ -19,7 +19,7 @@ export const MapProvider = ({ children }) => {
 
   const { geojsonData, indicadoresData, filteredCsvData } = useContext(DataContext);
   // Consumindo diretamente do UIContext, sem valores padrão aqui
-  const { colorAttribute, visualizationConfig, activeEnvironment, setSelectedCityInfo } = useContext(UIContext);
+  const { colorAttribute, visualizationConfig, activeEnvironment, setSelectedCityInfo, legendConfigByKey } = useContext(UIContext);
 
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZWR1YXJkb21hdGhldXNmaWd1ZWlyYSIsImEiOiJjbTgwd2tqbzYwemRrMmpwdGVka2FrMG5nIn0.NfOWy2a0J-YHP4mdKs_TAQ';
@@ -206,7 +206,37 @@ export const MapProvider = ({ children }) => {
 
     const combinedGeoJson = { type: 'FeatureCollection', features: finalFeatures };
     const attributeValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => v !== undefined && v !== null);
-    const colorRenderScaleExpression = getColorScale(currentAttributeForColoring, attributeValues);
+    const baseScaleExpression = getColorScale(currentAttributeForColoring, attributeValues);
+    let colorRenderScaleExpression = baseScaleExpression;
+
+    const legendKey = getLegendKey(visualizationConfig, colorAttribute);
+    const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
+
+    if (customLegend && customLegend.items && customLegend.items.length > 0) {
+      colorRenderScaleExpression = [...baseScaleExpression]; // shallow copy
+      const expressionType = colorRenderScaleExpression[0];
+      
+      if (expressionType === 'match') {
+        // items correspond to indices 3, 5, 7...
+        for (let i = 0; i < customLegend.items.length; i++) {
+          const colorIndex = 3 + i * 2;
+          if (colorIndex < colorRenderScaleExpression.length) {
+            colorRenderScaleExpression[colorIndex] = customLegend.items[i].color;
+          }
+        }
+      } else if (expressionType === 'step') {
+        // items correspond to index 2, then 4, 6, 8...
+        if (customLegend.items.length > 0) {
+          colorRenderScaleExpression[2] = customLegend.items[0].color;
+        }
+        for (let i = 1; i < customLegend.items.length; i++) {
+          const colorIndex = 4 + (i - 1) * 2;
+          if (colorIndex < colorRenderScaleExpression.length) {
+            colorRenderScaleExpression[colorIndex] = customLegend.items[i].color;
+          }
+        }
+      }
+    }
 
     if (map.current.getSource('sectors')) {
       map.current.getSource('sectors').setData(combinedGeoJson);
@@ -250,7 +280,7 @@ export const MapProvider = ({ children }) => {
     if (map.current.getLayer('sectors-point-layer')) {
       map.current.setPaintProperty('sectors-point-layer', 'circle-color', colorRenderScaleExpression);
     }
-  }, [mapLoaded, filteredCsvData, geojsonData, indicadoresData, colorAttribute, visualizationConfig, map, setSelectedCityInfo]);
+  }, [mapLoaded, filteredCsvData, geojsonData, indicadoresData, colorAttribute, visualizationConfig, map, setSelectedCityInfo, legendConfigByKey]);
 
 
   useEffect(() => {

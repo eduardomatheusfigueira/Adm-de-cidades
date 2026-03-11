@@ -1,5 +1,15 @@
 import * as d3 from 'd3';
 
+export const getLegendKey = (visualizationConfig, colorAttribute) => {
+  if (visualizationConfig?.type === 'indicator') {
+    return `indicator:${visualizationConfig.indicator}:${visualizationConfig.year}:${visualizationConfig.valueType || 'value'}`;
+  }
+  if (visualizationConfig?.type === 'attribute' && visualizationConfig.attribute) {
+    return `attribute:${visualizationConfig.attribute}`;
+  }
+  return colorAttribute ? `attribute:${colorAttribute}` : null;
+};
+
 // Function to generate a simplified color scale
 // Default schemes
 const defaultNumericScheme = d3.schemeReds[5]; // Default to 5 categories for Reds

@@ -2,17 +2,7 @@ import React, { useContext, useMemo, useState, useEffect } from 'react';
 import '../styles/Legend.css';
 import { UIContext } from '../contexts/UIContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale } from '../utils/colorUtils';
-
-const getLegendKey = (visualizationConfig, colorAttribute) => {
-  if (visualizationConfig?.type === 'indicator') {
-    return `indicator:${visualizationConfig.indicator}:${visualizationConfig.year}:${visualizationConfig.valueType || 'value'}`;
-  }
-  if (visualizationConfig?.type === 'attribute' && visualizationConfig.attribute) {
-    return `attribute:${visualizationConfig.attribute}`;
-  }
-  return colorAttribute ? `attribute:${colorAttribute}` : null;
-};
+import { getColorScale, getLegendKey } from '../utils/colorUtils';
 
 const isValidColor = (value) => /^#([0-9A-F]{3}){1,2}$/i.test(value);
 
