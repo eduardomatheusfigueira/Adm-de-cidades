@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
 import '../styles/VisualizationMenu.css';
 import { DataContext } from '../contexts/DataContext';
 import { MapContext } from '../contexts/MapContext';
@@ -12,8 +12,7 @@ const VisualizationMenu = ({
   const {
     csvData,
     indicadoresData,
-    csvHeaders,
-    applyFiltersToCsvData // Usado em handleApplyFilters
+    csvHeaders
   } = useContext(DataContext);
 
   const {
@@ -102,14 +101,66 @@ const VisualizationMenu = ({
     setSelectedRegion('all');
     setSelectedState('all');
     setSelectedMunicipalities(new Set());
-    setCurrentSelectedAttribute('Sigla_Regiao');
-    onFiltersApplied(csvData, 'Sigla_Regiao'); // Chama a prop de AppContent
+    const defaultAttribute = csvHeaders?.includes('Sigla_Regiao')
+      ? 'Sigla_Regiao'
+      : (csvHeaders || []).find((header) => !['Codigo_Municipio', 'Nome_Municipio', 'Longitude_Municipio', 'Latitude_Municipio'].includes(header)) || '';
+
+    setCurrentSelectedAttribute(defaultAttribute);
+    onFiltersApplied(csvData, defaultAttribute); // Chama a prop de AppContent
   };
 
-  const numericAttributes = csvHeaders ? csvHeaders.filter(header => header.match(/^(Altitude_Municipio|Area_Municipio)$/)) : [];
-  const categoricalAttributes = csvHeaders ? csvHeaders.filter(key =>
-    !key.match(/^(Longitude_Municipio|Latitude_Municipio|Altitude_Municipio|Area_Municipio|Codigo_Municipio|Nome_Municipio)$/)
-  ).sort() : [];
+  const excludedAttributesForVisualization = useMemo(() => new Set([
+    'Codigo_Municipio',
+    'Nome_Municipio',
+    'Longitude_Municipio',
+    'Latitude_Municipio'
+  ]), []);
+
+  const { visualizationAttributes, categoricalAttributes, numericAttributes } = useMemo(() => {
+    const availableHeaders = csvHeaders || [];
+    const attributes = availableHeaders.filter((header) => !excludedAttributesForVisualization.has(header));
+
+    const isNumericAttribute = (attribute) => {
+      if (!csvData || csvData.length === 0) return false;
+
+      const values = csvData
+        .map((row) => row?.[attribute])
+        .filter((value) => value !== undefined && value !== null && `${value}`.trim() !== '');
+
+      if (values.length === 0) return false;
+
+      return values.every((value) => !Number.isNaN(parseFloat(value)));
+    };
+
+    const categorical = [];
+    const numeric = [];
+
+    attributes.forEach((attribute) => {
+      if (isNumericAttribute(attribute)) {
+        numeric.push(attribute);
+      } else {
+        categorical.push(attribute);
+      }
+    });
+
+    return {
+      visualizationAttributes: attributes,
+      categoricalAttributes: categorical.sort(),
+      numericAttributes: numeric.sort()
+    };
+  }, [csvHeaders, csvData, excludedAttributesForVisualization]);
+
+
+  useEffect(() => {
+    if (visualizationAttributes.length === 0) {
+      setCurrentSelectedAttribute('');
+      return;
+    }
+
+    if (!visualizationAttributes.includes(currentSelectedAttribute)) {
+      setCurrentSelectedAttribute(categoricalAttributes[0] || numericAttributes[0] || '');
+    }
+  }, [visualizationAttributes, categoricalAttributes, numericAttributes, currentSelectedAttribute]);
 
   useEffect(() => {
     if (indicadoresData && indicadoresData.length > 0) {
@@ -261,7 +312,7 @@ const VisualizationMenu = ({
             {currentVisualizationType === 'attribute' ? (
               <div className="visualization-group">
                 <label>Atributo para Visualização:</label>
-                <select className="visualization-dropdown" value={currentSelectedAttribute} onChange={(e) => setCurrentSelectedAttribute(e.target.value)} disabled={!categoricalAttributes || categoricalAttributes.length === 0}>
+                <select className="visualization-dropdown" value={currentSelectedAttribute} onChange={(e) => setCurrentSelectedAttribute(e.target.value)} disabled={visualizationAttributes.length === 0}>
                   {categoricalAttributes.map(attr => (<option key={attr} value={attr}>{attr}</option>))}
                   {numericAttributes.map(attr => (<option key={attr} value={attr}>{attr}</option>))}
                 </select>
