@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#14213e",
+              "background-light": "#f6f7f8",
+              "background-dark": "#14171e",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<title>Repositório de Metadados - Governança de Dados</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<header class="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 md:px-12 py-3">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary dark:text-slate-100">
+<span class="material-symbols-outlined text-3xl font-bold">database</span>
+<h1 class="text-lg font-bold leading-tight tracking-tight">DataStack <span class="font-normal text-slate-500">Metadados</span></h1>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-medium hover:text-primary transition-colors border-b-2 border-primary pb-1" href="#">Bases</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Indicadores</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Linhagem</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Documentação</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-4 items-center">
+<div class="relative max-w-xs w-full hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-slate-500" placeholder="Buscar bases, colunas ou tags..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined text-xl">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs" data-alt="Avatar circular do usuário">
+                        JD
+                    </div>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 md:px-12 py-8">
+<div class="flex flex-col lg:flex-row gap-8">
+<aside class="w-full lg:w-64 flex flex-col gap-6 shrink-0">
+<div class="flex flex-col gap-2">
+<h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Navegação</h3>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary text-white font-medium" href="#">
+<span class="material-symbols-outlined text-xl">grid_view</span>
+                            Catálogo
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">star</span>
+                            Favoritos
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">history</span>
+                            Consultas Recentes
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">help</span>
+                            Suporte Técnico
+                        </a>
+</div>
+</div>
+<div class="flex flex-col gap-4 border-t border-slate-200 dark:border-slate-800 pt-6">
+<h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Filtros Avançados</h3>
+<div class="space-y-4">
+<div>
+<label class="text-xs font-semibold mb-2 block">Setor Institucional</label>
+<select class="w-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg text-sm">
+<option>Todos os Setores</option>
+<option>Financeiro</option>
+<option>Saúde Pública</option>
+<option>Educação</option>
+</select>
+</div>
+<div>
+<label class="text-xs font-semibold mb-2 block">Frequência de Atualização</label>
+<div class="space-y-2">
+<label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<input class="rounded text-primary focus:ring-primary border-slate-300" type="checkbox"/> Diário
+                                </label>
+<label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<input class="rounded text-primary focus:ring-primary border-slate-300" type="checkbox"/> Mensal
+                                </label>
+<label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<input class="rounded text-primary focus:ring-primary border-slate-300" type="checkbox"/> Anual
+                                </label>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<div class="flex-1">
+<div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+<div>
+<h2 class="text-3xl font-extrabold tracking-tight">Repositório de Dados Oficiais</h2>
+<p class="text-slate-500 mt-2">Acesso a 142 bases de dados curadas com documentação técnica completa.</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-xl">download</span>
+                            Exportar Catálogo
+                        </button>
+</div>
+</div>
+<section class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-10 shadow-sm">
+<div class="p-6 md:p-8">
+<div class="flex flex-col md:flex-row justify-between gap-6">
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-4">
+<span class="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">Selecionado</span>
+<span class="text-slate-400 text-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-base">verified</span>
+                                        Fonte Certificada
+                                    </span>
+</div>
+<h3 class="text-2xl font-bold mb-2">Censo Demográfico Brasileiro 2022</h3>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed mb-6">Informações detalhadas sobre a estrutura populacional, domicílios e características socioeconômicas em nível municipal e distrital.</p>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+<div>
+<p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Fonte Oficial</p>
+<p class="text-sm font-semibold">IBGE</p>
+</div>
+<div>
+<p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Última Atualização</p>
+<p class="text-sm font-semibold">27 Out 2023</p>
+</div>
+<div>
+<p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Periodicidade</p>
+<p class="text-sm font-semibold">Decenal</p>
+</div>
+<div>
+<p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Metodologia</p>
+<p class="text-sm font-semibold">Censo Universal</p>
+</div>
+</div>
+</div>
+<div class="md:w-64 flex flex-col gap-3">
+<button class="w-full py-3 bg-primary text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">api</span>
+                                    Conectar via API
+                                </button>
+<button class="w-full py-3 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined">description</span>
+                                    Dicionário de Dados
+                                </button>
+<button class="w-full py-3 border border-slate-200 dark:border-slate-600 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">download</span>
+                                    Baixar RAW (CSV)
+                                </button>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-700">
+<h4 class="text-sm font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+                                Indicadores Derivados
+                            </h4>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+<p class="text-xs text-slate-500 mb-1">Densidade Demográfica</p>
+<p class="text-xl font-bold">23.8 hab/km²</p>
+<div class="mt-2 h-1 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-3/4"></div>
+</div>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+<p class="text-xs text-slate-500 mb-1">Índice de Urbanização</p>
+<p class="text-xl font-bold">84.72%</p>
+<div class="mt-2 h-1 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-11/12"></div>
+</div>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800">
+<p class="text-xs text-slate-500 mb-1">Razão de Dependência</p>
+<p class="text-xl font-bold">44.1</p>
+<div class="mt-2 h-1 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-1/2"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-bold text-lg">Outras Bases Disponíveis</h3>
+<div class="flex items-center gap-4 text-sm text-slate-500">
+<span>Ordenado por: <b>Recentes</b></span>
+<div class="flex gap-1">
+<button class="p-1 rounded bg-slate-200 dark:bg-slate-700 text-primary">
+<span class="material-symbols-outlined text-lg">grid_view</span>
+</button>
+<button class="p-1 rounded text-slate-400">
+<span class="material-symbols-outlined text-lg">list</span>
+</button>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="group bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">payments</span>
+</div>
+<button class="text-slate-300 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">star</span>
+</button>
+</div>
+<h4 class="font-bold text-base mb-1">Índice de Preços ao Consumidor (IPC)</h4>
+<p class="text-xs text-slate-500 mb-4 line-clamp-2">Monitoramento mensal da variação de preços de uma cesta de produtos e serviços consumidos pelas famílias.</p>
+<div class="flex flex-col gap-2 pt-4 border-t border-slate-50 dark:border-slate-700">
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Fonte</span>
+<span class="font-semibold">FGV IBRE</span>
+</div>
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Atualização</span>
+<span class="font-semibold">01 Nov 2023</span>
+</div>
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Metodologia</span>
+<span class="font-semibold">Série Histórica / Amostragem</span>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">school</span>
+</div>
+<button class="text-slate-300 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">star</span>
+</button>
+</div>
+<h4 class="font-bold text-base mb-1">Censo Escolar da Educação Básica</h4>
+<p class="text-xs text-slate-500 mb-4 line-clamp-2">Levantamento estatístico educacional brasileiro sobre infraestrutura, alunos e docentes.</p>
+<div class="flex flex-col gap-2 pt-4 border-t border-slate-50 dark:border-slate-700">
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Fonte</span>
+<span class="font-semibold">INEP</span>
+</div>
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Atualização</span>
+<span class="font-semibold">20 Set 2023</span>
+</div>
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Metodologia</span>
+<span class="font-semibold">Coleta Declaratória Digital</span>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">medical_services</span>
+</div>
+<button class="text-slate-300 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-fill-1">star</span>
+</button>
+</div>
+<h4 class="font-bold text-base mb-1">Painel COVID-19 Brasil</h4>
+<p class="text-xs text-slate-500 mb-4 line-clamp-2">Série histórica de casos, óbitos, vacinação e ocupação de leitos por unidade federativa.</p>
+<div class="flex flex-col gap-2 pt-4 border-t border-slate-50 dark:border-slate-700">
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Fonte</span>
+<span class="font-semibold">Ministério da Saúde</span>
+</div>
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Atualização</span>
+<span class="font-semibold">Diária</span>
+</div>
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Metodologia</span>
+<span class="font-semibold">Notificação Compulsória</span>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">forest</span>
+</div>
+<button class="text-slate-300 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">star</span>
+</button>
+</div>
+<h4 class="font-bold text-base mb-1">PRODES - Desmatamento Amazônia</h4>
+<p class="text-xs text-slate-500 mb-4 line-clamp-2">Monitoramento por satélite do desmatamento por corte raso na Amazônia Legal.</p>
+<div class="flex flex-col gap-2 pt-4 border-t border-slate-50 dark:border-slate-700">
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Fonte</span>
+<span class="font-semibold">INPE</span>
+</div>
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Atualização</span>
+<span class="font-semibold">05 Ago 2023</span>
+</div>
+<div class="flex justify-between text-[11px]">
+<span class="text-slate-400 font-bold uppercase">Metodologia</span>
+<span class="font-semibold">Sensoriamento Remoto</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 flex justify-center">
+<nav class="flex items-center gap-1">
+<button class="p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded bg-primary text-white font-bold text-xs">1</button>
+<button class="w-8 h-8 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold">2</button>
+<button class="w-8 h-8 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold">3</button>
+<span class="px-2 text-slate-400">...</span>
+<button class="w-8 h-8 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold">12</button>
+<button class="p-2 rounded hover:bg-slate-200 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</nav>
+</div>
+</div>
+</div>
+</main>
+<footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark mt-20 py-10">
+<div class="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl font-bold">database</span>
+<span class="font-bold text-slate-400">DataStack OS © 2023</span>
+</div>
+<div class="flex gap-8">
+<a class="text-sm text-slate-500 hover:text-primary transition-colors" href="#">Termos de Uso</a>
+<a class="text-sm text-slate-500 hover:text-primary transition-colors" href="#">Privacidade</a>
+<a class="text-sm text-slate-500 hover:text-primary transition-colors" href="#">Documentação Técnica</a>
+<a class="text-sm text-slate-500 hover:text-primary transition-colors" href="#">Feedback</a>
+</div>
+</div>
+</footer>
+</body></html>

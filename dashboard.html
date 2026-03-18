@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#14213e",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#14171e",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-gradient-1 { background: linear-gradient(180deg, rgba(20, 33, 62, 0.1) 0%, rgba(20, 33, 62, 0) 100%); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-64 bg-primary text-slate-100 flex flex-col shrink-0">
+<div class="p-6 flex items-center gap-3 border-b border-white/10">
+<div class="size-10 bg-white/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white">analytics</span>
+</div>
+<div>
+<h1 class="text-sm font-bold leading-tight">Módulo Analítico</h1>
+<p class="text-[10px] text-slate-400 uppercase tracking-widest">Indicadores Municipais</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-6 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 bg-white/10 rounded-lg text-white" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-sm font-medium">Visão Geral</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-white/5 hover:text-white transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">compare_arrows</span>
+<span class="text-sm font-medium">Comparativo Transversal</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-white/5 hover:text-white transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">map</span>
+<span class="text-sm font-medium">Mapa de Desempenho</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-white/5 hover:text-white transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">timeline</span>
+<span class="text-sm font-medium">Séries Temporais</span>
+</a>
+<div class="pt-6 pb-2 px-3">
+<p class="text-[10px] font-bold text-slate-500 uppercase">Configurações</p>
+</div>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-white/5 hover:text-white transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-sm font-medium">Parâmetros</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-white/5 hover:text-white transition-colors rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl">database</span>
+<span class="text-sm font-medium">Fontes de Dados</span>
+</a>
+</nav>
+<div class="p-4 border-t border-white/10">
+<button class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-900/20">
+<span class="material-symbols-outlined text-sm font-bold">add</span>
+                    Novo Relatório
+                </button>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto scrollbar-hide">
+<header class="h-16 border-b border-slate-200 bg-white flex items-center justify-between px-8 shrink-0">
+<div class="flex items-center gap-4">
+<h2 class="text-lg font-bold text-primary">Dashboard de Performance</h2>
+<div class="h-4 w-px bg-slate-200"></div>
+<span class="text-sm text-slate-500">Última atualização: Hoje, 08:45</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 w-64 transition-all" placeholder="Buscar município..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-slate-100 rounded-lg text-slate-600">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 hover:bg-slate-100 rounded-lg text-slate-600">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+<div class="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
+<span class="text-xs font-bold text-primary">JS</span>
+</div>
+</div>
+</header>
+<div class="p-8 space-y-6">
+<div class="flex flex-col lg:flex-row justify-between gap-4">
+<div>
+<h1 class="text-3xl font-black tracking-tight text-slate-900">Visualização Analítica</h1>
+<p class="text-slate-500 mt-1">Comparativo de performance entre 5.570 municípios brasileiros.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex bg-white border border-slate-200 rounded-lg p-1">
+<button class="p-2 hover:bg-slate-50 text-slate-600 rounded">
+<span class="material-symbols-outlined">add</span>
+</button>
+<div class="w-px bg-slate-200 my-1"></div>
+<button class="p-2 hover:bg-slate-50 text-slate-600 rounded">
+<span class="material-symbols-outlined">remove</span>
+</button>
+</div>
+<button class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-bold">
+<span class="material-symbols-outlined text-sm">location_on</span>
+                            Gerenciar Matriz de Comparação
+                        </button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Média de Performance</p>
+<div class="flex items-end justify-between mt-2">
+<p class="text-3xl font-bold text-slate-900">7.24</p>
+<span class="text-emerald-500 text-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> 4.5%
+                            </span>
+</div>
+</div>
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Municípios Ativos</p>
+<div class="flex items-end justify-between mt-2">
+<p class="text-3xl font-bold text-slate-900">1.240</p>
+<span class="text-slate-400 text-sm font-medium">de 5.570</span>
+</div>
+</div>
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Cluster</p>
+<div class="flex items-end justify-between mt-2">
+<p class="text-3xl font-bold text-slate-900">Sul</p>
+<span class="text-primary/60 text-sm font-medium">Região</span>
+</div>
+</div>
+<div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-primary">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Status de Processamento</p>
+<div class="flex items-center gap-2 mt-2">
+<div class="size-2 bg-emerald-500 rounded-full animate-pulse"></div>
+<p class="text-lg font-bold text-slate-900 leading-none">Tempo Real</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-6">
+<div class="col-span-12 lg:col-span-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-bold text-slate-800">Evolução Temporal do IDEB</h3>
+<div class="flex gap-2">
+<span class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+<span class="size-2 rounded-full bg-primary"></span> Curitiba
+                                </span>
+<span class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+<span class="size-2 rounded-full bg-blue-400"></span> Florianópolis
+                                </span>
+<span class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+<span class="size-2 rounded-full bg-slate-300"></span> Média Nacional
+                                </span>
+</div>
+</div>
+<div class="h-64 relative flex items-end justify-between px-2">
+<div class="flex-1 flex flex-col justify-end items-center group h-full relative">
+<div class="w-full border-b border-dashed border-slate-100 absolute top-1/4"></div>
+<div class="w-full border-b border-dashed border-slate-100 absolute top-2/4"></div>
+<div class="w-full border-b border-dashed border-slate-100 absolute top-3/4"></div>
+<div class="flex gap-1 h-3/4 items-end">
+<div class="w-3 bg-primary rounded-t opacity-80" style="height: 80%"></div>
+<div class="w-3 bg-blue-400 rounded-t opacity-80" style="height: 65%"></div>
+<div class="w-3 bg-slate-200 rounded-t opacity-80" style="height: 50%"></div>
+</div>
+<span class="mt-4 text-[10px] font-bold text-slate-400 uppercase">2019</span>
+</div>
+<div class="flex-1 flex flex-col justify-end items-center group h-full relative">
+<div class="flex gap-1 h-3/4 items-end">
+<div class="w-3 bg-primary rounded-t opacity-80" style="height: 85%"></div>
+<div class="w-3 bg-blue-400 rounded-t opacity-80" style="height: 70%"></div>
+<div class="w-3 bg-slate-200 rounded-t opacity-80" style="height: 52%"></div>
+</div>
+<span class="mt-4 text-[10px] font-bold text-slate-400 uppercase">2020</span>
+</div>
+<div class="flex-1 flex flex-col justify-end items-center group h-full relative">
+<div class="flex gap-1 h-3/4 items-end">
+<div class="w-3 bg-primary rounded-t opacity-80" style="height: 75%"></div>
+<div class="w-3 bg-blue-400 rounded-t opacity-80" style="height: 72%"></div>
+<div class="w-3 bg-slate-200 rounded-t opacity-80" style="height: 48%"></div>
+</div>
+<span class="mt-4 text-[10px] font-bold text-slate-400 uppercase">2021</span>
+</div>
+<div class="flex-1 flex flex-col justify-end items-center group h-full relative">
+<div class="flex gap-1 h-3/4 items-end">
+<div class="w-3 bg-primary rounded-t opacity-80" style="height: 92%"></div>
+<div class="w-3 bg-blue-400 rounded-t opacity-80" style="height: 78%"></div>
+<div class="w-3 bg-slate-200 rounded-t opacity-80" style="height: 55%"></div>
+</div>
+<span class="mt-4 text-[10px] font-bold text-slate-400 uppercase">2022</span>
+</div>
+<div class="flex-1 flex flex-col justify-end items-center group h-full relative">
+<div class="flex gap-1 h-3/4 items-end">
+<div class="w-3 bg-primary rounded-t opacity-80" style="height: 95%"></div>
+<div class="w-3 bg-blue-400 rounded-t opacity-80" style="height: 85%"></div>
+<div class="w-3 bg-slate-200 rounded-t opacity-80" style="height: 58%"></div>
+</div>
+<span class="mt-4 text-[10px] font-bold text-slate-400 uppercase">2023</span>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-bold text-slate-800">Ranking Geral</h3>
+<button class="text-xs font-bold text-primary hover:underline">Ver Todos</button>
+</div>
+<div class="space-y-4 flex-1">
+<div class="flex items-center gap-4">
+<span class="text-lg font-black text-primary/30 w-6">01</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-800">Curitiba, PR</p>
+<p class="text-xs text-slate-500">IDHM: 0.823</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-slate-900">9.8</p>
+<div class="w-16 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
+<div class="h-full bg-primary" style="width: 98%"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-lg font-black text-primary/30 w-6">02</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-800">Florianópolis, SC</p>
+<p class="text-xs text-slate-500">IDHM: 0.847</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-slate-900">9.5</p>
+<div class="w-16 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
+<div class="h-full bg-primary" style="width: 95%"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-lg font-black text-primary/30 w-6">03</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-800">São Caetano do Sul, SP</p>
+<p class="text-xs text-slate-500">IDHM: 0.862</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-slate-900">9.2</p>
+<div class="w-16 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
+<div class="h-full bg-primary" style="width: 92%"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-lg font-black text-primary/30 w-6">04</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-800">Belo Horizonte, MG</p>
+<p class="text-xs text-slate-500">IDHM: 0.810</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-slate-900">8.9</p>
+<div class="w-16 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
+<div class="h-full bg-primary" style="width: 89%"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-lg font-black text-primary/30 w-6">05</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-800">Vitória, ES</p>
+<p class="text-xs text-slate-500">IDHM: 0.845</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-slate-900">8.7</p>
+<div class="w-16 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
+<div class="h-full bg-primary" style="width: 87%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-7 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-bold text-slate-800">Comparativo por Pilar de Gestão</h3>
+<select class="text-xs font-bold border-slate-200 rounded-lg py-1 px-3 bg-slate-50 text-slate-600 focus:ring-primary/20">
+<option>Saúde</option>
+<option>Educação</option>
+<option>Segurança</option>
+<option>Saneamento</option>
+</select>
+</div>
+<div class="space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold text-slate-600">
+<span>Infraestrutura Escolar</span>
+<span>72%</span>
+</div>
+<div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all" style="width: 72%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold text-slate-600">
+<span>Capacitação Docente</span>
+<span>88%</span>
+</div>
+<div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all" style="width: 88%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold text-slate-600">
+<span>Taxa de Evasão</span>
+<span>12%</span>
+</div>
+<div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all" style="width: 12%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold text-slate-600">
+<span>Investimento per Capita</span>
+<span>45%</span>
+</div>
+<div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all" style="width: 45%"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-5 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-bold text-slate-800">Performance Multidimensional</h3>
+<button class="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+<div class="flex-1 flex items-center justify-center relative py-4">
+<div class="size-48 rounded-full border-4 border-slate-100 relative flex items-center justify-center">
+<div class="absolute inset-0 rounded-full border border-slate-200 scale-75"></div>
+<div class="absolute inset-0 rounded-full border border-slate-200 scale-50"></div>
+<div class="absolute inset-0 rounded-full border border-slate-200 scale-25"></div>
+<svg class="w-40 h-40 transform rotate-12 text-primary opacity-20 fill-current" viewbox="0 0 100 100">
+<polygon points="50,1 95,25 95,75 50,99 5,75 5,25"></polygon>
+</svg>
+<svg class="absolute w-32 h-32 transform -rotate-12 text-primary fill-current" viewbox="0 0 100 100">
+<polygon points="50,15 80,35 75,70 45,85 20,60"></polygon>
+</svg>
+<span class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-500 uppercase">Saúde</span>
+<span class="absolute top-1/4 -right-12 text-[10px] font-bold text-slate-500 uppercase">Educação</span>
+<span class="absolute bottom-1/4 -right-12 text-[10px] font-bold text-slate-500 uppercase">Finanças</span>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-slate-500 uppercase">Sociedade</span>
+<span class="absolute bottom-1/4 -left-12 text-[10px] font-bold text-slate-500 uppercase">Gestão</span>
+<span class="absolute top-1/4 -left-12 text-[10px] font-bold text-slate-500 uppercase">Inovação</span>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-slate-100">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-500 text-sm">warning</span>
+<p class="text-xs text-slate-600">Foco necessário em <span class="font-bold">Saneamento e Inovação</span> para Curitiba.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-primary/5 rounded-xl border border-primary/10 p-4 flex flex-wrap items-center gap-4">
+<span class="text-xs font-bold text-primary uppercase">Municípios em Comparação:</span>
+<div class="flex flex-wrap gap-2">
+<div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
+<span class="text-xs font-medium text-slate-700">Curitiba</span>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xs">close</span>
+</button>
+</div>
+<div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
+<span class="text-xs font-medium text-slate-700">Florianópolis</span>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xs">close</span>
+</button>
+</div>
+<div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
+<span class="text-xs font-medium text-slate-700">Vitória</span>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xs">close</span>
+</button>
+</div>
+<button class="flex items-center gap-1 bg-white border border-dashed border-slate-300 px-3 py-1.5 rounded-full text-slate-400 hover:border-primary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-xs">add</span>
+<span class="text-xs font-bold">Adicionar</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sisinfo Documentation - Wiki</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#14213e",
+                "background-light": "#f6f7f8",
+                "background-dark": "#14171e",
+              },
+              fontFamily: {
+                "display": ["Inter", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .prose h1, .prose h2, .prose h3 { color: #14213e; font-weight: 700; }
+        .sidebar-item-active { background-color: rgba(255, 255, 255, 0.1); border-left: 4px solid #fff; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex h-screen overflow-hidden">
+<aside class="w-72 bg-primary text-white flex flex-col h-full flex-shrink-0">
+<div class="p-6 border-b border-white/10 flex items-center gap-3">
+<div class="size-8 bg-white/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white">menu_book</span>
+</div>
+<div>
+<h1 class="font-bold text-lg leading-none">Sisinfo Wiki</h1>
+<span class="text-xs text-white/50 uppercase tracking-wider">Documentação v2.1.0</span>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto py-6">
+<div class="px-4 mb-6">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-sm">search</span>
+<input class="w-full bg-white/5 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-1 focus:ring-white/20 placeholder:text-white/30" placeholder="Pesquisar manual..." type="text"/>
+</div>
+</div>
+<div class="space-y-1 px-2">
+<div class="text-white/40 text-[10px] font-bold uppercase tracking-widest px-4 mb-2">Introdução</div>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg sidebar-item-active transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">info</span>
+<span class="text-sm font-medium">O que é o Sisinfo</span>
+</a>
+<div class="text-white/40 text-[10px] font-bold uppercase tracking-widest px-4 mt-6 mb-2">Metodologia</div>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl text-white/60">description</span>
+<span class="text-sm font-medium">Notas Metodológicas</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl text-white/60">analytics</span>
+<span class="text-sm font-medium">Cálculo de Indicadores</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl text-white/60">database</span>
+<span class="text-sm font-medium">Fontes de Dados</span>
+</a>
+<div class="text-white/40 text-[10px] font-bold uppercase tracking-widest px-4 mt-6 mb-2">Administração</div>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl text-white/60">settings</span>
+<span class="text-sm font-medium">Configurações</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl text-white/60">group</span>
+<span class="text-sm font-medium">Gestão de Usuários</span>
+</a>
+</div>
+</nav>
+<div class="p-4 border-t border-white/10">
+<div class="flex items-center gap-3 p-2 bg-white/5 rounded-xl">
+<div class="size-8 rounded-lg bg-primary border border-white/20 overflow-hidden flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">person</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-semibold truncate">Admin User</p>
+<p class="text-[10px] text-white/40 truncate">admin@sisinfo.gov</p>
+</div>
+<span class="material-symbols-outlined text-white/40 text-lg">logout</span>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-900">
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 flex-shrink-0">
+<div class="flex items-center gap-2 text-sm text-slate-500">
+<a class="hover:text-primary transition-colors" href="#">Home</a>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-100 font-medium">O que é o Sisinfo</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 transition-colors">
+<span class="material-symbols-outlined">print</span>
+</button>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+<div class="h-6 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2"></div>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">edit</span>
+                        Sugerir Edição
+                    </button>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto px-8 py-12">
+<div class="max-w-4xl mx-auto">
+<div class="mb-12">
+<div class="flex items-center gap-2 mb-4">
+<span class="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded uppercase tracking-wide">Visão Geral</span>
+<span class="text-slate-400 text-xs italic">Última atualização em: 15 de Outubro de 2023</span>
+</div>
+<h1 class="text-4xl font-extrabold text-primary mb-4">O que é o Sisinfo</h1>
+<p class="text-xl text-slate-500 leading-relaxed font-light">
+                            O Sisinfo é a plataforma central integradora de dados socioeconômicos e indicadores de performance governamental, projetada para facilitar a tomada de decisão baseada em evidências.
+                        </p>
+</div>
+<article class="prose prose-slate max-w-none prose-headings:text-primary prose-a:text-primary">
+<div class="relative w-full h-[400px] mb-12 rounded-2xl overflow-hidden shadow-xl">
+<img class="w-full h-full object-cover" data-alt="Dashboard interface with financial charts and data visualizations" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_UEzz8t515S922Ph809wmSu3Bn_UyMo49h8rmW5eYPvJEqqatVrHad17EtGuQ-ro34DV-xxqjdUcP63nlz2I2n4AhvSl83GARnYtYWMPmfiRjUjMphXA3yasAO80W04hFKNlQSdt3WT0oNVDvCI1Ks6Mf1whcG17wbgXzgnt7M0jN1RdXtXycC72vk5YepAwiFMBlBKYUXF0Wa4nXqre3Byt0IxmNYMmov6vzyI2f-6nMvycVnAGLHfDdwl_RDThjtM1kCoSNIX0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent flex items-end p-8">
+<p class="text-white text-sm font-medium italic opacity-90">Figura 1: Interface principal do Sisinfo Dashboard v2.0</p>
+</div>
+</div>
+<h2 class="text-2xl font-bold mb-4 mt-8">Visão Geral do Sistema</h2>
+<p class="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
+                            Desenvolvido para atender às necessidades de transparência e eficiência, o Sisinfo consolida múltiplas fontes de dados em um único repositório normalizado. O sistema opera sob três pilares fundamentais: integridade, acessibilidade e análise preditiva.
+                        </p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-10">
+<div class="p-6 bg-background-light dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+<span class="material-symbols-outlined text-primary mb-3 block">sync</span>
+<h3 class="font-bold text-sm mb-2">Integração Real-time</h3>
+<p class="text-xs text-slate-500">Sincronização automática com bases de dados ministeriais e municipais a cada 6 horas.</p>
+</div>
+<div class="p-6 bg-background-light dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+<span class="material-symbols-outlined text-primary mb-3 block">security</span>
+<h3 class="font-bold text-sm mb-2">LGPD Compliance</h3>
+<p class="text-xs text-slate-500">Camadas rigorosas de anonimização e criptografia para proteção de dados sensíveis.</p>
+</div>
+<div class="p-6 bg-background-light dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+<span class="material-symbols-outlined text-primary mb-3 block">rocket_launch</span>
+<h3 class="font-bold text-sm mb-2">Insights IA</h3>
+<p class="text-xs text-slate-500">Motor de inteligência artificial que detecta anomalias e tendências automaticamente.</p>
+</div>
+</div>
+<h2 class="text-2xl font-bold mb-4 mt-12">Principais Funcionalidades</h2>
+<p class="text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
+                            O ecossistema Sisinfo é composto por diversos módulos independentes, mas totalmente integrados:
+                        </p>
+<ul class="list-disc pl-6 space-y-3 text-slate-700 dark:text-slate-300 mb-8">
+<li><strong>Explorer:</strong> Ferramenta de descoberta de dados brutos com filtros avançados.</li>
+<li><strong>Monitor:</strong> Dashboards customizáveis para acompanhamento de KPIs em tempo real.</li>
+<li><strong>Report Builder:</strong> Gerador automático de relatórios em PDF/Excel com templates institucionais.</li>
+<li><strong>Audit:</strong> Log completo de acessos e modificações de dados para governança.</li>
+</ul>
+<div class="bg-primary/5 border-l-4 border-primary p-6 my-10 rounded-r-xl">
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-primary">lightbulb</span>
+<div>
+<h4 class="font-bold text-primary mb-1">Dica de Utilização</h4>
+<p class="text-sm text-slate-600 dark:text-slate-400">Para usuários avançados, o Sisinfo disponibiliza uma API RESTful completa. Consulte a seção de <a class="font-bold underline" href="#">Notas Metodológicas</a> para entender a estrutura dos endpoints.</p>
+</div>
+</div>
+</div>
+<h2 class="text-2xl font-bold mb-4 mt-12">Notas Metodológicas e Dados</h2>
+<p class="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
+                            Cada dado exibido no Sisinfo passa por um processo rigoroso de validação e limpeza (ETL). Os cálculos seguem as normas internacionais de estatística pública, garantindo que o indicador de um município possa ser comparado diretamente com o de outro, respeitando as sazonalidades e pesos regionais.
+                        </p>
+</article>
+<div class="mt-20 pt-10 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+<a class="group flex flex-col items-start gap-1" href="#">
+<span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Anterior</span>
+<div class="flex items-center gap-2 text-primary font-bold group-hover:-translate-x-1 transition-transform">
+<span class="material-symbols-outlined">arrow_back</span>
+<span>Guia de Boas-Vindas</span>
+</div>
+</a>
+<a class="group flex flex-col items-end gap-1" href="#">
+<span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Próximo</span>
+<div class="flex items-center gap-2 text-primary font-bold group-hover:translate-x-1 transition-transform">
+<span>Notas Metodológicas</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</div>
+</a>
+</div>
+</div>
+</div>
+</main>
+<aside class="w-64 bg-background-light dark:bg-background-dark border-l border-slate-200 dark:border-slate-800 hidden xl:flex flex-col p-8 overflow-y-auto">
+<h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Nesta Página</h4>
+<nav class="space-y-3">
+<a class="block text-sm text-primary font-semibold border-l-2 border-primary pl-4" href="#">Visão Geral</a>
+<a class="block text-sm text-slate-500 hover:text-primary pl-4 border-l-2 border-transparent transition-colors" href="#">Funcionalidades</a>
+<a class="block text-sm text-slate-500 hover:text-primary pl-4 border-l-2 border-transparent transition-colors" href="#">Notas Metodológicas</a>
+<a class="block text-sm text-slate-500 hover:text-primary pl-4 border-l-2 border-transparent transition-colors" href="#">Dicas de Utilização</a>
+</nav>
+<div class="mt-12 p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+<span class="material-symbols-outlined text-primary mb-2">help</span>
+<h5 class="text-xs font-bold mb-1">Ainda com dúvidas?</h5>
+<p class="text-[10px] text-slate-500 mb-3">Nossa equipe de suporte técnico está disponível das 9h às 18h.</p>
+<button class="w-full py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold rounded-lg hover:bg-slate-200 transition-colors">
+                    Falar com Suporte
+                </button>
+</div>
+</aside>
+</div>
+</body></html>
