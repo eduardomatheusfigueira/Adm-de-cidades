@@ -90,3 +90,90 @@ Contribuições para estender as capacidades analíticas, adicionar novos indica
 3.  Faça o Commit de suas mudanças (`git commit -m 'feat: Adiciona MinhaFeature'`).
 4.  Faça o Push para a Branch (`git push origin feature/MinhaFeature`).
 5.  Abra um Pull Request.
+
+## 🚀 Roadmap de Evolução e Correções (Situação Atual vs. Ideal)
+
+Este documento descreve uma visão técnica e estratégica detalhada para levar o **Adm-de-Cidades** do seu estado atual (MVP avançado / Protótipo) para uma plataforma de nível de produção (*Enterprise/GovTech ready*).
+
+> **Novo:** Confira também o nosso [**Roadmap de UI/UX e Modernização de Interface (Design System 2.0)**](ROADMAP_UI_UX.md) detalhando a evolução visual de cada página com protótipos de alta fidelidade!
+
+---
+
+### 1. Arquitetura e Gerenciamento de Estado
+
+**Situação Atual:**
+*   A aplicação depende fortemente do React Context API (`DataContext`, `MapContext`, `UIContext`) para gerenciar dados volumosos (CSVs, GeoJSONs) e estados complexos.
+*   Isso frequentemente leva a re-renderizações desnecessárias (performance bottleneck) e dificulta o rastreamento de mudanças em objetos profundos.
+*   Acoplamento alto entre a lógica de negócio e os componentes da interface.
+
+**Situação Ideal (Evolução & Correções):**
+*   **Migração de Estado Global (Redux Toolkit / Zustand):** Adotar um gerenciador de estado mais robusto e otimizado para lidar com grandes volumes de dados de forma reativa e seletiva. O Zustand é altamente recomendado pela sua simplicidade e baixo overhead, ou Redux Toolkit para uma estrutura mais rígida e *time-travel debugging*.
+*   **Data Fetching & Caching (React Query / SWR):** Delegar a responsabilidade do `DataContext` de buscar e processar dados remotos para ferramentas especializadas. Isso proverá cache out-of-the-box, background fetching, e states de `loading/error` nativos, tornando a UI muito mais resiliente.
+*   **Web Workers para Processamento Intensivo:** A carga computacional do *parsing* do CSV (`PapaParse`) e processamento geoespacial pesado (Turf.js) deve ser movida para *Web Workers*. Atualmente, processar milhares de geometrias na thread principal bloqueia a UI (congelamento de tela).
+*   **Separação de Preocupações (Clean Architecture):** Extrair a lógica de cálculo (ex: `colorUtils.js`) e manipulação de mapas para *services* ou *hooks* customizados puros, mantendo os componentes React estritamente voltados à apresentação.
+
+---
+
+### 2. Tratamento e Persistência de Dados (O Editor de Cidades)
+
+**Situação Atual:**
+*   A arquitetura é primariamente *Client-Side*. Os dados são lidos em memória via arquivos estáticos.
+*   Funcionalidades como o `CityEditor.jsx` geram falsas expectativas, pois os dados mutados (inseridos, alterados, excluídos) não são persistidos. Ao recarregar a página, as edições são perdidas.
+*   Falta de tipagem estrita para os dados de entrada.
+
+**Situação Ideal (Evolução & Correções):**
+*   **Backend e Banco de Dados Real (BFF / API Gateway):** Implementar um *Backend for Frontend* (BFF) em Node.js (NestJS ou Express) ou Python (FastAPI).
+*   **Banco de Dados Geoespacial (PostGIS):** Migrar de arquivos estáticos (GeoJSON/CSV) para um banco de dados relacional (PostgreSQL + PostGIS). Isso permite queries espaciais ultra-rápidas (ex: "encontre todos os municípios neste raio com PIB > X"), agregações no lado do servidor, e resolve o problema de persistência do `CityEditor`.
+*   **Integração com TypeScript:** Refatorar o projeto de JavaScript (`.jsx`) para TypeScript (`.tsx`). Isso eliminará milhares de potenciais erros de *runtime* relacionados ao formato inconsistente das bases de dados públicas brasileiras (strings no lugar de números, valores nulos, etc).
+*   **Autenticação e Autorização (RBAC):** Para habilitar o módulo de edição de dados em produção, será fundamental um sistema de login (JWT / OAuth2), garantindo que apenas administradores autenticados alterem a base.
+
+---
+
+### 3. Engine de Mapas e Geoespacial (Mapbox e Turf.js)
+
+**Situação Atual:**
+*   Uso competente do Mapbox GL JS, porém as geometrias completas do Brasil (milhares de polígonos complexos) são carregadas frequentemente do cliente para o motor do Mapbox via `addSource`.
+*   Problemas de performance em dispositivos móveis ou com hardware inferior quando muitos *layers* são ligados.
+
+**Situação Ideal (Evolução & Correções):**
+*   **Vector Tiles Dinâmicos (Martin / Tegola / Mapbox Studio):** A evolução mais crítica para a UI. Em vez de enviar megabytes de GeoJSON para o browser, o servidor deve servir *Vector Tiles* (MVT). A aplicação apenas requisitará os *tiles* visíveis na tela atual. Isso permite renderizar milhões de pontos e polígonos a 60 FPS.
+*   **Clustering Avançado (Supercluster):** Para bases de dados baseadas em pontos (ex: escolas, hospitais do DATASUS), implementar clusterização dinâmica nativa da engine do mapa baseada no nível de zoom.
+*   **Camadas Base (Basemaps) Customizadas:** Aumentar as opções de estilo de mapa (Satélite, Dark Mode, Topográfico), controladas pelo `UIContext`.
+
+---
+
+### 4. Engenharia de Dados (ETL) e Automação de Ingestão
+
+**Situação Atual:**
+*   O painel de ETL e Catálogo atua mais como documentação (redirecionando para buscas no Google ou links manuais). O usuário precisa baixar os dados, formatá-los no padrão "SysInfo" e injetar na aplicação manualmente.
+
+**Situação Ideal (Evolução & Correções):**
+*   **Pipeline de Ingestão Automatizada (Apache Airflow / Prefect):** O módulo ETL deve ser desacoplado do Frontend. Um sistema de orquestração externo deve periodicamente (mensal/anual) bater nas APIs do IBGE, FINBRA e DATASUS, realizar o download, limpeza, transformação (*cleaning, deduplication, normalization*) e popular automaticamente o banco de dados (PostGIS).
+*   **Padronização Dinâmica (Schema Mapping):** Se a carga de CSV manual permanecer, a interface do ETL deve possuir uma ferramenta visual de "De-Para" (mapeamento de colunas), permitindo que o usuário envie um CSV do IBGE puro e aponte visualmente qual coluna é o código IBGE, qual é o valor e qual é o ano, sem precisar editar o arquivo no Excel antes.
+
+---
+
+### 5. Qualidade de Código, Testes e CI/CD
+
+**Situação Atual:**
+*   Conforme o `package.json`, **"No automated tests configured"**. A confiabilidade da plataforma se baseia puramente em testes manuais ("olhar e ver se funciona").
+*   Falta de padronização rígida de código.
+
+**Situação Ideal (Evolução & Correções):**
+*   **Testes Unitários (Vitest / Jest + React Testing Library):** Cobertura obrigatória para funções críticas de utilidade (ex: `colorUtils.js`, parsers de CSV) e componentes de UI essenciais. A regra de negócio não pode quebrar.
+*   **Testes E2E (Playwright / Cypress):** Testes de ponta-a-ponta validando fluxos críticos: "Usuário abre o sistema -> Clica em São Paulo -> Verifica se o painel lateral abriu e carregou o PIB".
+*   **Linter e Formatador Rigorosos:** Implementação de ESLint e Prettier integrados aos *Git Hooks* (Husky) para garantir que código fora do padrão nunca seja comitado.
+*   **CI/CD Pipeline (GitHub Actions / GitLab CI):** Automação total: a cada *push*, o código é compilado, tipado (se TS for adotado), os testes rodam e o *build* (Vite) é gerado e publicado em *staging*.
+
+---
+
+### 6. UI/UX e Visualização de Dados (DataViz)
+
+**Situação Atual:**
+*   Telas funcionais usando Recharts e D3.js, mas o layout pode parecer sobrecarregado (muita informação simultânea na barra inferior) e a paleta de cores pode gerar problemas de acessibilidade (daltonismo).
+
+**Situação Ideal (Evolução & Correções):**
+*   **Acessibilidade (a11y) e Paletas Colorblind-Safe:** As escalas do D3.js devem obrigatoriamente adotar paletas `colorblind-safe` (ex: Viridis, Cividis ou paletas do ColorBrewer projetadas para acessibilidade). Elementos do DOM devem ter atributos ARIA para leitores de tela.
+*   **Storytelling de Dados (Scrollytelling):** Transformar *dashboards* estáticos em narrativas. Exemplo: Uma seção onde o usuário rola a tela e o mapa foca automaticamente nas capitais, explicando anomalias do PIB.
+*   **Exportação de Relatórios e Gráficos:** Implementar capacidade de gerar PDFs consolidados ou baixar os gráficos do Recharts como imagens (PNG/SVG) para que pesquisadores possam anexar facilmente em seus estudos.
+*   **Responsividade Extrema:** Garantir que todos os modais, tabelas flutuantes e botões de controle sobre o mapa funcionem e sejam ergonomicamente agradáveis em telas de smartphones (Touch-first UI).

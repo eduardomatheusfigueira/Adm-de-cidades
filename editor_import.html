@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Adm-de-Cidades - Importação de Indicadores</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#14213d",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#14171e",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4d3a31; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-primary/20 bg-white dark:bg-background-dark px-10 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4">
+<img src="public/logo_blue.png" class="h-8 w-auto dark:hidden" alt="SisInfo" />
+<img src="public/logo_white.png" class="h-8 w-auto hidden dark:block" alt="SisInfo" />
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">Módulo ETL</h2>
+</div>
+<nav class="flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Indicadores</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Geometrias</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Ajustes</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 text-slate-900 dark:text-white placeholder:text-slate-400" placeholder="Buscar indicadores..." type="text"/>
+</div>
+<div class="h-10 w-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center font-bold text-xs text-primary">AD</div>
+</div>
+</header>
+<main class="flex-1 p-8 opacity-40 select-none pointer-events-none">
+<div class="max-w-6xl mx-auto space-y-6">
+<div class="flex justify-between items-end">
+<div>
+<h1 class="text-3xl font-bold">Catálogo de Indicadores</h1>
+<p class="text-slate-500">Gerenciamento central de métricas urbanas e base de dados.</p>
+</div>
+<button class="bg-primary text-white px-6 py-2.5 rounded-lg font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined">add</span> Novo Arquivo
+                    </button>
+</div>
+<div class="grid grid-cols-4 gap-4">
+<div class="bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
+<p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Total de Indicadores</p>
+<p class="text-2xl font-bold mt-1">1,284</p>
+</div>
+<div class="bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
+<p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Ativos</p>
+<p class="text-2xl font-bold mt-1 text-green-500">842</p>
+</div>
+<div class="bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
+<p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Aguardando Revisão</p>
+<p class="text-2xl font-bold mt-1 text-primary">12</p>
+</div>
+<div class="bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
+<p class="text-xs uppercase tracking-wider text-slate-500 font-bold">Fontes (IBGE/SNIS/FINBRA)</p>
+<p class="text-2xl font-bold mt-1">45</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Overlay / Modal Backdrop -->
+<div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+<!-- Modal Container -->
+<div class="bg-white dark:bg-background-dark w-full max-w-4xl rounded-2xl border border-slate-200 dark:border-primary/30 shadow-2xl flex flex-col max-h-[921px]">
+<!-- Modal Header -->
+<div class="p-6 border-b border-slate-200 dark:border-primary/20 flex justify-between items-center">
+<div>
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white">Importação em Massa (CSV)</h2>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-primary font-bold text-sm">Passo 2 de 3</span>
+<span class="text-slate-400 text-sm">•</span>
+<span class="text-slate-500 dark:text-slate-400 text-sm italic">Mapeie as colunas do arquivo para os campos do sistema.</span>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-3xl">close</span>
+</button>
+</div>
+<!-- Stepper Progress Bar -->
+<div class="px-6 py-4 bg-slate-50 dark:bg-primary/5 flex items-center gap-0">
+<div class="flex items-center gap-2 flex-1 opacity-60">
+<div class="size-6 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">1</div>
+<span class="text-sm font-medium">Upload de Arquivo</span>
+<div class="h-px bg-slate-300 dark:bg-slate-700 flex-1 mx-4"></div>
+</div>
+<div class="flex items-center gap-2 flex-1">
+<div class="size-6 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-primary/20">2</div>
+<span class="text-sm font-bold text-slate-900 dark:text-white">Mapeamento Dinâmico</span>
+<div class="h-px bg-slate-300 dark:bg-slate-700 flex-1 mx-4"></div>
+</div>
+<div class="flex items-center gap-2 opacity-40">
+<div class="size-6 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">3</div>
+<span class="text-sm font-medium">Validação e Ingestão</span>
+</div>
+</div>
+<!-- Modal Content - Scrollable area -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-6">
+<div class="space-y-6">
+<div class="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-xl">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-500">description</span>
+<div>
+<p class="text-sm font-bold text-blue-900 dark:text-blue-100 uppercase tracking-tight">Arquivo Atual</p>
+<p class="text-sm text-blue-700 dark:text-blue-300">relatorio_finbra_2022.csv (4.2 MB)</p>
+</div>
+</div>
+<button class="text-xs font-bold text-blue-600 dark:text-blue-400 underline uppercase tracking-widest hover:text-blue-800">Trocar Arquivo</button>
+</div>
+<div class="rounded-xl border border-slate-200 dark:border-primary/20 overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead class="bg-slate-50 dark:bg-primary/10">
+<tr>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Coluna do Arquivo (CSV)</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Amostra do Dado</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Mapear para Campo do SisInfo</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-primary/10">
+<tr class="bg-white dark:bg-transparent">
+<td class="px-4 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">COD_IBGE</td>
+<td class="px-4 py-4 text-sm text-slate-400 italic">"3550308"</td>
+<td class="px-4 py-4">
+<select class="w-full bg-slate-50 dark:bg-primary/5 border-slate-200 dark:border-primary/20 rounded-lg text-sm focus:ring-primary focus:border-primary py-2">
+<option selected="" value="name">Código IBGE</option>
+<option value="year">Ano</option>
+<option value="value">Valor Nominal</option>
+<option value="ignore">-- Ignorar Coluna --</option>
+</select>
+</td>
+</tr>
+<tr class="bg-slate-50/50 dark:bg-primary/5">
+<td class="px-4 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">Ano_Referencia</td>
+<td class="px-4 py-4 text-sm text-slate-400 italic">"2022"</td>
+<td class="px-4 py-4">
+<select class="w-full bg-slate-50 dark:bg-primary/5 border-slate-200 dark:border-primary/20 rounded-lg text-sm focus:ring-primary focus:border-primary py-2">
+<option value="name">Código IBGE</option>
+<option selected="" value="year">Ano de Referência</option>
+<option value="value">Valor Nominal</option>
+<option value="ignore">-- Ignorar Coluna --</option>
+</select>
+</td>
+</tr>
+<tr class="bg-white dark:bg-transparent">
+<td class="px-4 py-4 text-sm font-mono text-slate-600 dark:text-slate-300">Receitas_Correntes_RS</td>
+<td class="px-4 py-4 text-sm text-slate-400 italic">"45212399.12"</td>
+<td class="px-4 py-4">
+<select class="w-full bg-slate-50 dark:bg-primary/5 border-slate-200 dark:border-primary/20 rounded-lg text-sm focus:ring-primary focus:border-primary py-2">
+<option value="name">Código IBGE</option>
+<option value="year">Ano</option>
+<option selected="" value="value">Indicador: Receitas Correntes</option>
+<option value="ignore">-- Ignorar Coluna --</option>
+</select>
+</td>
+</tr>
+<tr class="bg-slate-50/50 dark:bg-primary/5">
+<td class="px-4 py-4 text-sm font-mono text-slate-400 dark:text-slate-500 line-through">UF_Sigla</td>
+<td class="px-4 py-4 text-sm text-slate-400 italic">"SP"</td>
+<td class="px-4 py-4">
+<select class="w-full bg-slate-50 dark:bg-primary/5 border-slate-200 dark:border-primary/20 rounded-lg text-sm focus:ring-primary focus:border-primary py-2">
+<option selected="" value="ignore">-- Ignorar (Derivado do IBGE) --</option>
+<option value="name">Código IBGE</option>
+</select>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="flex items-start gap-3 p-4 bg-orange-50 dark:bg-primary/10 border border-orange-100 dark:border-primary/20 rounded-xl">
+<span class="material-symbols-outlined text-primary">warning</span>
+<p class="text-sm text-orange-800 dark:text-orange-200">
+<span class="font-bold">Aviso:</span> O campo numérico "Receitas_Correntes_RS" contém separadores de milhar em formato diferente do sistema. O módulo tentará sanitizar os valores durante a ingestão.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-6 border-t border-slate-200 dark:border-primary/20 bg-slate-50 dark:bg-background-dark flex items-center justify-between rounded-b-2xl">
+<button class="px-6 py-2.5 rounded-lg border border-slate-300 dark:border-primary/30 text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-primary/5 transition-all">
+                        Cancelar
+                    </button>
+<div class="flex items-center gap-4">
+<button class="px-6 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 font-semibold hover:text-primary transition-all flex items-center gap-2">
+<span class="material-symbols-outlined">arrow_back</span> Voltar
+                        </button>
+<button class="bg-primary hover:bg-primary/90 text-white px-8 py-2.5 rounded-lg font-bold shadow-lg shadow-primary/20 transition-all flex items-center gap-2">
+                            Validar e Ingestar Dados <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>
