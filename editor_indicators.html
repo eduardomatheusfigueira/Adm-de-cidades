@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Adm-de-Cidades - Gestão de Indicadores Municipais</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#14213d",
+                        "accent": "#fca311",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-200">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-slate-800 bg-background-light dark:bg-background-dark px-6 md:px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<img src="public/logo_white.png" class="h-8 w-auto hidden dark:block" alt="Logo SisInfo" />
+<img src="public/logo_blue.png" class="h-8 w-auto dark:hidden" alt="Logo SisInfo" />
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">Gestor Municipal</h2>
+</div>
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded h-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+<div class="text-slate-400 flex items-center justify-center pl-3">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="w-full border-none bg-transparent focus:ring-0 text-sm font-normal text-slate-900 dark:text-slate-100 placeholder:text-slate-400" placeholder="Buscar indicador..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Visão Geral</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Analítico</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary py-1" href="#">Painel de Edição</a>
+</nav>
+<div class="flex gap-3">
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all">
+<span>Salvar Base</span>
+</button>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">AD</div>
+</div>
+</header>
+<div class="flex flex-1">
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-background-light dark:bg-background-dark hidden md:flex flex-col py-6 px-4 shrink-0">
+<div class="mb-8 px-2">
+<h1 class="text-slate-900 dark:text-slate-100 text-base font-bold">São José dos Campos, SP</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal">IBGE: 3549904 • População: 697.428</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">dashboard</span>
+<span class="text-sm font-medium">Perfil Sintético</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20 shadow-sm" href="#">
+<span class="material-symbols-outlined text-[22px]">edit_document</span>
+<span class="text-sm font-bold">Edição de Dados</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">map</span>
+<span class="text-sm font-medium">Editor Geográfico</span>
+</a>
+</nav>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-background-dark/50">
+<div class="bg-background-light dark:bg-background-dark border-b border-slate-200 dark:border-slate-800 px-6 overflow-x-auto no-scrollbar">
+<div class="flex gap-8">
+<a class="flex items-center justify-center border-b-2 border-transparent text-slate-500 dark:text-slate-400 py-4 hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap" href="#">
+<span class="text-sm font-semibold uppercase tracking-wider">Metadados Gerais</span>
+</a>
+<a class="flex items-center justify-center border-b-2 border-primary text-primary py-4 whitespace-nowrap" href="#">
+<span class="text-sm font-bold uppercase tracking-wider">Série de Indicadores</span>
+</a>
+</div>
+</div>
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-6 bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="flex flex-col gap-1">
+<h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight">Gerenciar Indicadores Municipais</h2>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Visualize e altere os dados socioeconômicos do município antes da publicação final (ETL Manual).</p>
+</div>
+<div class="flex flex-wrap gap-3">
+<button class="flex items-center gap-2 rounded-lg h-10 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-[18px]">upload_file</span>
+<span>Importação em Lote (CSV)</span>
+</button>
+<button class="flex items-center gap-2 rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Adicionar Novo Valor</span>
+</button>
+</div>
+</div>
+<div class="flex-1 flex overflow-hidden">
+<div class="w-80 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col shrink-0">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Fontes Oficiais</h3>
+<div class="space-y-1">
+<div class="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 cursor-pointer border border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-[20px] text-primary">account_balance</span>
+<span class="text-sm font-bold flex-1">FINBRA (Receitas)</span>
+<span class="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold">12</span>
+</div>
+<div class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition-colors group">
+<span class="material-symbols-outlined text-[20px]">people</span>
+<span class="text-sm font-medium flex-1">IBGE (População)</span>
+<span class="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">8</span>
+</div>
+<div class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer transition-colors group">
+<span class="material-symbols-outlined text-[20px]">water_drop</span>
+<span class="text-sm font-medium flex-1">SNIS (Saneamento)</span>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Métricas Associadas</h3>
+<div class="p-3 rounded-lg bg-primary/5 border border-primary/20 cursor-pointer">
+<p class="text-sm font-bold text-slate-900 dark:text-slate-100">Receita Corrente Líquida (RCL)</p>
+<p class="text-[10px] text-slate-500 mt-1 uppercase tracking-tighter">Variável: FINBRA_RCL_R$</p>
+</div>
+<div class="p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 border border-transparent cursor-pointer transition-all">
+<p class="text-sm font-medium text-slate-700 dark:text-slate-300">Arrecadação de IPTU</p>
+<p class="text-[10px] text-slate-500 mt-1 uppercase tracking-tighter">Variável: FINBRA_IPTU_R$</p>
+</div>
+</div>
+</div>
+<div class="flex-1 flex flex-col overflow-y-auto p-6 gap-6 no-scrollbar">
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+<div class="xl:col-span-2 space-y-6">
+<div class="bg-white dark:bg-background-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h4 class="text-xs font-bold text-primary uppercase tracking-widest mb-1">Métrica em Edição</h4>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Receita Corrente Líquida (Milhões de R$)</h3>
+</div>
+<div class="bg-amber-500/10 text-amber-500 px-3 py-1 rounded-full text-xs font-bold border border-amber-500/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">edit</span>
+                                            Valores Modificados
+                                        </div>
+</div>
+<div class="w-full h-48 relative mt-4">
+<div class="absolute inset-0 flex items-end justify-between px-2 pb-6">
+<div class="absolute inset-0 flex justify-between px-2">
+<div class="h-full w-px bg-slate-100 dark:bg-slate-800"></div><div class="h-full w-px bg-slate-100 dark:bg-slate-800"></div><div class="h-full w-px bg-slate-100 dark:bg-slate-800"></div><div class="h-full w-px bg-slate-100 dark:bg-slate-800"></div><div class="h-full w-px bg-slate-100 dark:bg-slate-800"></div>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent"></div>
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none" viewbox="0 0 400 100">
+<path d="M0,80 L80,72 L160,65 L240,48 L320,35 L400,20" fill="none" stroke="#fca311" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
+<circle cx="0" cy="80" fill="#fca311" r="3"></circle>
+<circle cx="400" cy="20" fill="#fca311" r="3"></circle>
+</svg>
+</div>
+<div class="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] text-slate-400 font-bold px-2">
+<span>2019</span><span>2020</span><span>2021</span><span>2022</span><span>2023</span><span>2024</span>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-background-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+<h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">Histórico Temporal</h4>
+</div>
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50">
+<th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Ano Fiscal</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-right">Valor Consolidado (R$)</th>
+<th class="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-center">Origem</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-4 py-4 text-sm font-bold text-slate-900 dark:text-slate-100">2023</td>
+<td class="px-4 py-4 text-right">
+<input class="w-40 text-right bg-primary/5 border border-primary/40 text-primary rounded px-2 py-1 text-sm font-bold focus:outline-none" type="text" value="3.125.420,00"/>
+</td>
+<td class="px-4 py-4">
+<div class="flex justify-center"><span class="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Inserção Manual</span></div>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-4 py-4 text-sm font-bold text-slate-900 dark:text-slate-100">2022</td>
+<td class="px-4 py-4 text-right text-sm font-medium">2.845.100,00</td>
+<td class="px-4 py-4 text-center">
+<div class="flex justify-center"><span class="text-xs font-bold text-slate-500">Base FINBRA</span></div>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-4 py-4 text-sm font-bold text-slate-900 dark:text-slate-100">2021</td>
+<td class="px-4 py-4 text-right text-sm font-medium">2.610.550,00</td>
+<td class="px-4 py-4 text-center">
+<div class="flex justify-center"><span class="text-xs font-bold text-slate-500">Base FINBRA</span></div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="space-y-6">
+<div class="bg-white dark:bg-background-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">warning</span>
+                                        Avisos de Integridade
+                                    </h4>
+<div class="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 p-3 rounded-lg flex items-start gap-3">
+<p class="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">O valor digitado manualmente para 2023 apresenta um crescimento de 9.8% em relação a 2022. Os dados de arrecadação do estado indicam média de 5% de crescimento. Confirme a exatidão.</p>
+</div>
+</div>
+<div class="bg-white dark:bg-background-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<h4 class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">Configuração do Indicador</h4>
+<div class="space-y-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-bold text-slate-400 uppercase">Grandeza / Unidade</label>
+<select class="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-500" disabled>
+<option>Financeiro (R$ Nominal)</option>
+</select>
+</div>
+<div class="flex flex-col gap-1.5 pt-2">
+<label class="flex items-center gap-2 cursor-pointer group">
+<input checked="" class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-sm text-slate-700 dark:text-slate-300">Exibir no perfil público da cidade</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

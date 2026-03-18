@@ -2,7 +2,7 @@
 <html lang="pt-BR"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Gerador de Relatórios Executivos</title>
+<title>SisInfo - Gerador de Relatórios Municipais</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -47,10 +47,8 @@
 <div class="relative flex h-auto min-h-screen w-full flex-col bg-white overflow-x-hidden">
 <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-6 md:px-20 py-4 no-print">
 <div class="flex items-center gap-3 text-primary">
-<div class="size-8 flex items-center justify-center bg-primary text-white rounded">
-<span class="material-symbols-outlined text-xl">analytics</span>
-</div>
-<h2 class="text-primary text-xl font-bold leading-tight tracking-tight">Executive Intelligence</h2>
+<img src="public/logo_blue.png" class="h-8 w-auto" alt="Logo SisInfo" />
+<h2 class="text-primary text-xl font-bold leading-tight tracking-tight">Adm-de-Cidades</h2>
 </div>
 <div class="flex gap-3">
 <button class="flex items-center justify-center rounded-lg h-10 bg-slate-100 hover:bg-slate-200 text-primary px-3 transition-colors">
@@ -68,8 +66,8 @@
 <main class="flex-1 max-w-5xl mx-auto w-full px-6 py-10">
 <div class="flex flex-col md:flex-row justify-between items-start gap-6 mb-10 border-l-4 border-accent pl-6">
 <div class="flex flex-col gap-2">
-<h1 class="text-primary text-4xl font-black leading-tight tracking-tight uppercase">Relatório de Desempenho Operacional</h1>
-<p class="text-slate-500 text-lg font-medium">Análise Consolidada Trimestral • Q3 2023 • Ref: #8829-X</p>
+<h1 class="text-primary text-4xl font-black leading-tight tracking-tight uppercase">Relatório de Diagnóstico Municipal</h1>
+<p class="text-slate-500 text-lg font-medium">Síntese Socioeconômica e Fiscal • Ref: 2022 (IBGE/FINBRA)</p>
 </div>
 <div class="text-right flex flex-col items-end">
 <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Data de Emissão</span>
@@ -78,9 +76,9 @@
 </div>
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
 <div class="flex flex-col gap-1 rounded-xl p-6 border border-slate-100 bg-slate-50/50">
-<p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">Score Global</p>
+<p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">IDH Municipal</p>
 <div class="flex items-baseline gap-2">
-<p class="text-primary text-3xl font-black">9.4</p>
+<p class="text-primary text-3xl font-black">0.805</p>
 <span class="text-xs font-bold text-slate-400">/ 10</span>
 </div>
 <p class="text-emerald-600 text-sm font-bold flex items-center gap-1">
@@ -88,22 +86,22 @@
                     </p>
 </div>
 <div class="flex flex-col gap-1 rounded-xl p-6 border border-slate-100 bg-slate-50/50">
-<p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">Eficiência</p>
-<p class="text-accent text-3xl font-black">88.2%</p>
+<p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">Índice Gini</p>
+<p class="text-accent text-3xl font-black">0.450</p>
 <p class="text-emerald-600 text-sm font-bold flex items-center gap-1">
 <span class="material-symbols-outlined text-sm">trending_up</span> +2.1%
                     </p>
 </div>
 <div class="flex flex-col gap-1 rounded-xl p-6 border border-slate-100 bg-slate-50/50">
-<p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">ROI Projetado</p>
-<p class="text-primary text-3xl font-black">14.2x</p>
+<p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">PIB per Capita</p>
+<p class="text-primary text-3xl font-black">R$ 54.3k</p>
 <p class="text-emerald-600 text-sm font-bold flex items-center gap-1">
 <span class="material-symbols-outlined text-sm">trending_up</span> +1.5%
                     </p>
 </div>
 <div class="flex flex-col gap-1 rounded-xl p-6 border border-slate-100 bg-slate-50/50">
-<p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">Churn Rate</p>
-<p class="text-primary text-3xl font-black">1.8%</p>
+<p class="text-slate-500 text-sm font-semibold uppercase tracking-wider">Tx. Analfabetismo</p>
+<p class="text-primary text-3xl font-black">2.5%</p>
 <p class="text-rose-600 text-sm font-bold flex items-center gap-1">
 <span class="material-symbols-outlined text-sm">trending_down</span> -0.2%
                     </p>
@@ -116,10 +114,10 @@
 </div>
 <div class="bg-slate-50 p-8 rounded-xl border-l-4 border-primary">
 <p class="text-primary text-lg leading-relaxed mb-4">
-                        O desempenho deste trimestre superou as expectativas iniciais, apresentando uma consolidação robusta em todos os pilares estratégicos. A otimização da cadeia de suprimentos e a revisão dos processos de atendimento resultaram em uma economia operacional direta de 12% em comparação ao Q2.
+                        O município apresentou crescimento no setor de serviços, refletindo no aumento da arrecadação de ISS. A taxa de analfabetismo manteve-se abaixo da média nacional, porém a cobertura de saneamento básico necessita de atenção, especialmente nas regiões periféricas do município.
                     </p>
 <p class="text-primary/80 text-base leading-relaxed">
-                        Observamos uma maturação significativa na retenção de clientes de alto valor (LTV), enquanto a expansão orgânica em mercados secundários começou a refletir positivamente no score global de eficiência. Recomenda-se a manutenção do foco em automação para o próximo ciclo fiscal.
+                        A dependência do FPM (Fundo de Participação dos Municípios) permanece controlada, demonstrando boa capacidade de arrecadação própria e saúde fiscal para novos investimentos estruturais no plano plurianual.
                     </p>
 </div>
 </section>
@@ -138,10 +136,10 @@
 <div class="w-40 h-40 bg-accent/30 chart-radar border-2 border-accent relative z-10 flex items-center justify-center">
 <div class="w-2 h-2 bg-accent rounded-full"></div>
 </div>
-<span class="absolute top-2 text-[10px] font-bold text-slate-400 uppercase">Qualidade</span>
-<span class="absolute bottom-2 text-[10px] font-bold text-slate-400 uppercase">Sustentabilidade</span>
-<span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase">Inovação</span>
-<span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase">Velocidade</span>
+<span class="absolute top-2 text-[10px] font-bold text-slate-400 uppercase">Educação</span>
+<span class="absolute bottom-2 text-[10px] font-bold text-slate-400 uppercase">Saúde</span>
+<span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase">Infraestrutura</span>
+<span class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase">Finanças</span>
 </div>
 </div>
 <div class="flex flex-col border border-slate-100 rounded-xl p-6">
@@ -180,17 +178,17 @@
 <div class="flex items-center justify-between mb-6">
 <div class="flex items-center gap-3">
 <span class="material-symbols-outlined text-accent">table_chart</span>
-<h2 class="text-primary text-xl font-extrabold uppercase tracking-tight">Detalhamento por Unidade</h2>
+<h2 class="text-primary text-xl font-extrabold uppercase tracking-tight">Composição das Receitas Orçamentárias</h2>
 </div>
-<span class="text-[10px] font-bold text-slate-400 uppercase bg-slate-100 px-2 py-1 rounded">Valores em USD</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase bg-slate-100 px-2 py-1 rounded">Valores em R$ (Milhares)</span>
 </div>
 <div class="overflow-x-auto border border-slate-100 rounded-xl">
 <table class="w-full text-left border-collapse">
 <thead>
 <tr class="bg-primary text-white">
-<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Departamento</th>
-<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Performance</th>
-<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Orcamento</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Categoria (FINBRA)</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Realizado (%)</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Valor Arrecadado</th>
 <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Status</th>
 </tr>
 </thead>
@@ -198,8 +196,8 @@
 <tr class="hover:bg-slate-50 transition-colors">
 <td class="px-6 py-4">
 <div class="flex flex-col">
-<span class="font-bold text-primary">Operações Internacionais</span>
-<span class="text-xs text-slate-400">Lead: Marcella Viana</span>
+<span class="font-bold text-primary">Receitas Correntes</span>
+<span class="text-xs text-slate-400">Tributárias, Transferências</span>
 </div>
 </td>
 <td class="px-6 py-4">
@@ -207,7 +205,7 @@
 <div class="bg-accent h-full" style="width: 92%;"></div>
 </div>
 </td>
-<td class="px-6 py-4 font-mono text-sm">$450,200.00</td>
+<td class="px-6 py-4 font-mono text-sm">R$ 1.450.200,00</td>
 <td class="px-6 py-4 text-right">
 <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">EXCELENTE</span>
 </td>
@@ -215,8 +213,8 @@
 <tr class="hover:bg-slate-50 transition-colors">
 <td class="px-6 py-4">
 <div class="flex flex-col">
-<span class="font-bold text-primary">Inovação e P&amp;D</span>
-<span class="text-xs text-slate-400">Lead: Ricardo Gomes</span>
+<span class="font-bold text-primary">Infraestrutura e P&amp;D</span>
+<span class="text-xs text-slate-400">Arrecadação Própria</span>
 </div>
 </td>
 <td class="px-6 py-4">
@@ -224,7 +222,7 @@
 <div class="bg-accent h-full" style="width: 78%;"></div>
 </div>
 </td>
-<td class="px-6 py-4 font-mono text-sm">$820,000.00</td>
+<td class="px-6 py-4 font-mono text-sm">R$ 320.000,00</td>
 <td class="px-6 py-4 text-right">
 <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-blue-100 text-blue-700">NO PRAZO</span>
 </td>
@@ -232,8 +230,8 @@
 <tr class="hover:bg-slate-50 transition-colors">
 <td class="px-6 py-4">
 <div class="flex flex-col">
-<span class="font-bold text-primary">Marketing Estratégico</span>
-<span class="text-xs text-slate-400">Lead: Julia Fontes</span>
+<span class="font-bold text-primary">ISS</span>
+<span class="text-xs text-slate-400">Imposto sobre Serviços</span>
 </div>
 </td>
 <td class="px-6 py-4">
@@ -241,7 +239,7 @@
 <div class="bg-accent h-full" style="width: 85%;"></div>
 </div>
 </td>
-<td class="px-6 py-4 font-mono text-sm">$210,500.00</td>
+<td class="px-6 py-4 font-mono text-sm">R$ 210.500,00</td>
 <td class="px-6 py-4 text-right">
 <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">EXCELENTE</span>
 </td>
@@ -249,8 +247,8 @@
 <tr class="hover:bg-slate-50 transition-colors">
 <td class="px-6 py-4">
 <div class="flex flex-col">
-<span class="font-bold text-primary">Customer Experience</span>
-<span class="text-xs text-slate-400">Lead: Ana Clara</span>
+<span class="font-bold text-primary">FPM</span>
+<span class="text-xs text-slate-400">Fundo de Participação</span>
 </div>
 </td>
 <td class="px-6 py-4">
@@ -258,7 +256,7 @@
 <div class="bg-accent h-full" style="width: 62%;"></div>
 </div>
 </td>
-<td class="px-6 py-4 font-mono text-sm">$155,000.00</td>
+<td class="px-6 py-4 font-mono text-sm">R$ 555.000,00</td>
 <td class="px-6 py-4 text-right">
 <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-amber-100 text-amber-700">ALERTA</span>
 </td>
@@ -272,21 +270,21 @@
 <div class="w-48 h-12 border-b border-primary mb-2 flex items-end justify-center">
 <span class="italic font-serif text-slate-400 text-sm">Assinatura Digital</span>
 </div>
-<span class="font-bold text-primary">Chief Financial Officer</span>
-<span class="text-xs text-slate-400 uppercase tracking-widest">Setor Financeiro</span>
+<span class="font-bold text-primary">Secretário da Fazenda</span>
+<span class="text-xs text-slate-400 uppercase tracking-widest">Assinatura Oficial</span>
 </div>
 <div class="flex flex-col items-center text-center">
 <div class="w-48 h-12 border-b border-primary mb-2 flex items-end justify-center">
 <span class="italic font-serif text-slate-400 text-sm">Assinatura Digital</span>
 </div>
-<span class="font-bold text-primary">Chief Operations Officer</span>
-<span class="text-xs text-slate-400 uppercase tracking-widest">Setor Operacional</span>
+<span class="font-bold text-primary">Prefeito Municipal</span>
+<span class="text-xs text-slate-400 uppercase tracking-widest">Gabinete</span>
 </div>
 </section>
 </main>
 <footer class="bg-primary text-white py-6 px-10 mt-auto no-print">
 <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-<p class="text-xs text-slate-400">© 2023 Executive Intel Module. Todos os direitos reservados.</p>
+<p class="text-xs text-slate-400">© SisInfo Municipal. Todos os direitos reservados.</p>
 <div class="flex gap-6">
 <a class="text-xs text-slate-400 hover:text-accent transition-colors" href="#">Termos de Uso</a>
 <a class="text-xs text-slate-400 hover:text-accent transition-colors" href="#">Privacidade</a>
