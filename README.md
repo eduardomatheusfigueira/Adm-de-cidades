@@ -95,6 +95,8 @@ Contribuições para estender as capacidades analíticas, adicionar novos indica
 
 Este documento descreve uma visão técnica e estratégica detalhada para levar o **Adm-de-Cidades** do seu estado atual (MVP avançado / Protótipo) para uma plataforma de nível de produção (*Enterprise/GovTech ready*).
 
+> **Novo:** Confira também o nosso [**Roadmap de UI/UX e Modernização de Interface (Design System 2.0)**](ROADMAP_UI_UX.md) detalhando a evolução visual de cada página com protótipos de alta fidelidade!
+
 ---
 
 ### 1. Arquitetura e Gerenciamento de Estado
