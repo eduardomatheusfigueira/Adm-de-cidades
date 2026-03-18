@@ -114,6 +114,41 @@ Um módulo dedicado de *Analytics* robusto para a visão transversal e gerencial
 
 ---
 
+### 2.6 City Editor e Módulo ETL (Gestão de Metadados e Geometrias)
+
+**Situação Atual:**
+O projeto possui código legado para o componente `CityEditor.jsx` (edição cliente-side que não persiste) e importação manual de CSVs, porém com interfaces quebradas ou pouco ergonômicas para uma gestão efetiva de dados, falhando em prover validações durante a ingestão (ETL).
+
+**Estado Ideal (Ação de Desenvolvimento):**
+O *City Editor* e o *Módulo ETL* serão promovidos a um painel de administração (*Admin Panel/Backoffice*) exclusivo para Gestores (com autenticação), dividido em 3 fluxos de missão crítica:
+
+1. **Importação em Lote (ETL via CSV):**
+   * Interface de conversão de dados focada no usuário via **Modal de Passos (*Stepper*)**.
+   * Tela de mapeamento dinâmico: o gestor sobe um arquivo cru do FINBRA ou IBGE, e a tela permite "cruzar" as colunas originais do CSV (`COD_IBGE`, `Ano_Referencia`) com os campos exatos do banco de dados relacional.
+   * Adição de validações de pré-ingestão que alertam sobre anomalias no *dataset* (ex: "Valores com formatação diferente", "Crescimento irreal de 9.8%").
+
+2. **Edição de Indicadores Específicos:**
+   * Sidebar esquerda listando categorias de fontes ativas (ex: FINBRA, IBGE, SNIS).
+   * Painel de histórico temporal no centro, assemelhando-se a uma "planilha viva", permitindo editar, inserir (mock) ou corrigir valores específicos ano-a-ano (ex: Alterar a *Receita Corrente Líquida* de 2023 manualmente, se a API pública falhar).
+   * Controles granulares: "Mostrar no mapa público", "Unidade de Medida".
+
+3. **Edição de Geometrias e Polígonos Espaciais:**
+   * Uma mini-interface de GIS embutida (*Geometry Workspace*).
+   * Sidebar contendo os vértices (lat/long) listados iterativamente.
+   * Um painel de visualização Mapbox focado na silhueta do município/setor com suporte a ferramentas de desenho vetorial (adicionar nó, arrastar nó, simplificar com Turf.js).
+   * Isso permitirá ao administrador de dados corrigir pequenos erros nos GeoJSONs do IBGE ou subir malhas personalizadas (KML/GeoJSON).
+
+**Visão Alvo: Importação em Lote (ETL)**
+![City Editor - Importação ETL](screenshots/editor_import.png)
+
+**Visão Alvo: Gestão de Indicadores e Séries Temporais**
+![City Editor - Indicadores](screenshots/editor_indicators.png)
+
+**Visão Alvo: Workspace de Geometrias**
+![City Editor - Geometria](screenshots/editor_geometry.png)
+
+---
+
 ## 3. Próximos Passos de Execução (Plano de Trabalho)
 
 1.  **Configuração da Base Frontend:** Instalar dependências estruturais (`tailwindcss`, `@headlessui/react` para acessibilidade/modais complexos, `lucide-react` ou continuar com o Google Material Fonts).
