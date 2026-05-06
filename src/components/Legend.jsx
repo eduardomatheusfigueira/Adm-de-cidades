@@ -1,4 +1,5 @@
-import React, { useContext, useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import React, { useContext, useMemo, useState, useEffect, useCallback } from 'react';
+import { Rnd } from 'react-rnd';
 import '../styles/Legend.css';
 import { UIContext } from '../contexts/UIContext';
 import { DataContext } from '../contexts/DataContext';
@@ -6,7 +7,6 @@ import { getColorScale, getLegendKey } from '../utils/colorUtils';
 
 const isValidColor = (value) => /^#([0-9A-F]{3}){1,2}$/i.test(value);
 
-// Converts any CSS color (rgb, hex, named) to #RRGGBB format
 const normalizeToHex = (color) => {
   if (!color) return '#cccccc';
   if (isValidColor(color)) return color;
@@ -30,48 +30,6 @@ const Legend = () => {
     setShowAttributeLegend
   } = useContext(UIContext);
   const { filteredCsvData, indicadoresData } = useContext(DataContext);
-
-  // Drag via direct DOM manipulation (no React re-renders)
-  const elRef = useRef(null);
-  const isDraggingRef = useRef(false);
-  const offsetRef = useRef({ x: 0, y: 0 });
-  const hasDraggedRef = useRef(false);
-
-  const onDragStart = useCallback((e) => {
-    if (!elRef.current) return;
-    e.preventDefault();
-    isDraggingRef.current = true;
-    hasDraggedRef.current = false;
-    const rect = elRef.current.getBoundingClientRect();
-    offsetRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-
-    const onMove = (ev) => {
-      if (!isDraggingRef.current || !elRef.current) return;
-      hasDraggedRef.current = true;
-      const parent = elRef.current.parentElement;
-      if (!parent) return;
-      const pr = parent.getBoundingClientRect();
-      let x = ev.clientX - pr.left - offsetRef.current.x;
-      let y = ev.clientY - pr.top - offsetRef.current.y;
-      const w = elRef.current.offsetWidth;
-      const h = elRef.current.offsetHeight;
-      x = Math.max(0, Math.min(x, pr.width - w));
-      y = Math.max(0, Math.min(y, pr.height - h));
-      elRef.current.style.left = x + 'px';
-      elRef.current.style.top = y + 'px';
-      elRef.current.style.bottom = 'auto';
-      elRef.current.style.right = 'auto';
-    };
-
-    const onUp = () => {
-      isDraggingRef.current = false;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
-
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-  }, []);
 
   const legendKey = useMemo(
     () => getLegendKey(visualizationConfig, colorAttribute),
@@ -184,65 +142,80 @@ const Legend = () => {
   const onReset = () => { clearLegendConfig(legendKey); setErrorMessage(''); setIsEditing(false); };
 
   return (
-    <div ref={elRef} className="legend">
-      <div
-        onMouseDown={isEditing ? undefined : onDragStart}
-        style={{
-          cursor: isEditing ? 'default' : 'move',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          borderBottom: '1px solid var(--border-color)',
-          paddingBottom: 'var(--spacing-xs)', marginBottom: 'var(--spacing-sm)',
-          userSelect: 'none',
-        }}
-      >
-        <div className="legend-title" style={{ borderBottom: 'none', margin: 0, padding: 0 }}>{displayedTitle}</div>
-        <button
-          onClick={() => setShowAttributeLegend(false)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--text-light)', lineHeight: 1, padding: '2px 4px' }}
-          title="Ocultar legenda"
-        >✕</button>
-      </div>
+    <Rnd
+      default={{
+        x: 10,
+        y: 300,
+        width: 250,
+        height: 'auto',
+      }}
+      minWidth={150}
+      bounds="parent"
+      dragHandleClassName="legend-drag-handle"
+      style={{ zIndex: 5, position: 'absolute' }}
+      disableDragging={isEditing}
+    >
+      <div className="legend" style={{ position: 'relative', width: '100%', height: '100%', bottom: 'auto', right: 'auto', margin: 0 }}>
+        <div
+          className="legend-drag-handle"
+          style={{
+            cursor: isEditing ? 'default' : 'move',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            borderBottom: '1px solid var(--border-color)',
+            paddingBottom: 'var(--spacing-xs)', marginBottom: 'var(--spacing-sm)',
+            userSelect: 'none',
+          }}
+        >
+          <div className="legend-title" style={{ borderBottom: 'none', margin: 0, padding: 0 }}>{displayedTitle}</div>
+          <button
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() => setShowAttributeLegend(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--text-light)', lineHeight: 1, padding: '2px 4px' }}
+            title="Ocultar legenda"
+          >✕</button>
+        </div>
 
-      {!isEditing ? (
-        <>
-          {displayedItems.length === 0 && (
-            <p style={{ fontSize: '0.8em', color: '#555', marginTop: '5px', fontStyle: 'italic' }}>(Escala de cores dinâmica)</p>
-          )}
-          {displayedItems.map((item, index) => (
-            <div key={`${item.value}-${index}`} className="legend-item">
-              <span className="legend-color" style={{ backgroundColor: item.color }}></span>
-              <span className="legend-value">{item.value}</span>
-            </div>
-          ))}
-          <div className="legend-actions">
-            <button type="button" className="legend-action-btn" onClick={() => setIsEditing(true)}>Editar legenda</button>
-            {customLegend && (
-              <button type="button" className="legend-action-btn legend-reset-btn" onClick={onReset}>Restaurar padrão</button>
+        {!isEditing ? (
+          <>
+            {displayedItems.length === 0 && (
+              <p style={{ fontSize: '0.8em', color: '#555', marginTop: '5px', fontStyle: 'italic' }}>(Escala de cores dinâmica)</p>
             )}
-          </div>
-        </>
-      ) : (
-        <div className="legend-editor">
-          <label className="legend-editor-label" htmlFor="legend-title-input">Título</label>
-          <input id="legend-title-input" type="text" className="legend-editor-input" value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} />
-          <div className="legend-editor-list">
-            {draftItems.map((item, index) => (
-              <div key={`draft-item-${index}`} className="legend-editor-row">
-                <input type="color" value={isValidColor(item.color || '') ? item.color : '#cccccc'} onChange={(e) => onChangeItem(index, 'color', e.target.value)} title="Cor" />
-                <input type="text" className="legend-editor-input legend-editor-value" value={item.value} placeholder="Descrição" onChange={(e) => onChangeItem(index, 'value', e.target.value)} />
-                <button type="button" className="legend-action-btn legend-remove-btn" onClick={() => onRemoveItem(index)}>Remover</button>
+            {displayedItems.map((item, index) => (
+              <div key={`${item.value}-${index}`} className="legend-item">
+                <span className="legend-color" style={{ backgroundColor: item.color }}></span>
+                <span className="legend-value">{item.value}</span>
               </div>
             ))}
+            <div className="legend-actions">
+              <button type="button" className="legend-action-btn" onClick={() => setIsEditing(true)}>Editar legenda</button>
+              {customLegend && (
+                <button type="button" className="legend-action-btn legend-reset-btn" onClick={onReset}>Restaurar padrão</button>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="legend-editor">
+            <label className="legend-editor-label" htmlFor="legend-title-input">Título</label>
+            <input id="legend-title-input" type="text" className="legend-editor-input" value={draftTitle} onChange={(e) => setDraftTitle(e.target.value)} />
+            <div className="legend-editor-list">
+              {draftItems.map((item, index) => (
+                <div key={`draft-item-${index}`} className="legend-editor-row">
+                  <input type="color" value={isValidColor(item.color || '') ? item.color : '#cccccc'} onChange={(e) => onChangeItem(index, 'color', e.target.value)} title="Cor" />
+                  <input type="text" className="legend-editor-input legend-editor-value" value={item.value} placeholder="Descrição" onChange={(e) => onChangeItem(index, 'value', e.target.value)} />
+                  <button type="button" className="legend-action-btn legend-remove-btn" onClick={() => onRemoveItem(index)}>Remover</button>
+                </div>
+              ))}
+            </div>
+            <div className="legend-actions">
+              <button type="button" className="legend-action-btn" onClick={onAddItem}>Adicionar item</button>
+              <button type="button" className="legend-action-btn" onClick={onSave}>Salvar</button>
+              <button type="button" className="legend-action-btn legend-cancel-btn" onClick={onCancel}>Cancelar</button>
+            </div>
+            {errorMessage && <p className="legend-error-message">{errorMessage}</p>}
           </div>
-          <div className="legend-actions">
-            <button type="button" className="legend-action-btn" onClick={onAddItem}>Adicionar item</button>
-            <button type="button" className="legend-action-btn" onClick={onSave}>Salvar</button>
-            <button type="button" className="legend-action-btn legend-cancel-btn" onClick={onCancel}>Cancelar</button>
-          </div>
-          {errorMessage && <p className="legend-error-message">{errorMessage}</p>}
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </Rnd>
   );
 };
 

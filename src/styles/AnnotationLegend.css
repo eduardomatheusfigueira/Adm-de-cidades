@@ -1,21 +1,16 @@
 /* src/styles/AnnotationLegend.css */
 
 .annotation-legend {
-  position: absolute;
-  bottom: 30px;
-  right: 270px; /* Positioned to the left of the existing Legend */
   background-color: var(--surface-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-color);
-  width: 280px;
   display: flex;
   flex-direction: column;
-  z-index: 5;
   font-size: 0.85rem;
   color: var(--text-primary);
-  overflow: auto;
-  resize: both;
+  overflow-y: auto;
+  max-height: calc(100vh - 80px);
   animation: annotLegendSlideIn 0.3s ease-out;
 }
 
