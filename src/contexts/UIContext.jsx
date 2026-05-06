@@ -13,6 +13,11 @@ export const UIProvider = ({ children }) => {
   const [activeEnvironment, setActiveEnvironment] = useState('dataSourceInfo'); // Default
   const [legendConfigByKey, setLegendConfigByKey] = useState({});
 
+  const [showAttributeLegend, setShowAttributeLegend] = useState(true);
+  const [showAnnotationLegend, setShowAnnotationLegend] = useState(true);
+  const [showNorthArrow, setShowNorthArrow] = useState(true);
+  const [showScaleBar, setShowScaleBar] = useState(true);
+
   // Estados para o modal de importação de geometria
   const [showGeometryImportModal, setShowGeometryImportModal] = useState(false);
   const [geometryImportData, setGeometryImportData] = useState(null); // Dados do arquivo GeoJSON importado
@@ -97,6 +102,14 @@ export const UIProvider = ({ children }) => {
     legendConfigByKey,
     updateLegendConfig,
     clearLegendConfig,
+    showAttributeLegend,
+    setShowAttributeLegend,
+    showAnnotationLegend,
+    setShowAnnotationLegend,
+    showNorthArrow,
+    setShowNorthArrow,
+    showScaleBar,
+    setShowScaleBar,
     showGeometryImportModal,
     setShowGeometryImportModal, // Expor para App.jsx controlar o modal
     geometryImportData,

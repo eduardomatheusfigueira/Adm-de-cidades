@@ -9,13 +9,13 @@
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-color);
   width: 280px;
-  max-height: 450px;
   display: flex;
   flex-direction: column;
   z-index: 5;
   font-size: 0.85rem;
   color: var(--text-primary);
-  overflow: hidden;
+  overflow: auto;
+  resize: both;
   animation: annotLegendSlideIn 0.3s ease-out;
 }
 
