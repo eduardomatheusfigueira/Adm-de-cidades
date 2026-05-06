@@ -177,3 +177,97 @@
   color: var(--text-secondary);
   font-size: 0.9rem;
 }
+
+/* Annotation drawing tools */
+.draw-tools-group {
+  width: 100%;
+}
+
+.annotation-button.active {
+  background-color: var(--primary-color);
+}
+
+.draw-tool-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 8px;
+  background: var(--background-color);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  animation: drawToolsSlide 0.2s ease-out;
+}
+
+@keyframes drawToolsSlide {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.draw-tool-btn {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--surface-color);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.draw-tool-btn:hover {
+  background: var(--secondary-color);
+  color: white;
+  border-color: var(--secondary-color);
+}
+
+.draw-color-row {
+  padding: 4px 0 6px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 4px;
+}
+
+.draw-color-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.draw-color-input {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  background: none;
+}
+
+.draw-color-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.draw-color-input::-webkit-color-swatch {
+  border: 2px solid rgba(0,0,0,0.15);
+  border-radius: 50%;
+}
+
+.export-map-button {
+  background-color: #059669 !important;
+}
+
+.export-map-button:hover {
+  background-color: #047857 !important;
+}
+
+.export-map-button:disabled {
+  background-color: var(--text-light) !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}

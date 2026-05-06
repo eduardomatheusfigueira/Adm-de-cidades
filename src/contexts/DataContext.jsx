@@ -339,6 +339,7 @@ ${newCount} novos adicionados.`);
 
   const value = {
     csvHeaders,
+    setCsvHeaders,
     csvData,
     setCsvData, // Para handleCityDelete, por exemplo
     filteredCsvData,

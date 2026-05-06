@@ -2,6 +2,8 @@ import React, { useContext, useEffect } from 'react';
 import FilterMenu from './components/FilterMenu';
 import VisualizationMenu from './components/VisualizationMenu';
 import Legend from './components/Legend';
+import AnnotationToolbar from './components/AnnotationToolbar';
+import AnnotationLegend from './components/AnnotationLegend';
 import './index.css';
 
 import DataVisualizationEnvironment from './components/DataVisualizationEnvironment';
@@ -14,6 +16,7 @@ import MainLayout from './components/MainLayout';
 import { DataProvider, DataContext } from './contexts/DataContext';
 import { MapProvider, MapContext } from './contexts/MapContext';
 import { UIProvider, UIContext } from './contexts/UIContext';
+import { AnnotationProvider } from './contexts/AnnotationContext';
 
 function AppContent() {
   const {
@@ -170,7 +173,9 @@ function AppContent() {
               <div className="loading-spinner"></div><p>Carregando mapa...</p>
             </div>
           )}
+          {mapLoaded && <AnnotationToolbar />}
           {mapLoaded && <Legend />}
+          {mapLoaded && <AnnotationLegend />}
         </div>
       </div>
 
@@ -222,9 +227,11 @@ function App() {
   return (
     <DataProvider>
       <UIProvider>
-        <MapProvider>
-          <AppContent />
-        </MapProvider>
+        <AnnotationProvider>
+          <MapProvider>
+            <AppContent />
+          </MapProvider>
+        </AnnotationProvider>
       </UIProvider>
     </DataProvider>
   );

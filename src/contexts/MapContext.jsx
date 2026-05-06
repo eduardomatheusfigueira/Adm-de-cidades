@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useRef, useContext, useCallb
 import mapboxgl from 'mapbox-gl';
 import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
+import { AnnotationContext } from './AnnotationContext';
 import { getColorScale, getLegendKey } from '../utils/colorUtils';
 
 export const MapContext = createContext();
@@ -20,6 +21,20 @@ export const MapProvider = ({ children }) => {
   const { geojsonData, indicadoresData, filteredCsvData } = useContext(DataContext);
   // Consumindo diretamente do UIContext, sem valores padrão aqui
   const { colorAttribute, visualizationConfig, activeEnvironment, setSelectedCityInfo, legendConfigByKey } = useContext(UIContext);
+
+  // Annotation context
+  const {
+    drawingMode,
+    isDrawing,
+    tempCoordinates,
+    cursorPosition,
+    handleMapClick: annotationHandleMapClick,
+    handleMapDoubleClick: annotationHandleDoubleClick,
+    setCursorPosition,
+    getActiveAnnotations,
+    activeVisualizationId,
+    annotations: allAnnotations,
+  } = useContext(AnnotationContext);
 
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZWR1YXJkb21hdGhldXNmaWd1ZWlyYSIsImEiOiJjbTgwd2tqbzYwemRrMmpwdGVka2FrMG5nIn0.NfOWy2a0J-YHP4mdKs_TAQ';
@@ -51,6 +66,17 @@ export const MapProvider = ({ children }) => {
         setIsMapLoading(false);
       });
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      // --- Annotation drawing: click handler ---
+      map.current.on('click', (e) => {
+        // This is handled via a ref-based check in the annotation effect
+      });
+      map.current.on('dblclick', (e) => {
+        // This is handled via a ref-based check in the annotation effect
+      });
+      map.current.on('mousemove', (e) => {
+        // This is handled via a ref-based check in the annotation effect
+      });
     }
 
     return () => {
@@ -330,6 +356,323 @@ export const MapProvider = ({ children }) => {
       loadMapData();
     }
   }, [mapLoaded, loadMapData, activeEnvironment]);
+
+
+  // =============================================
+  // ANNOTATION RENDERING & DRAWING INTERACTION
+  // =============================================
+
+  const drawingModeRef = useRef(drawingMode);
+  const annotationClickRef = useRef(annotationHandleMapClick);
+  const annotationDblClickRef = useRef(annotationHandleDoubleClick);
+  const setCursorRef = useRef(setCursorPosition);
+
+  useEffect(() => { drawingModeRef.current = drawingMode; }, [drawingMode]);
+  useEffect(() => { annotationClickRef.current = annotationHandleMapClick; }, [annotationHandleMapClick]);
+  useEffect(() => { annotationDblClickRef.current = annotationHandleDoubleClick; }, [annotationHandleDoubleClick]);
+  useEffect(() => { setCursorRef.current = setCursorPosition; }, [setCursorPosition]);
+
+  // Set up drawing event handlers (once, using refs)
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    const onMapClick = (e) => {
+      if (drawingModeRef.current) {
+        e.preventDefault();
+        e.originalEvent?.stopPropagation?.();
+        annotationClickRef.current(e.lngLat);
+      }
+    };
+
+    const onMapDblClick = (e) => {
+      if (drawingModeRef.current && drawingModeRef.current !== 'point') {
+        e.preventDefault();
+        e.originalEvent?.stopPropagation?.();
+        annotationDblClickRef.current(e.lngLat);
+      }
+    };
+
+    const onMouseMove = (e) => {
+      if (drawingModeRef.current) {
+        setCursorRef.current([e.lngLat.lng, e.lngLat.lat]);
+      }
+    };
+
+    // Use 'on' with a high-priority approach: annotation clicks are first
+    map.current.on('click', onMapClick);
+    map.current.on('dblclick', onMapDblClick);
+    map.current.on('mousemove', onMouseMove);
+
+    return () => {
+      if (map.current) {
+        map.current.off('click', onMapClick);
+        map.current.off('dblclick', onMapDblClick);
+        map.current.off('mousemove', onMouseMove);
+      }
+    };
+  }, [mapLoaded]);
+
+  // Change cursor style when in drawing mode
+  useEffect(() => {
+    if (!map.current) return;
+    if (drawingMode) {
+      map.current.getCanvas().style.cursor = 'crosshair';
+    } else {
+      map.current.getCanvas().style.cursor = '';
+    }
+  }, [drawingMode]);
+
+  // Block city selection clicks when drawing
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    const blockCityClick = (e) => {
+      if (drawingModeRef.current) {
+        e.preventDefault();
+        e.originalEvent?.stopImmediatePropagation?.();
+      }
+    };
+
+    const layers = ['sectors-fill-layer', 'sectors-point-layer', 'sectors-line-layer'];
+    layers.forEach(layerId => {
+      if (map.current.getLayer(layerId)) {
+        map.current.on('click', layerId, blockCityClick);
+      }
+    });
+
+    return () => {
+      if (map.current) {
+        layers.forEach(layerId => {
+          if (map.current.getLayer(layerId)) {
+            map.current.off('click', layerId, blockCityClick);
+          }
+        });
+      }
+    };
+  }, [mapLoaded]);
+
+  // Render annotation features on map
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !map.current.isStyleLoaded()) return;
+
+    const DEFAULT_FILL = '#FFFFFF';
+    const DEFAULT_BORDER = '#000000';
+
+    const activeAnnotations = getActiveAnnotations();
+
+    // Build GeoJSON features from annotations
+    const features = [];
+    const labelFeatures = [];
+
+    activeAnnotations.forEach(ann => {
+      let geometry = null;
+      let centroid = null;
+      const annColor = ann.color || DEFAULT_FILL;
+      const borderColor = (annColor === '#FFFFFF' || annColor === '#ffffff') ? DEFAULT_BORDER : '#000000';
+
+      if (ann.type === 'point') {
+        geometry = { type: 'Point', coordinates: ann.coordinates };
+        centroid = ann.coordinates;
+      } else if (ann.type === 'line') {
+        geometry = { type: 'LineString', coordinates: ann.coordinates };
+        const mid = Math.floor(ann.coordinates.length / 2);
+        centroid = ann.coordinates[mid] || ann.coordinates[0];
+      } else if (ann.type === 'polygon') {
+        geometry = { type: 'Polygon', coordinates: [ann.coordinates] };
+        const coords = ann.coordinates.slice(0, -1);
+        const avgLng = coords.reduce((s, c) => s + c[0], 0) / coords.length;
+        const avgLat = coords.reduce((s, c) => s + c[1], 0) / coords.length;
+        centroid = [avgLng, avgLat];
+      }
+
+      if (geometry) {
+        features.push({
+          type: 'Feature',
+          properties: {
+            id: ann.id,
+            number: ann.number,
+            numberStr: String(ann.number),
+            annType: ann.type,
+            color: annColor,
+            borderColor: borderColor,
+            description: ann.description,
+          },
+          geometry,
+        });
+      }
+
+      // Label at centroid for ALL types (number inside marker circle)
+      if (centroid) {
+        labelFeatures.push({
+          type: 'Feature',
+          properties: {
+            number: String(ann.number),
+            annType: ann.type,
+            color: annColor,
+            borderColor: borderColor,
+          },
+          geometry: { type: 'Point', coordinates: centroid },
+        });
+      }
+    });
+
+    // Add temp drawing preview
+    if (drawingMode && tempCoordinates.length > 0 && cursorPosition) {
+      const previewCoords = [...tempCoordinates, cursorPosition];
+      if (drawingMode === 'line' && previewCoords.length >= 2) {
+        features.push({
+          type: 'Feature',
+          properties: { id: 'preview', annType: 'preview', color: '#94A3B8', borderColor: '#64748B' },
+          geometry: { type: 'LineString', coordinates: previewCoords },
+        });
+      } else if (drawingMode === 'polygon' && previewCoords.length >= 3) {
+        const closedPreview = [...previewCoords, previewCoords[0]];
+        features.push({
+          type: 'Feature',
+          properties: { id: 'preview', annType: 'preview', color: '#94A3B8', borderColor: '#64748B' },
+          geometry: { type: 'Polygon', coordinates: [closedPreview] },
+        });
+      }
+      if (previewCoords.length >= 2) {
+        features.push({
+          type: 'Feature',
+          properties: { id: 'preview-line', annType: 'preview', color: '#94A3B8', borderColor: '#64748B' },
+          geometry: { type: 'LineString', coordinates: previewCoords },
+        });
+      }
+    }
+
+    // Temp vertex markers
+    if (drawingMode && tempCoordinates.length > 0) {
+      tempCoordinates.forEach((coord, i) => {
+        features.push({
+          type: 'Feature',
+          properties: { id: `temp-vertex-${i}`, annType: 'vertex', color: '#64748B', borderColor: '#ffffff' },
+          geometry: { type: 'Point', coordinates: coord },
+        });
+      });
+    }
+
+    const geojsonData = { type: 'FeatureCollection', features };
+    const labelsGeojson = { type: 'FeatureCollection', features: labelFeatures };
+
+    // --- Update or create annotation source & layers ---
+    if (map.current.getSource('annotations-source')) {
+      map.current.getSource('annotations-source').setData(geojsonData);
+    } else {
+      map.current.addSource('annotations-source', { type: 'geojson', data: geojsonData });
+
+      // Polygon fill
+      map.current.addLayer({
+        id: 'annotations-fill-layer',
+        type: 'fill',
+        source: 'annotations-source',
+        filter: ['==', ['geometry-type'], 'Polygon'],
+        paint: {
+          'fill-color': ['get', 'color'],
+          'fill-opacity': 0.15,
+        },
+      });
+
+      // Lines (including polygon borders)
+      map.current.addLayer({
+        id: 'annotations-line-layer',
+        type: 'line',
+        source: 'annotations-source',
+        filter: ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'Polygon']],
+        paint: {
+          'line-color': ['get', 'borderColor'],
+          'line-width': [
+            'case',
+            ['==', ['get', 'annType'], 'preview'], 2,
+            2.5
+          ],
+        },
+      });
+
+      // Points — larger circle to hold number inside
+      map.current.addLayer({
+        id: 'annotations-point-layer',
+        type: 'circle',
+        source: 'annotations-source',
+        filter: ['all', ['==', ['geometry-type'], 'Point'], ['!=', ['get', 'annType'], 'vertex']],
+        paint: {
+          'circle-radius': 14,
+          'circle-color': ['get', 'color'],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': ['get', 'borderColor'],
+        },
+      });
+
+      // Number text inside point markers
+      map.current.addLayer({
+        id: 'annotations-point-labels',
+        type: 'symbol',
+        source: 'annotations-source',
+        filter: ['all', ['==', ['geometry-type'], 'Point'], ['!=', ['get', 'annType'], 'vertex'], ['has', 'numberStr']],
+        layout: {
+          'text-field': ['get', 'numberStr'],
+          'text-size': 11,
+          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-allow-overlap': true,
+        },
+        paint: {
+          'text-color': '#000000',
+        },
+      });
+
+      // Temp vertex markers (smaller)
+      map.current.addLayer({
+        id: 'annotations-vertex-layer',
+        type: 'circle',
+        source: 'annotations-source',
+        filter: ['==', ['get', 'annType'], 'vertex'],
+        paint: {
+          'circle-radius': 4,
+          'circle-color': '#64748B',
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#ffffff',
+        },
+      });
+    }
+
+    // Labels source & layer — for line/polygon centroids (number inside a circle marker)
+    if (map.current.getSource('annotations-labels-source')) {
+      map.current.getSource('annotations-labels-source').setData(labelsGeojson);
+    } else {
+      map.current.addSource('annotations-labels-source', { type: 'geojson', data: labelsGeojson });
+
+      // Background circle for centroid labels
+      map.current.addLayer({
+        id: 'annotations-centroid-circles',
+        type: 'circle',
+        source: 'annotations-labels-source',
+        filter: ['any', ['==', ['get', 'annType'], 'line'], ['==', ['get', 'annType'], 'polygon']],
+        paint: {
+          'circle-radius': 14,
+          'circle-color': ['get', 'color'],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': ['get', 'borderColor'],
+        },
+      });
+
+      // Number text at centroid
+      map.current.addLayer({
+        id: 'annotations-labels-layer',
+        type: 'symbol',
+        source: 'annotations-labels-source',
+        layout: {
+          'text-field': ['get', 'number'],
+          'text-size': 11,
+          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-allow-overlap': true,
+        },
+        paint: {
+          'text-color': '#000000',
+        },
+      });
+    }
+  }, [mapLoaded, allAnnotations, activeVisualizationId, drawingMode, tempCoordinates, cursorPosition, getActiveAnnotations]);
 
 
   const handleMapStyleChange = useCallback((newStyle) => {
