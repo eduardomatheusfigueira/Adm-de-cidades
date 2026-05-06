@@ -248,6 +248,16 @@ export const MapProvider = ({ children }) => {
         paint: { 'fill-color': colorRenderScaleExpression, 'fill-opacity': 0.6, 'fill-outline-color': '#000' }
       });
       map.current.addLayer({
+        id: 'sectors-line-layer', type: 'line', source: 'sectors',
+        filter: ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']],
+        paint: {
+          'line-color': colorRenderScaleExpression,
+          'line-width': 0,
+          'line-opacity': 0,
+          'line-offset': 0
+        }
+      });
+      map.current.addLayer({
         id: 'sectors-point-layer', type: 'circle', source: 'sectors',
         filter: ['==', ['geometry-type'], 'Point'],
         paint: {
@@ -259,7 +269,7 @@ export const MapProvider = ({ children }) => {
         }
       });
 
-      const layers = ['sectors-fill-layer', 'sectors-point-layer'];
+      const layers = ['sectors-fill-layer', 'sectors-point-layer', 'sectors-line-layer'];
       layers.forEach(layerId => {
         map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; });
         map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; });
@@ -274,11 +284,43 @@ export const MapProvider = ({ children }) => {
         });
       });
     }
-    if (map.current.getLayer('sectors-fill-layer')) {
-      map.current.setPaintProperty('sectors-fill-layer', 'fill-color', colorRenderScaleExpression);
-    }
-    if (map.current.getLayer('sectors-point-layer')) {
-      map.current.setPaintProperty('sectors-point-layer', 'circle-color', colorRenderScaleExpression);
+
+    // Determine render mode from visualizationConfig
+    const renderMode = visualizationConfig?.renderMode || 'filled';
+    const borderWidth = visualizationConfig?.borderWidth || 2;
+    const fillOpacity = visualizationConfig?.fillOpacity ?? 0.6;
+
+    if (renderMode === 'border') {
+      // Border mode: transparent fill, colored inward border
+      if (map.current.getLayer('sectors-fill-layer')) {
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-color', colorRenderScaleExpression);
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-opacity', 0);
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-outline-color', 'transparent');
+      }
+      if (map.current.getLayer('sectors-line-layer')) {
+        map.current.setPaintProperty('sectors-line-layer', 'line-color', colorRenderScaleExpression);
+        map.current.setPaintProperty('sectors-line-layer', 'line-width', borderWidth);
+        map.current.setPaintProperty('sectors-line-layer', 'line-opacity', 1);
+        // Positive offset pushes line inward so border grows toward center
+        map.current.setPaintProperty('sectors-line-layer', 'line-offset', (borderWidth / 2));
+      }
+      if (map.current.getLayer('sectors-point-layer')) {
+        map.current.setPaintProperty('sectors-point-layer', 'circle-color', colorRenderScaleExpression);
+      }
+    } else {
+      // Filled mode (default): colored fill, no visible line layer
+      if (map.current.getLayer('sectors-fill-layer')) {
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-color', colorRenderScaleExpression);
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-opacity', fillOpacity);
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-outline-color', '#000');
+      }
+      if (map.current.getLayer('sectors-line-layer')) {
+        map.current.setPaintProperty('sectors-line-layer', 'line-opacity', 0);
+        map.current.setPaintProperty('sectors-line-layer', 'line-width', 0);
+      }
+      if (map.current.getLayer('sectors-point-layer')) {
+        map.current.setPaintProperty('sectors-point-layer', 'circle-color', colorRenderScaleExpression);
+      }
     }
   }, [mapLoaded, filteredCsvData, geojsonData, indicadoresData, colorAttribute, visualizationConfig, map, setSelectedCityInfo, legendConfigByKey]);
 

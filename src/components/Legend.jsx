@@ -6,6 +6,20 @@ import { getColorScale, getLegendKey } from '../utils/colorUtils';
 
 const isValidColor = (value) => /^#([0-9A-F]{3}){1,2}$/i.test(value);
 
+// Converts any CSS color (rgb, hex, named) to #RRGGBB format
+const normalizeToHex = (color) => {
+  if (!color) return '#cccccc';
+  if (isValidColor(color)) return color;
+  // Use a temporary canvas to resolve CSS color strings to hex
+  try {
+    const ctx = document.createElement('canvas').getContext('2d');
+    ctx.fillStyle = color;
+    return ctx.fillStyle; // Returns #rrggbb
+  } catch {
+    return '#cccccc';
+  }
+};
+
 const Legend = () => {
   const {
     colorAttribute,
@@ -63,7 +77,7 @@ const Legend = () => {
     if (expressionType === 'match') {
       const items = [];
       for (let i = 2; i < scaleExpression.length - 1; i += 2) {
-        items.push({ value: `${scaleExpression[i]}`, color: scaleExpression[i + 1] });
+        items.push({ value: `${scaleExpression[i]}`, color: normalizeToHex(scaleExpression[i + 1]) });
       }
       return {
         title,
@@ -93,7 +107,7 @@ const Legend = () => {
       let firstColor = scaleExpression[2];
       steps.push({
         value: `${minValue.toLocaleString('pt-BR')} - ${maxValue.toLocaleString('pt-BR')}`,
-        color: firstColor
+        color: normalizeToHex(firstColor)
       });
 
       for (let i = 3; i < scaleExpression.length; i += 2) {
@@ -104,7 +118,7 @@ const Legend = () => {
         steps[steps.length - 1].value = `${previousThreshold.toLocaleString('pt-BR')} - ${threshold.toLocaleString('pt-BR')}`;
         steps.push({
           value: `${threshold.toLocaleString('pt-BR')} - ${maxValue.toLocaleString('pt-BR')}`,
-          color
+          color: normalizeToHex(color)
         });
         previousThreshold = threshold;
       }

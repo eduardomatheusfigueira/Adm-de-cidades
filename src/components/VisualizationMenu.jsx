@@ -36,6 +36,9 @@ const VisualizationMenu = ({
   const [currentSelectedYear, setCurrentSelectedYear] = useState('');
   const [currentSelectedIndicator, setCurrentSelectedIndicator] = useState('');
   const [currentIndicatorValueType, setCurrentIndicatorValueType] = useState('value');
+  const [currentRenderMode, setCurrentRenderMode] = useState('filled'); // 'filled' ou 'border'
+  const [currentBorderWidth, setCurrentBorderWidth] = useState(2);
+  const [currentFillOpacity, setCurrentFillOpacity] = useState(0.6);
 
   const [availableYears, setAvailableYears] = useState([]);
   const [availableIndicators, setAvailableIndicators] = useState([]);
@@ -111,7 +114,6 @@ const VisualizationMenu = ({
 
   const excludedAttributesForVisualization = useMemo(() => new Set([
     'Codigo_Municipio',
-    'Nome_Municipio',
     'Longitude_Municipio',
     'Latitude_Municipio'
   ]), []);
@@ -196,6 +198,9 @@ const VisualizationMenu = ({
       config.indicator = currentSelectedIndicator;
       config.valueType = currentIndicatorValueType;
     }
+    config.renderMode = currentRenderMode;
+    config.borderWidth = currentBorderWidth;
+    config.fillOpacity = currentFillOpacity;
     handleVisualizationConfigChange(config); // Chama a função do UIContext
     setActiveEnvironment('map'); // Chama a função do UIContext
     setIsOpen(false);
@@ -341,6 +346,54 @@ const VisualizationMenu = ({
                   </select>
                 </div>
               </>
+            )}
+            <div className="visualization-group">
+              <label>Modo de Renderização:</label>
+              <select className="visualization-dropdown" value={currentRenderMode} onChange={(e) => setCurrentRenderMode(e.target.value)}>
+                <option value="filled">Preenchido</option>
+                <option value="border">Borda</option>
+              </select>
+            </div>
+            {currentRenderMode === 'border' && (
+              <div className="visualization-group">
+                <label>Espessura da Borda: {currentBorderWidth}px</label>
+                <div className="border-width-control">
+                  <input
+                    type="range"
+                    className="border-width-slider"
+                    min="1"
+                    max="10"
+                    step="0.5"
+                    value={currentBorderWidth}
+                    onChange={(e) => setCurrentBorderWidth(parseFloat(e.target.value))}
+                  />
+                  <input
+                    type="number"
+                    className="border-width-input"
+                    min="1"
+                    max="10"
+                    step="0.5"
+                    value={currentBorderWidth}
+                    onChange={(e) => setCurrentBorderWidth(Math.min(10, Math.max(1, parseFloat(e.target.value) || 1)))}
+                  />
+                </div>
+              </div>
+            )}
+            {currentRenderMode === 'filled' && (
+              <div className="visualization-group">
+                <label>Opacidade: {Math.round(currentFillOpacity * 100)}%</label>
+                <div className="border-width-control">
+                  <input
+                    type="range"
+                    className="border-width-slider"
+                    min="0.05"
+                    max="1"
+                    step="0.05"
+                    value={currentFillOpacity}
+                    onChange={(e) => setCurrentFillOpacity(parseFloat(e.target.value))}
+                  />
+                </div>
+              </div>
             )}
             <div className="visualization-group">
               <label>Estilo do Mapa:</label>
