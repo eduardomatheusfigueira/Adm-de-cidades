@@ -399,6 +399,51 @@
   border-color: rgba(0, 0, 0, 0.4);
 }
 
+/* Line style controls (width slider + style select) */
+.annotation-style-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+}
+
+.annotation-width-slider {
+  width: 50px;
+  height: 4px;
+  accent-color: var(--secondary-color, #3B82F6);
+  cursor: pointer;
+}
+
+.annotation-width-value {
+  font-size: 0.62rem;
+  color: var(--text-light);
+  min-width: 26px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.annotation-style-select {
+  font-family: inherit;
+  font-size: 0.68rem;
+  padding: 2px 4px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--surface-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.annotation-style-select:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+}
+
+/* SVG line sample in legend */
+.annotation-line-sample {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
 /* Header actions group */
 .annotation-legend-header-actions {
   display: flex;

@@ -473,6 +473,8 @@ export const MapProvider = ({ children }) => {
       let renderColor = annColor; // color used for the shape itself
       let renderBorderColor = (annColor === '#FFFFFF' || annColor === '#ffffff') ? DEFAULT_BORDER : '#000000';
       let renderFillColor = annColor;
+      let renderLineWidth = 2.5;
+      let renderLineStyle = 'solid';
 
       if (ann.type === 'point') {
         geometry = { type: 'Point', coordinates: ann.coordinates };
@@ -485,6 +487,8 @@ export const MapProvider = ({ children }) => {
         // Lines: lineColor determines line color on map
         renderColor = ann.lineColor || annColor;
         renderBorderColor = renderColor; // line border = line color
+        renderLineWidth = ann.lineWidth ?? 2.5;
+        renderLineStyle = ann.lineStyle || 'solid';
       } else if (ann.type === 'polygon') {
         geometry = { type: 'Polygon', coordinates: [ann.coordinates] };
         const coords = ann.coordinates.slice(0, -1);
@@ -495,6 +499,8 @@ export const MapProvider = ({ children }) => {
         renderFillColor = ann.fillColor || annColor;
         renderColor = renderFillColor;
         renderBorderColor = ann.strokeColor || DEFAULT_BORDER;
+        renderLineWidth = ann.strokeWidth ?? 2.5;
+        renderLineStyle = ann.strokeStyle || 'solid';
       }
 
       if (geometry) {
@@ -508,6 +514,8 @@ export const MapProvider = ({ children }) => {
             color: renderFillColor,
             borderColor: renderBorderColor,
             lineColor: renderColor,
+            lineWidth: renderLineWidth,
+            lineStyle: renderLineStyle,
             description: ann.description,
           },
           geometry,
@@ -587,19 +595,50 @@ export const MapProvider = ({ children }) => {
         },
       });
 
-      // Lines (including polygon borders)
+      // Lines — SOLID (including polygon borders)
       map.current.addLayer({
-        id: 'annotations-line-layer',
+        id: 'annotations-line-solid',
         type: 'line',
         source: 'annotations-source',
-        filter: ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'Polygon']],
+        filter: ['all',
+          ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'Polygon']],
+          ['any', ['==', ['get', 'lineStyle'], 'solid'], ['!', ['has', 'lineStyle']]],
+        ],
         paint: {
           'line-color': ['get', 'borderColor'],
-          'line-width': [
-            'case',
-            ['==', ['get', 'annType'], 'preview'], 2,
-            2.5
-          ],
+          'line-width': ['case', ['==', ['get', 'annType'], 'preview'], 2, ['get', 'lineWidth']],
+        },
+      });
+
+      // Lines — DASHED
+      map.current.addLayer({
+        id: 'annotations-line-dashed',
+        type: 'line',
+        source: 'annotations-source',
+        filter: ['all',
+          ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'Polygon']],
+          ['==', ['get', 'lineStyle'], 'dashed'],
+        ],
+        paint: {
+          'line-color': ['get', 'borderColor'],
+          'line-width': ['get', 'lineWidth'],
+          'line-dasharray': [6, 3],
+        },
+      });
+
+      // Lines — DOTTED
+      map.current.addLayer({
+        id: 'annotations-line-dotted',
+        type: 'line',
+        source: 'annotations-source',
+        filter: ['all',
+          ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'Polygon']],
+          ['==', ['get', 'lineStyle'], 'dotted'],
+        ],
+        paint: {
+          'line-color': ['get', 'borderColor'],
+          'line-width': ['get', 'lineWidth'],
+          'line-dasharray': [1.5, 2],
         },
       });
 

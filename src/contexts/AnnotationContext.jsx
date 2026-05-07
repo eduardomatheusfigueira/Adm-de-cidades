@@ -114,6 +114,8 @@ export const AnnotationProvider = ({ children }) => {
         coordinates: finalCoords,
         color: currentColor,
         lineColor: currentColor,
+        lineWidth: 2.5,
+        lineStyle: 'solid',
         description: '',
         visualizationId: activeVisualizationId,
       };
@@ -133,6 +135,8 @@ export const AnnotationProvider = ({ children }) => {
         color: currentColor,
         fillColor: currentColor,
         strokeColor: '#000000',
+        strokeWidth: 2.5,
+        strokeStyle: 'solid',
         description: '',
         visualizationId: activeVisualizationId,
       };

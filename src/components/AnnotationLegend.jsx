@@ -6,6 +6,38 @@ import { UIContext } from '../contexts/UIContext';
 
 const TYPE_ICONS = { point: '📍', line: '📏', polygon: '⬡' };
 const TYPE_LABELS = { point: 'Ponto', line: 'Linha', polygon: 'Polígono' };
+const STYLE_OPTIONS = [
+  { value: 'solid', label: 'Contínuo' },
+  { value: 'dashed', label: 'Tracejado' },
+  { value: 'dotted', label: 'Pontilhado' },
+];
+
+// Small SVG line sample for view mode legend
+const LineSample = ({ color, width, style, type }) => {
+  const w = 30;
+  const h = 12;
+  const strokeW = Math.min(width || 2.5, 5);
+  let dashArray = 'none';
+  if (style === 'dashed') dashArray = '6,3';
+  else if (style === 'dotted') dashArray = '2,2';
+
+  if (type === 'polygon') {
+    // Small rectangle outline to represent polygon border
+    return (
+      <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="annotation-line-sample">
+        <rect x={1} y={1} width={w - 2} height={h - 2} fill="none"
+          stroke={color || '#000'} strokeWidth={strokeW} strokeDasharray={dashArray} />
+      </svg>
+    );
+  }
+  // Line
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="annotation-line-sample">
+      <line x1={0} y1={h / 2} x2={w} y2={h / 2}
+        stroke={color || '#000'} strokeWidth={strokeW} strokeDasharray={dashArray} strokeLinecap="round" />
+    </svg>
+  );
+};
 
 const AnnotationLegend = () => {
   const {
@@ -71,6 +103,14 @@ const AnnotationLegend = () => {
                 <span className="annotation-view-number" style={{ backgroundColor: ann.color || '#FFFFFF', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : ann.color }}>
                   {ann.number}
                 </span>
+                {(ann.type === 'line' || ann.type === 'polygon') && (
+                  <LineSample
+                    color={ann.type === 'line' ? (ann.lineColor || ann.color || '#000') : (ann.strokeColor || '#000')}
+                    width={ann.type === 'line' ? (ann.lineWidth ?? 2.5) : (ann.strokeWidth ?? 2.5)}
+                    style={ann.type === 'line' ? (ann.lineStyle || 'solid') : (ann.strokeStyle || 'solid')}
+                    type={ann.type}
+                  />
+                )}
                 <span className="annotation-view-description">{ann.description || `${TYPE_LABELS[ann.type]} ${ann.number}`}</span>
               </div>
             ))}
@@ -144,14 +184,30 @@ const AnnotationLegend = () => {
                 <span className="annotation-type-label">{TYPE_LABELS[ann.type]}</span>
                 <button className="annotation-remove-btn" onClick={() => removeAnnotation(ann.id)} title="Remover anotação">✕</button>
               </div>
-              {/* Type-specific color pickers */}
+              {/* Type-specific color pickers + line style */}
               {ann.type === 'line' && (
                 <div className="annotation-extra-colors">
                   <label className="annotation-color-picker-row" title="Cor da linha">
-                    <span className="annotation-color-label">Linha</span>
+                    <span className="annotation-color-label">Cor</span>
                     <input type="color" value={ann.lineColor || ann.color || '#FFFFFF'} onChange={(e) => updateAnnotationColors(ann.id, { lineColor: e.target.value })} className="annotation-color-input" />
                     <span className="annotation-color-swatch-rect" style={{ backgroundColor: ann.lineColor || ann.color || '#FFFFFF', borderColor: 'rgba(0,0,0,0.2)' }}></span>
                   </label>
+                  <label className="annotation-style-control" title="Espessura da linha">
+                    <span className="annotation-color-label">Espess.</span>
+                    <input type="range" min="1" max="8" step="0.5" value={ann.lineWidth ?? 2.5}
+                      onChange={(e) => updateAnnotationColors(ann.id, { lineWidth: parseFloat(e.target.value) })}
+                      className="annotation-width-slider" />
+                    <span className="annotation-width-value">{ann.lineWidth ?? 2.5}px</span>
+                  </label>
+                  <label className="annotation-style-control" title="Estilo da linha">
+                    <span className="annotation-color-label">Estilo</span>
+                    <select value={ann.lineStyle || 'solid'}
+                      onChange={(e) => updateAnnotationColors(ann.id, { lineStyle: e.target.value })}
+                      className="annotation-style-select">
+                      {STYLE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </label>
+                  <LineSample color={ann.lineColor || ann.color || '#000'} width={ann.lineWidth ?? 2.5} style={ann.lineStyle || 'solid'} type="line" />
                 </div>
               )}
               {ann.type === 'polygon' && (
@@ -166,6 +222,22 @@ const AnnotationLegend = () => {
                     <input type="color" value={ann.strokeColor || '#000000'} onChange={(e) => updateAnnotationColors(ann.id, { strokeColor: e.target.value })} className="annotation-color-input" />
                     <span className="annotation-color-swatch-rect" style={{ backgroundColor: ann.strokeColor || '#000000', borderColor: 'rgba(0,0,0,0.2)' }}></span>
                   </label>
+                  <label className="annotation-style-control" title="Espessura da borda">
+                    <span className="annotation-color-label">Espess.</span>
+                    <input type="range" min="1" max="8" step="0.5" value={ann.strokeWidth ?? 2.5}
+                      onChange={(e) => updateAnnotationColors(ann.id, { strokeWidth: parseFloat(e.target.value) })}
+                      className="annotation-width-slider" />
+                    <span className="annotation-width-value">{ann.strokeWidth ?? 2.5}px</span>
+                  </label>
+                  <label className="annotation-style-control" title="Estilo da borda">
+                    <span className="annotation-color-label">Estilo</span>
+                    <select value={ann.strokeStyle || 'solid'}
+                      onChange={(e) => updateAnnotationColors(ann.id, { strokeStyle: e.target.value })}
+                      className="annotation-style-select">
+                      {STYLE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </label>
+                  <LineSample color={ann.strokeColor || '#000'} width={ann.strokeWidth ?? 2.5} style={ann.strokeStyle || 'solid'} type="polygon" />
                 </div>
               )}
               <input type="text" className="annotation-description-input" value={ann.description} onChange={(e) => updateAnnotationDescription(ann.id, e.target.value)} placeholder="Descreva o que este ponto significa..." />
