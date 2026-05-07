@@ -357,6 +357,48 @@
   border-color: rgba(0, 0, 0, 0.3);
 }
 
+/* Type-specific extra color pickers (line color, fill/stroke for polygons) */
+.annotation-extra-colors {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0 2px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.annotation-color-picker-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  position: relative;
+  font-size: 0.72rem;
+}
+
+.annotation-color-label {
+  color: var(--text-light);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
+.annotation-color-swatch-rect {
+  display: block;
+  width: 22px;
+  height: 14px;
+  border-radius: 3px;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.annotation-color-picker-row:hover .annotation-color-swatch-rect {
+  transform: scale(1.15);
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
 /* Header actions group */
 .annotation-legend-header-actions {
   display: flex;

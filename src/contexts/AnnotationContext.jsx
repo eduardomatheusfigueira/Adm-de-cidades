@@ -113,6 +113,7 @@ export const AnnotationProvider = ({ children }) => {
         type: 'line',
         coordinates: finalCoords,
         color: currentColor,
+        lineColor: currentColor,
         description: '',
         visualizationId: activeVisualizationId,
       };
@@ -130,6 +131,8 @@ export const AnnotationProvider = ({ children }) => {
         type: 'polygon',
         coordinates: finalCoords,
         color: currentColor,
+        fillColor: currentColor,
+        strokeColor: '#000000',
         description: '',
         visualizationId: activeVisualizationId,
       };
@@ -150,6 +153,10 @@ export const AnnotationProvider = ({ children }) => {
 
   const updateAnnotationColor = useCallback((id, color) => {
     setAnnotations(prev => prev.map(a => a.id === id ? { ...a, color } : a));
+  }, []);
+
+  const updateAnnotationColors = useCallback((id, colorUpdates) => {
+    setAnnotations(prev => prev.map(a => a.id === id ? { ...a, ...colorUpdates } : a));
   }, []);
 
   const removeAnnotation = useCallback((id) => {
@@ -231,6 +238,7 @@ export const AnnotationProvider = ({ children }) => {
     // Annotation CRUD
     updateAnnotationDescription,
     updateAnnotationColor,
+    updateAnnotationColors,
     removeAnnotation,
     // Color
     currentColor,

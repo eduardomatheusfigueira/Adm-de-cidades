@@ -468,21 +468,33 @@ export const MapProvider = ({ children }) => {
       let geometry = null;
       let centroid = null;
       const annColor = ann.color || DEFAULT_FILL;
-      const borderColor = (annColor === '#FFFFFF' || annColor === '#ffffff') ? DEFAULT_BORDER : '#000000';
+
+      // Type-specific colors with backward-compatible fallbacks
+      let renderColor = annColor; // color used for the shape itself
+      let renderBorderColor = (annColor === '#FFFFFF' || annColor === '#ffffff') ? DEFAULT_BORDER : '#000000';
+      let renderFillColor = annColor;
 
       if (ann.type === 'point') {
         geometry = { type: 'Point', coordinates: ann.coordinates };
         centroid = ann.coordinates;
+        // Points: color = circle background
       } else if (ann.type === 'line') {
         geometry = { type: 'LineString', coordinates: ann.coordinates };
         const mid = Math.floor(ann.coordinates.length / 2);
         centroid = ann.coordinates[mid] || ann.coordinates[0];
+        // Lines: lineColor determines line color on map
+        renderColor = ann.lineColor || annColor;
+        renderBorderColor = renderColor; // line border = line color
       } else if (ann.type === 'polygon') {
         geometry = { type: 'Polygon', coordinates: [ann.coordinates] };
         const coords = ann.coordinates.slice(0, -1);
         const avgLng = coords.reduce((s, c) => s + c[0], 0) / coords.length;
         const avgLat = coords.reduce((s, c) => s + c[1], 0) / coords.length;
         centroid = [avgLng, avgLat];
+        // Polygons: fillColor for area, strokeColor for border lines
+        renderFillColor = ann.fillColor || annColor;
+        renderColor = renderFillColor;
+        renderBorderColor = ann.strokeColor || DEFAULT_BORDER;
       }
 
       if (geometry) {
@@ -493,8 +505,9 @@ export const MapProvider = ({ children }) => {
             number: ann.number,
             numberStr: String(ann.number),
             annType: ann.type,
-            color: annColor,
-            borderColor: borderColor,
+            color: renderFillColor,
+            borderColor: renderBorderColor,
+            lineColor: renderColor,
             description: ann.description,
           },
           geometry,
@@ -509,7 +522,7 @@ export const MapProvider = ({ children }) => {
             number: String(ann.number),
             annType: ann.type,
             color: annColor,
-            borderColor: borderColor,
+            borderColor: (annColor === '#FFFFFF' || annColor === '#ffffff') ? DEFAULT_BORDER : '#000000',
           },
           geometry: { type: 'Point', coordinates: centroid },
         });

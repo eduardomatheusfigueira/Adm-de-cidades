@@ -10,7 +10,7 @@ const TYPE_LABELS = { point: 'Ponto', line: 'Linha', polygon: 'Polígono' };
 const AnnotationLegend = () => {
   const {
     visualizations, activeVisualizationId, getActiveAnnotations,
-    updateAnnotationDescription, updateAnnotationColor, removeAnnotation,
+    updateAnnotationDescription, updateAnnotationColor, updateAnnotationColors, removeAnnotation,
     saveVisualization, loadVisualization, deleteVisualization,
     createVisualization, closeAnnotationPanel, drawingMode,
     isViewMode, setIsViewMode,
@@ -135,7 +135,8 @@ const AnnotationLegend = () => {
             <div key={ann.id} className="annotation-legend-item" style={{ borderLeftColor: ann.color || '#FFFFFF' === '#FFFFFF' ? '#000000' : ann.color }}>
               <div className="annotation-item-header">
                 <span className="annotation-number" style={{ backgroundColor: ann.color || '#FFFFFF', color: '#000000', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : ann.color }}>{ann.number}</span>
-                <label className="annotation-color-picker" title="Alterar cor">
+                {/* Circle fill color picker (all types) */}
+                <label className="annotation-color-picker" title="Cor do marcador (círculo)">
                   <input type="color" value={ann.color || '#FFFFFF'} onChange={(e) => updateAnnotationColor(ann.id, e.target.value)} className="annotation-color-input" />
                   <span className="annotation-color-swatch" style={{ backgroundColor: ann.color || '#FFFFFF', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : 'rgba(0,0,0,0.15)' }}></span>
                 </label>
@@ -143,6 +144,30 @@ const AnnotationLegend = () => {
                 <span className="annotation-type-label">{TYPE_LABELS[ann.type]}</span>
                 <button className="annotation-remove-btn" onClick={() => removeAnnotation(ann.id)} title="Remover anotação">✕</button>
               </div>
+              {/* Type-specific color pickers */}
+              {ann.type === 'line' && (
+                <div className="annotation-extra-colors">
+                  <label className="annotation-color-picker-row" title="Cor da linha">
+                    <span className="annotation-color-label">Linha</span>
+                    <input type="color" value={ann.lineColor || ann.color || '#FFFFFF'} onChange={(e) => updateAnnotationColors(ann.id, { lineColor: e.target.value })} className="annotation-color-input" />
+                    <span className="annotation-color-swatch-rect" style={{ backgroundColor: ann.lineColor || ann.color || '#FFFFFF', borderColor: 'rgba(0,0,0,0.2)' }}></span>
+                  </label>
+                </div>
+              )}
+              {ann.type === 'polygon' && (
+                <div className="annotation-extra-colors">
+                  <label className="annotation-color-picker-row" title="Cor de preenchimento do polígono">
+                    <span className="annotation-color-label">Preench.</span>
+                    <input type="color" value={ann.fillColor || ann.color || '#FFFFFF'} onChange={(e) => updateAnnotationColors(ann.id, { fillColor: e.target.value })} className="annotation-color-input" />
+                    <span className="annotation-color-swatch-rect" style={{ backgroundColor: ann.fillColor || ann.color || '#FFFFFF', borderColor: 'rgba(0,0,0,0.2)' }}></span>
+                  </label>
+                  <label className="annotation-color-picker-row" title="Cor da borda do polígono">
+                    <span className="annotation-color-label">Borda</span>
+                    <input type="color" value={ann.strokeColor || '#000000'} onChange={(e) => updateAnnotationColors(ann.id, { strokeColor: e.target.value })} className="annotation-color-input" />
+                    <span className="annotation-color-swatch-rect" style={{ backgroundColor: ann.strokeColor || '#000000', borderColor: 'rgba(0,0,0,0.2)' }}></span>
+                  </label>
+                </div>
+              )}
               <input type="text" className="annotation-description-input" value={ann.description} onChange={(e) => updateAnnotationDescription(ann.id, e.target.value)} placeholder="Descreva o que este ponto significa..." />
             </div>
           ))}
