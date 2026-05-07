@@ -13,7 +13,7 @@ const STYLE_OPTIONS = [
 ];
 
 // Small SVG line sample for view mode legend
-const LineSample = ({ color, width, style, type }) => {
+const LineSample = ({ color, width, style, type, fillColor, fillOpacity }) => {
   const w = 30;
   const h = 12;
   const strokeW = Math.min(width || 2.5, 5);
@@ -22,10 +22,11 @@ const LineSample = ({ color, width, style, type }) => {
   else if (style === 'dotted') dashArray = '2,2';
 
   if (type === 'polygon') {
-    // Small rectangle outline to represent polygon border
+    // Small rectangle outline to represent polygon border, with fill opacity
     return (
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="annotation-line-sample">
-        <rect x={1} y={1} width={w - 2} height={h - 2} fill="none"
+        <rect x={1} y={1} width={w - 2} height={h - 2}
+          fill={fillColor || '#ccc'} fillOpacity={fillOpacity ?? 0.15}
           stroke={color || '#000'} strokeWidth={strokeW} strokeDasharray={dashArray} />
       </svg>
     );
@@ -109,6 +110,8 @@ const AnnotationLegend = () => {
                     width={ann.type === 'line' ? (ann.lineWidth ?? 2.5) : (ann.strokeWidth ?? 2.5)}
                     style={ann.type === 'line' ? (ann.lineStyle || 'solid') : (ann.strokeStyle || 'solid')}
                     type={ann.type}
+                    fillColor={ann.type === 'polygon' ? (ann.fillColor || ann.color) : undefined}
+                    fillOpacity={ann.type === 'polygon' ? (ann.fillOpacity ?? 0.15) : undefined}
                   />
                 )}
                 <span className="annotation-view-description">{ann.description || `${TYPE_LABELS[ann.type]} ${ann.number}`}</span>
@@ -217,6 +220,13 @@ const AnnotationLegend = () => {
                     <input type="color" value={ann.fillColor || ann.color || '#FFFFFF'} onChange={(e) => updateAnnotationColors(ann.id, { fillColor: e.target.value })} className="annotation-color-input" />
                     <span className="annotation-color-swatch-rect" style={{ backgroundColor: ann.fillColor || ann.color || '#FFFFFF', borderColor: 'rgba(0,0,0,0.2)' }}></span>
                   </label>
+                  <label className="annotation-style-control" title="Opacidade do preenchimento">
+                    <span className="annotation-color-label">Opacid.</span>
+                    <input type="range" min="0" max="1" step="0.05" value={ann.fillOpacity ?? 0.15}
+                      onChange={(e) => updateAnnotationColors(ann.id, { fillOpacity: parseFloat(e.target.value) })}
+                      className="annotation-width-slider" />
+                    <span className="annotation-width-value">{Math.round((ann.fillOpacity ?? 0.15) * 100)}%</span>
+                  </label>
                   <label className="annotation-color-picker-row" title="Cor da borda do polígono">
                     <span className="annotation-color-label">Borda</span>
                     <input type="color" value={ann.strokeColor || '#000000'} onChange={(e) => updateAnnotationColors(ann.id, { strokeColor: e.target.value })} className="annotation-color-input" />
@@ -237,7 +247,7 @@ const AnnotationLegend = () => {
                       {STYLE_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                     </select>
                   </label>
-                  <LineSample color={ann.strokeColor || '#000'} width={ann.strokeWidth ?? 2.5} style={ann.strokeStyle || 'solid'} type="polygon" />
+                  <LineSample color={ann.strokeColor || '#000'} width={ann.strokeWidth ?? 2.5} style={ann.strokeStyle || 'solid'} type="polygon" fillColor={ann.fillColor || ann.color} fillOpacity={ann.fillOpacity ?? 0.15} />
                 </div>
               )}
               <input type="text" className="annotation-description-input" value={ann.description} onChange={(e) => updateAnnotationDescription(ann.id, e.target.value)} placeholder="Descreva o que este ponto significa..." />

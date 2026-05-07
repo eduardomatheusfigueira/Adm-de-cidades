@@ -134,6 +134,7 @@ export const AnnotationProvider = ({ children }) => {
         coordinates: finalCoords,
         color: currentColor,
         fillColor: currentColor,
+        fillOpacity: 0.15,
         strokeColor: '#000000',
         strokeWidth: 2.5,
         strokeStyle: 'solid',

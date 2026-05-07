@@ -501,6 +501,7 @@ export const MapProvider = ({ children }) => {
         renderBorderColor = ann.strokeColor || DEFAULT_BORDER;
         renderLineWidth = ann.strokeWidth ?? 2.5;
         renderLineStyle = ann.strokeStyle || 'solid';
+        var renderFillOpacity = ann.fillOpacity ?? 0.15;
       }
 
       if (geometry) {
@@ -516,6 +517,7 @@ export const MapProvider = ({ children }) => {
             lineColor: renderColor,
             lineWidth: renderLineWidth,
             lineStyle: renderLineStyle,
+            fillOpacity: typeof renderFillOpacity !== 'undefined' ? renderFillOpacity : 0.15,
             description: ann.description,
           },
           geometry,
@@ -591,7 +593,7 @@ export const MapProvider = ({ children }) => {
         filter: ['==', ['geometry-type'], 'Polygon'],
         paint: {
           'fill-color': ['get', 'color'],
-          'fill-opacity': 0.15,
+          'fill-opacity': ['case', ['has', 'fillOpacity'], ['get', 'fillOpacity'], 0.15],
         },
       });
 
