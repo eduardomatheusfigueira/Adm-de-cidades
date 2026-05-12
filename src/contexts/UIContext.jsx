@@ -17,6 +17,7 @@ export const UIProvider = ({ children }) => {
   const [showAnnotationLegend, setShowAnnotationLegend] = useState(true);
   const [showNorthArrow, setShowNorthArrow] = useState(true);
   const [showScaleBar, setShowScaleBar] = useState(true);
+  const [showImageStudio, setShowImageStudio] = useState(false);
 
   // Estados para o modal de importação de geometria
   const [showGeometryImportModal, setShowGeometryImportModal] = useState(false);
@@ -110,6 +111,8 @@ export const UIProvider = ({ children }) => {
     setShowNorthArrow,
     showScaleBar,
     setShowScaleBar,
+    showImageStudio,
+    setShowImageStudio,
     showGeometryImportModal,
     setShowGeometryImportModal, // Expor para App.jsx controlar o modal
     geometryImportData,

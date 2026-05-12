@@ -101,9 +101,11 @@ const AnnotationLegend = () => {
           <div className="annotation-legend-list">
             {activeAnnotations.map(ann => (
               <div key={ann.id} className="annotation-view-item">
-                <span className="annotation-view-number" style={{ backgroundColor: ann.color || '#FFFFFF', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : ann.color }}>
-                  {ann.number}
-                </span>
+                {ann.type === 'point' && (
+                  <span className="annotation-view-number" style={{ backgroundColor: ann.color || '#FFFFFF', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : ann.color }}>
+                    {ann.number}
+                  </span>
+                )}
                 {(ann.type === 'line' || ann.type === 'polygon') && (
                   <LineSample
                     color={ann.type === 'line' ? (ann.lineColor || ann.color || '#000') : (ann.strokeColor || '#000')}
@@ -177,12 +179,16 @@ const AnnotationLegend = () => {
           {activeAnnotations.map(ann => (
             <div key={ann.id} className="annotation-legend-item" style={{ borderLeftColor: ann.color || '#FFFFFF' === '#FFFFFF' ? '#000000' : ann.color }}>
               <div className="annotation-item-header">
-                <span className="annotation-number" style={{ backgroundColor: ann.color || '#FFFFFF', color: '#000000', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : ann.color }}>{ann.number}</span>
-                {/* Circle fill color picker (all types) */}
-                <label className="annotation-color-picker" title="Cor do marcador (círculo)">
-                  <input type="color" value={ann.color || '#FFFFFF'} onChange={(e) => updateAnnotationColor(ann.id, e.target.value)} className="annotation-color-input" />
-                  <span className="annotation-color-swatch" style={{ backgroundColor: ann.color || '#FFFFFF', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : 'rgba(0,0,0,0.15)' }}></span>
-                </label>
+                {ann.type === 'point' && (
+                  <span className="annotation-number" style={{ backgroundColor: ann.color || '#FFFFFF', color: '#000000', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : ann.color }}>{ann.number}</span>
+                )}
+                {ann.type === 'point' && (
+                  /* Circle fill color picker (points only) */
+                  <label className="annotation-color-picker" title="Cor do marcador (círculo)">
+                    <input type="color" value={ann.color || '#FFFFFF'} onChange={(e) => updateAnnotationColor(ann.id, e.target.value)} className="annotation-color-input" />
+                    <span className="annotation-color-swatch" style={{ backgroundColor: ann.color || '#FFFFFF', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : 'rgba(0,0,0,0.15)' }}></span>
+                  </label>
+                )}
                 <span className="annotation-type-icon" title={TYPE_LABELS[ann.type]}>{TYPE_ICONS[ann.type]}</span>
                 <span className="annotation-type-label">{TYPE_LABELS[ann.type]}</span>
                 <button className="annotation-remove-btn" onClick={() => removeAnnotation(ann.id)} title="Remover anotação">✕</button>

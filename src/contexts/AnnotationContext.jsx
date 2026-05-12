@@ -28,8 +28,8 @@ export const AnnotationProvider = ({ children }) => {
     return annotations.filter(a => a.visualizationId === activeVisualizationId);
   }, [annotations, activeVisualizationId]);
 
-  const getNextNumber = useCallback(() => {
-    const active = annotations.filter(a => a.visualizationId === activeVisualizationId);
+  const getNextNumber = useCallback((type) => {
+    const active = annotations.filter(a => a.visualizationId === activeVisualizationId && a.type === type);
     if (active.length === 0) return 1;
     return Math.max(...active.map(a => a.number)) + 1;
   }, [annotations, activeVisualizationId]);
@@ -67,7 +67,7 @@ export const AnnotationProvider = ({ children }) => {
 
     if (drawingMode === 'point') {
       // Immediately create annotation
-      const num = getNextNumber();
+      const num = getNextNumber('point');
       const annotation = {
         id: `ann-${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${num}`,
         number: num,
@@ -104,7 +104,7 @@ export const AnnotationProvider = ({ children }) => {
       return true;
     }
 
-    const num = getNextNumber();
+    const num = getNextNumber(drawingMode);
 
     if (drawingMode === 'line') {
       const annotation = {
@@ -166,13 +166,15 @@ export const AnnotationProvider = ({ children }) => {
 
   const removeAnnotation = useCallback((id) => {
     setAnnotations(prev => {
+      const removed = prev.find(a => a.id === id);
       const updated = prev.filter(a => a.id !== id);
-      // Re-number remaining annotations within the same visualization
-      const vizId = prev.find(a => a.id === id)?.visualizationId;
-      if (!vizId) return updated;
+      if (!removed) return updated;
+      const vizId = removed.visualizationId;
+      const removedType = removed.type;
+      // Re-number remaining annotations of the SAME TYPE within the same visualization
       let counter = 1;
       return updated.map(a => {
-        if (a.visualizationId === vizId) {
+        if (a.visualizationId === vizId && a.type === removedType) {
           return { ...a, number: counter++ };
         }
         return a;

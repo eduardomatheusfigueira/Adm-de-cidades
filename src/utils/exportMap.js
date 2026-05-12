@@ -23,27 +23,18 @@ export function generateExportHtml({
 
   // Build annotation GeoJSON features
   const features = [];
-  const labelFeatures = [];
 
   (annotations || []).forEach(ann => {
     const annColor = ann.color || DEFAULT_FILL;
     const borderColor = (annColor === '#FFFFFF' || annColor === '#ffffff') ? DEFAULT_BORDER : '#000000';
     let geometry = null;
-    let centroid = null;
 
     if (ann.type === 'point') {
       geometry = { type: 'Point', coordinates: ann.coordinates };
-      centroid = ann.coordinates;
     } else if (ann.type === 'line') {
       geometry = { type: 'LineString', coordinates: ann.coordinates };
-      const mid = Math.floor(ann.coordinates.length / 2);
-      centroid = ann.coordinates[mid] || ann.coordinates[0];
     } else if (ann.type === 'polygon') {
       geometry = { type: 'Polygon', coordinates: [ann.coordinates] };
-      const coords = ann.coordinates.slice(0, -1);
-      const avgLng = coords.reduce((s, c) => s + c[0], 0) / coords.length;
-      const avgLat = coords.reduce((s, c) => s + c[1], 0) / coords.length;
-      centroid = [avgLng, avgLat];
     }
 
     if (geometry) {
@@ -53,18 +44,9 @@ export function generateExportHtml({
         geometry,
       });
     }
-
-    if (centroid) {
-      labelFeatures.push({
-        type: 'Feature',
-        properties: { number: String(ann.number), annType: ann.type, color: annColor, borderColor },
-        geometry: { type: 'Point', coordinates: centroid },
-      });
-    }
   });
 
   const annotationsGeoJson = JSON.stringify({ type: 'FeatureCollection', features });
-  const labelsGeoJson = JSON.stringify({ type: 'FeatureCollection', features: labelFeatures });
   const munGeoJson = municipalityGeoJson ? JSON.stringify(municipalityGeoJson) : 'null';
   const colorExpr = municipalityColorExpression ? JSON.stringify(municipalityColorExpression) : '"#cccccc"';
 
@@ -73,8 +55,30 @@ export function generateExportHtml({
     const color = ann.color || DEFAULT_FILL;
     const border = (color === '#FFFFFF' || color === '#ffffff') ? DEFAULT_BORDER : color;
     const desc = ann.description || `${ann.type === 'point' ? 'Ponto' : ann.type === 'line' ? 'Linha' : 'Polígono'} ${ann.number}`;
+    if (ann.type === 'point') {
+      return `<div class="legend-item">
+        <span class="legend-num" style="background:${color};border-color:${border}">${ann.number}</span>
+        <span class="legend-desc">${esc(desc)}</span>
+      </div>`;
+    }
+    // Line or polygon: show SVG sample instead of numbered circle
+    const isLine = ann.type === 'line';
+    const strokeColor = isLine ? (ann.lineColor || ann.color || '#000') : (ann.strokeColor || '#000');
+    const strokeWidth = Math.min(isLine ? (ann.lineWidth ?? 2.5) : (ann.strokeWidth ?? 2.5), 5);
+    const strokeStyle = isLine ? (ann.lineStyle || 'solid') : (ann.strokeStyle || 'solid');
+    let dashArray = 'none';
+    if (strokeStyle === 'dashed') dashArray = '6,3';
+    else if (strokeStyle === 'dotted') dashArray = '2,2';
+    if (ann.type === 'polygon') {
+      const fillColor = ann.fillColor || ann.color || '#ccc';
+      const fillOpacity = ann.fillOpacity ?? 0.15;
+      return `<div class="legend-item">
+        <svg width="30" height="12" viewBox="0 0 30 12" style="flex-shrink:0"><rect x="1" y="1" width="28" height="10" fill="${fillColor}" fill-opacity="${fillOpacity}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}"/></svg>
+        <span class="legend-desc">${esc(desc)}</span>
+      </div>`;
+    }
     return `<div class="legend-item">
-      <span class="legend-num" style="background:${color};border-color:${border}">${ann.number}</span>
+      <svg width="30" height="12" viewBox="0 0 30 12" style="flex-shrink:0"><line x1="0" y1="6" x2="30" y2="6" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}" stroke-linecap="round"/></svg>
       <span class="legend-desc">${esc(desc)}</span>
     </div>`;
   }).join('\n');
@@ -348,7 +352,6 @@ map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 var munData = ${munGeoJson};
 var colorExpr = ${colorExpr};
 var annData = ${annotationsGeoJson};
-var labelData = ${labelsGeoJson};
 
 // ====== Show / Hide widgets ======
 function hideWidget(id, btnId) {
@@ -454,8 +457,6 @@ map.on('load', function() {
   map.addLayer({ id: 'ann-line', type: 'line', source: 'annotations', filter: ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'Polygon']], paint: { 'line-color': ['get', 'borderColor'], 'line-width': 2.5 } });
   map.addLayer({ id: 'ann-point', type: 'circle', source: 'annotations', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 14, 'circle-color': ['get', 'color'], 'circle-stroke-width': 2, 'circle-stroke-color': ['get', 'borderColor'] } });
   map.addLayer({ id: 'ann-text', type: 'symbol', source: 'annotations', filter: ['all', ['==', ['geometry-type'], 'Point'], ['has', 'numberStr']], layout: { 'text-field': ['get', 'numberStr'], 'text-size': 11, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-allow-overlap': true }, paint: { 'text-color': '#000' } });
-  map.addLayer({ id: 'lbl-circle', type: 'circle', source: 'labels', filter: ['any', ['==', ['get', 'annType'], 'line'], ['==', ['get', 'annType'], 'polygon']], paint: { 'circle-radius': 14, 'circle-color': ['get', 'color'], 'circle-stroke-width': 2, 'circle-stroke-color': ['get', 'borderColor'] } });
-  map.addLayer({ id: 'lbl-text', type: 'symbol', source: 'labels', layout: { 'text-field': ['get', 'number'], 'text-size': 11, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-allow-overlap': true }, paint: { 'text-color': '#000' } });
   ` : ''}
 });
 ${sc}

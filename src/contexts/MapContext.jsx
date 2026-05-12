@@ -51,7 +51,8 @@ export const MapProvider = ({ children }) => {
         container: mapContainer.current,
         style: mapStyle, // Usa o estado local mapStyle
         center: [lng, lat],
-        zoom: zoom
+        zoom: zoom,
+        preserveDrawingBuffer: true, // Necessário para exportação de imagens (canvas.toDataURL)
       });
       currentStyleUrl.current = mapStyle; // Sync ref
 
@@ -462,7 +463,6 @@ export const MapProvider = ({ children }) => {
 
     // Build GeoJSON features from annotations
     const features = [];
-    const labelFeatures = [];
 
     activeAnnotations.forEach(ann => {
       let geometry = null;
@@ -524,19 +524,7 @@ export const MapProvider = ({ children }) => {
         });
       }
 
-      // Label at centroid for ALL types (number inside marker circle)
-      if (centroid) {
-        labelFeatures.push({
-          type: 'Feature',
-          properties: {
-            number: String(ann.number),
-            annType: ann.type,
-            color: annColor,
-            borderColor: (annColor === '#FFFFFF' || annColor === '#ffffff') ? DEFAULT_BORDER : '#000000',
-          },
-          geometry: { type: 'Point', coordinates: centroid },
-        });
-      }
+
     });
 
     // Add temp drawing preview
@@ -577,7 +565,6 @@ export const MapProvider = ({ children }) => {
     }
 
     const geojsonData = { type: 'FeatureCollection', features };
-    const labelsGeojson = { type: 'FeatureCollection', features: labelFeatures };
 
     // --- Update or create annotation source & layers ---
     if (map.current.getSource('annotations-source')) {
@@ -690,42 +677,7 @@ export const MapProvider = ({ children }) => {
       });
     }
 
-    // Labels source & layer — for line/polygon centroids (number inside a circle marker)
-    if (map.current.getSource('annotations-labels-source')) {
-      map.current.getSource('annotations-labels-source').setData(labelsGeojson);
-    } else {
-      map.current.addSource('annotations-labels-source', { type: 'geojson', data: labelsGeojson });
 
-      // Background circle for centroid labels
-      map.current.addLayer({
-        id: 'annotations-centroid-circles',
-        type: 'circle',
-        source: 'annotations-labels-source',
-        filter: ['any', ['==', ['get', 'annType'], 'line'], ['==', ['get', 'annType'], 'polygon']],
-        paint: {
-          'circle-radius': 14,
-          'circle-color': ['get', 'color'],
-          'circle-stroke-width': 2,
-          'circle-stroke-color': ['get', 'borderColor'],
-        },
-      });
-
-      // Number text at centroid
-      map.current.addLayer({
-        id: 'annotations-labels-layer',
-        type: 'symbol',
-        source: 'annotations-labels-source',
-        layout: {
-          'text-field': ['get', 'number'],
-          'text-size': 11,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
-          'text-allow-overlap': true,
-        },
-        paint: {
-          'text-color': '#000000',
-        },
-      });
-    }
   }, [mapLoaded, allAnnotations, activeVisualizationId, drawingMode, tempCoordinates, cursorPosition, getActiveAnnotations]);
 
 
