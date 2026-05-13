@@ -250,6 +250,18 @@ const ImageExportStudio = () => {
     if (pg.titleCfg) setTitleCfg({ ...pg.titleCfg });
     if (pg.overlayPos) setOverlayPos(JSON.parse(JSON.stringify(pg.overlayPos)));
 
+    // Build viz config from page data to pass directly (avoids stale state)
+    const vizCfg = {
+      prvVizType: pg.prvVizType ?? 'attribute',
+      prvVizAttribute: pg.prvVizAttribute ?? 'Sigla_Regiao',
+      prvVizIndicator: pg.prvVizIndicator ?? '',
+      prvVizYear: pg.prvVizYear ?? '',
+      prvVizValueType: pg.prvVizValueType ?? 'value',
+      prvFilterRegion: pg.prvFilterRegion ?? 'all',
+      prvFilterState: pg.prvFilterState ?? 'all',
+      prvFilterCityType: pg.prvFilterCityType ?? 'all',
+    };
+
     // Apply visual changes to the actual preview map instance
     const pm = previewMapRef.current;
     const cam = pg.mapCamera;
@@ -258,9 +270,35 @@ const ImageExportStudio = () => {
       const z = cam ? cam.zoom : pm.getZoom();
       const bearing = cam ? cam.bearing : pm.getBearing();
       const pitch = cam ? cam.pitch : pm.getPitch();
+      // Save custom sources and layers before style change
+      const curStyle = pm.getStyle();
+      const savedSources = {};
+      const savedLayers = [];
+      const ownSourceIds = new Set();
+      (curStyle.layers || []).forEach(l => {
+        if (OWN_LAYERS.has(l.id)) {
+          savedLayers.push(JSON.parse(JSON.stringify(l)));
+          if (l.source) ownSourceIds.add(l.source);
+        }
+      });
+      ownSourceIds.forEach(sid => {
+        if (curStyle.sources[sid]) {
+          savedSources[sid] = JSON.parse(JSON.stringify(curStyle.sources[sid]));
+          const live = pm.getSource(sid);
+          if (live && live._data) savedSources[sid].data = live._data;
+        }
+      });
+
       pm.setStyle(newStyle);
       pm.once('style.load', () => {
         pm.jumpTo({ center, zoom: z, bearing, pitch });
+        // Re-add custom sources and layers
+        Object.entries(savedSources).forEach(([id, src]) => {
+          if (!pm.getSource(id)) try { pm.addSource(id, src); } catch(e) {}
+        });
+        savedLayers.forEach(layer => {
+          if (!pm.getLayer(layer.id)) try { pm.addLayer(layer); } catch(e) {}
+        });
         // Re-apply layer visibility
         setTimeout(() => {
           const allLayers = pm.getStyle().layers || [];
@@ -283,6 +321,8 @@ const ImageExportStudio = () => {
             }
           } catch(e) {}
           isLoadingPageRef.current = false;
+          // Apply viz after loading is done
+          setTimeout(() => applyPreviewVisualization(vizCfg), 100);
         }, 200);
       });
     } else {
@@ -303,7 +343,11 @@ const ImageExportStudio = () => {
           if (pm.getLayer('sectors-line-layer')) pm.setPaintProperty('sectors-line-layer', 'line-width', newRenderMode === 'border' ? newBorderWidth : 1);
         } catch(e) {}
       }
-      setTimeout(() => { isLoadingPageRef.current = false; }, 300);
+      setTimeout(() => {
+        isLoadingPageRef.current = false;
+        // Apply viz after loading is done
+        setTimeout(() => applyPreviewVisualization(vizCfg), 100);
+      }, 300);
     }
   }, []);
 
@@ -352,27 +396,23 @@ const ImageExportStudio = () => {
       titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
       overlayPos: { north:{x:0.02,y:0.05}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
     };
-    setExportPages(prev => {
-      const newIdx = prev.length;
-      setCurrentPageIdx(newIdx);
-      pageIdxRef.current = newIdx;
-      return [...prev, defaultPage];
-    });
+    const newIdx = exportPages.length;
+    setCurrentPageIdx(newIdx);
+    pageIdxRef.current = newIdx;
+    setExportPages(prev => [...prev, defaultPage]);
     loadPage(defaultPage);
   }, [saveCurrentPage, setExportPages, loadPage, exportPages.length, mapStyle]);
 
   const deletePage = useCallback((idx) => {
     if (exportPages.length <= 1) return;
     isLoadingPageRef.current = true;
-    setExportPages(prev => {
-      const next = prev.filter((_, i) => i !== idx);
-      const newIdx = Math.min(idx, next.length - 1);
-      setCurrentPageIdx(newIdx);
-      pageIdxRef.current = newIdx;
-      loadPage(next[newIdx]);
-      return next;
-    });
-  }, [exportPages.length, setExportPages, loadPage]);
+    const next = exportPages.filter((_, i) => i !== idx);
+    const newIdx = Math.min(idx, next.length - 1);
+    setCurrentPageIdx(newIdx);
+    pageIdxRef.current = newIdx;
+    setExportPages(next);
+    loadPage(next[newIdx]);
+  }, [exportPages, setExportPages, loadPage]);
 
   // Auto-save current page on config change (guarded)
   useEffect(() => {
@@ -386,27 +426,37 @@ const ImageExportStudio = () => {
     prvFilterRegion, prvFilterState, prvFilterCityType]);
 
   // Apply visualization & filters to preview map
-  const applyPreviewVisualization = useCallback(() => {
+  // Accepts optional config override for use during page load (avoids stale state)
+  const applyPreviewVisualization = useCallback((cfg) => {
     const pm = previewMapRef.current;
     if (!pm || !pm.isStyleLoaded() || !csvData) return;
+    const vizType = cfg?.prvVizType ?? prvVizType;
+    const vizAttr = cfg?.prvVizAttribute ?? prvVizAttribute;
+    const vizInd = cfg?.prvVizIndicator ?? prvVizIndicator;
+    const vizYr = cfg?.prvVizYear ?? prvVizYear;
+    const vizVT = cfg?.prvVizValueType ?? prvVizValueType;
+    const fRegion = cfg?.prvFilterRegion ?? prvFilterRegion;
+    const fState = cfg?.prvFilterState ?? prvFilterState;
+    const fCity = cfg?.prvFilterCityType ?? prvFilterCityType;
+
     // 1. Filter data
     let filtered = [...csvData];
-    if (prvFilterCityType === 'capital') filtered = filtered.filter(c => c.Capital === 'true');
-    else if (prvFilterCityType === 'non-capital') filtered = filtered.filter(c => c.Capital !== 'true');
-    if (prvFilterRegion !== 'all') filtered = filtered.filter(c => c.Sigla_Regiao === prvFilterRegion);
-    if (prvFilterState !== 'all') filtered = filtered.filter(c => c.Sigla_Estado === prvFilterState);
+    if (fCity === 'capital') filtered = filtered.filter(c => c.Capital === 'true');
+    else if (fCity === 'non-capital') filtered = filtered.filter(c => c.Capital !== 'true');
+    if (fRegion !== 'all') filtered = filtered.filter(c => c.Sigla_Regiao === fRegion);
+    if (fState !== 'all') filtered = filtered.filter(c => c.Sigla_Estado === fState);
 
     // 2. Compute color expression
     let attribute, values, colorExpr;
-    if (prvVizType === 'indicator' && prvVizIndicator && prvVizYear) {
+    if (vizType === 'indicator' && vizInd && vizYr) {
       attribute = 'visualization_value';
       values = (indicadoresData || [])
-        .filter(r => r.Nome_Indicador === prvVizIndicator && r.Ano_Observacao === prvVizYear)
-        .map(r => { const p = parseFloat(prvVizValueType === 'position' ? r.Indice_Posicional : r.Valor); return isNaN(p) ? null : p; })
+        .filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr)
+        .map(r => { const p = parseFloat(vizVT === 'position' ? r.Indice_Posicional : r.Valor); return isNaN(p) ? null : p; })
         .filter(v => v !== null);
       colorExpr = getColorScale(attribute, values);
     } else {
-      attribute = prvVizAttribute || 'Sigla_Regiao';
+      attribute = vizAttr || 'Sigla_Regiao';
       values = filtered.map(r => r[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
       colorExpr = getColorScale(attribute, values);
     }
@@ -439,7 +489,7 @@ const ImageExportStudio = () => {
         }
       }
     }
-    const title = prvVizType === 'indicator' ? `${prvVizIndicator} (${prvVizYear})` : `Atributo: ${attribute}`;
+    const title = vizType === 'indicator' ? `${vizInd} (${vizYr})` : `Atributo: ${attribute}`;
     setLegendData({ title, items });
   }, [csvData, indicadoresData, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType]);
@@ -515,9 +565,46 @@ const ImageExportStudio = () => {
     const pm = previewMapRef.current;
     if (pm) {
       const center = pm.getCenter(), zoom = pm.getZoom(), bearing = pm.getBearing(), pitch = pm.getPitch();
+      // Save custom sources and layers before style change
+      const currentStyle = pm.getStyle();
+      const savedSources = {};
+      const savedLayers = [];
+      const ownSourceIds = new Set();
+      // Find all own layers and their source IDs
+      (currentStyle.layers || []).forEach(l => {
+        if (OWN_LAYERS.has(l.id)) {
+          savedLayers.push(JSON.parse(JSON.stringify(l)));
+          if (l.source) ownSourceIds.add(l.source);
+        }
+      });
+      // Save the sources
+      ownSourceIds.forEach(sid => {
+        if (currentStyle.sources[sid]) {
+          const src = currentStyle.sources[sid];
+          savedSources[sid] = JSON.parse(JSON.stringify(src));
+          // For geojson sources, get live data
+          const liveSource = pm.getSource(sid);
+          if (liveSource && liveSource._data) {
+            savedSources[sid].data = liveSource._data;
+          }
+        }
+      });
+
       pm.setStyle(newStyle);
       pm.once('style.load', () => {
         pm.jumpTo({ center, zoom, bearing, pitch });
+        // Re-add custom sources
+        Object.entries(savedSources).forEach(([id, src]) => {
+          if (!pm.getSource(id)) {
+            try { pm.addSource(id, src); } catch(e) { console.warn('Re-add source error:', e); }
+          }
+        });
+        // Re-add custom layers
+        savedLayers.forEach(layer => {
+          if (!pm.getLayer(layer.id)) {
+            try { pm.addLayer(layer); } catch(e) { console.warn('Re-add layer error:', e); }
+          }
+        });
         // Re-apply layer visibility
         setTimeout(() => {
           const allLayers = pm.getStyle().layers || [];
@@ -530,10 +617,16 @@ const ImageExportStudio = () => {
               });
             }
           });
+          // Re-apply visualization colors and render
+          applyPreviewVisualization();
+          try {
+            if (pm.getLayer('sectors-fill-layer')) pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', prvRenderMode === 'filled' ? prvFillOpacity : 0);
+            if (pm.getLayer('sectors-line-layer')) pm.setPaintProperty('sectors-line-layer', 'line-width', prvRenderMode === 'border' ? prvBorderWidth : 1);
+          } catch(e) {}
         }, 200);
       });
     }
-  }, [layerVis]);
+  }, [layerVis, applyPreviewVisualization, prvRenderMode, prvFillOpacity, prvBorderWidth]);
 
   // Toggle layer visibility in preview map
   const togglePreviewLayer = useCallback((catKey) => {
@@ -619,20 +712,40 @@ const ImageExportStudio = () => {
 
     // Create preview map
     const mainMap = map.current;
+    const savedPage = exportPages.length > 0 ? exportPages[currentPageIdx] : null;
+    const savedCam = savedPage?.mapCamera;
+    const savedStyle = savedPage?.previewStyle;
     const timer = setTimeout(() => {
       if (previewMapRef.current) { previewMapRef.current.remove(); previewMapRef.current = null; }
       if (!previewContainerRef.current) return;
+      // Always start with deep-cloned main map style (guarantees all geometries)
+      const styleCopy = JSON.parse(JSON.stringify(mainMap.getStyle()));
       const pm = new mapboxgl.Map({
         container: previewContainerRef.current,
-        style: mainMap.getStyle(), center: mainMap.getCenter(),
-        zoom: mainMap.getZoom(), bearing: mainMap.getBearing(), pitch: mainMap.getPitch(),
+        style: styleCopy,
+        center: savedCam ? savedCam.center : mainMap.getCenter(),
+        zoom: savedCam ? savedCam.zoom : mainMap.getZoom(),
+        bearing: savedCam ? savedCam.bearing : mainMap.getBearing(),
+        pitch: savedCam ? savedCam.pitch : mainMap.getPitch(),
         preserveDrawingBuffer: true, attributionControl: false,
       });
       pm.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
       previewMapRef.current = pm;
-      // Redraw overlay canvas whenever map moves
       pm.on('moveend', () => redrawOverlayCanvas());
       pm.on('idle', () => redrawOverlayCanvas());
+      pm.once('style.load', () => {
+        // If the saved page has a different style, switch to it
+        // handlePreviewStyleChange handles saving/re-adding custom layers
+        if (savedStyle && savedStyle !== mainMap.getStyle()?.name && savedStyle.startsWith('mapbox://')) {
+          // Wait for map to fully settle before switching style
+          pm.once('idle', () => {
+            handlePreviewStyleChange(savedStyle);
+            setTimeout(() => applyPreviewVisualization(), 500);
+          });
+        } else {
+          setTimeout(() => applyPreviewVisualization(), 300);
+        }
+      });
     }, 200);
     return () => { clearTimeout(timer); if (previewMapRef.current) { previewMapRef.current.remove(); previewMapRef.current = null; } };
   }, [showImageStudio, mapLoaded]);
@@ -712,8 +825,20 @@ const ImageExportStudio = () => {
   // Save current page state before closing
   const handleClose = useCallback(() => {
     saveCurrentPage();
+    // Explicitly remove preview map before component unmounts
+    if (previewMapRef.current) {
+      previewMapRef.current.remove();
+      previewMapRef.current = null;
+    }
     setShowImageStudio(false);
-  }, [saveCurrentPage, setShowImageStudio]);
+    // Ensure main map recovers after preview destruction
+    setTimeout(() => {
+      if (map?.current) {
+        map.current.resize();
+        map.current.triggerRepaint();
+      }
+    }, 100);
+  }, [saveCurrentPage, setShowImageStudio, map]);
 
   if (!showImageStudio || !mapLoaded) return null;
 
