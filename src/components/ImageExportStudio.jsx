@@ -200,6 +200,7 @@ const ImageExportStudio = () => {
   const pageIdxRef = useRef(0);
   const isLoadingPageRef = useRef(false);
   const pageLoadVersionRef = useRef(0);
+  const styleLoadGenRef = useRef(0);   // increments on every loadPage — stale style.load callbacks check this
   const applyPreviewVizRef = useRef(null);
   const exportPagesRef = useRef([]);
   exportPagesRef.current = exportPages; // always up to date
@@ -231,9 +232,10 @@ const ImageExportStudio = () => {
 
   const loadPage = useCallback((pg) => {
     if (!pg) return;
-    console.log('[Studio] loadPage called — attr:', pg.prvVizAttribute, 'pageIdx:', pageIdxRef.current);
     isLoadingPageRef.current = true;
-    pageLoadVersionRef.current += 1;
+    // Increment generation so any in-flight style.load from a previous call will self-cancel
+    const myGen = ++styleLoadGenRef.current;
+
     setPreset(pg.preset ?? 0); setCustomW(pg.customW ?? 3840); setCustomH(pg.customH ?? 2160);
     setUseCustom(pg.useCustom ?? false); setOrientation(pg.orientation ?? 'landscape');
     setFormat(pg.format ?? 'png'); setJpegQuality(pg.jpegQuality ?? 0.92);
@@ -268,6 +270,32 @@ const ImageExportStudio = () => {
       prvFilterCityType: pg.prvFilterCityType ?? 'all',
     };
 
+    // Helper: apply layers + render mode + viz, then release the loading lock
+    // Only runs if the generation still matches (no newer loadPage has been called)
+    const commitViz = () => {
+      if (styleLoadGenRef.current !== myGen) return; // stale — a newer loadPage has taken over
+      const pm = previewMapRef.current;
+      if (!pm) { isLoadingPageRef.current = false; return; }
+      const allLayers = pm.getStyle()?.layers || [];
+      LAYER_CATEGORIES.forEach(cat => {
+        const vis = newLayerVis[cat.key] ? 'visible' : 'none';
+        allLayers.forEach(l => {
+          if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
+            try { pm.setLayoutProperty(l.id, 'visibility', vis); } catch(e) {}
+          }
+        });
+      });
+      try {
+        if (pm.getLayer('sectors-fill-layer')) pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', newRenderMode === 'filled' ? newFillOpacity : 0);
+        if (pm.getLayer('sectors-line-layer')) pm.setPaintProperty('sectors-line-layer', 'line-width', newRenderMode === 'border' ? newBorderWidth : 1);
+      } catch(e) {}
+      // Apply viz directly with correct cfg (bypasses stale React state)
+      applyPreviewVizRef.current?.(vizCfg);
+      // Release lock AFTER a tick so any viz-reapply effect that fires due to setState
+      // sees isLoadingPageRef=true and cancels itself, letting the direct call above win
+      setTimeout(() => { isLoadingPageRef.current = false; }, 0);
+    };
+
     // Apply visual changes to the actual preview map instance
     const pm = previewMapRef.current;
     const cam = pg.mapCamera;
@@ -282,14 +310,14 @@ const ImageExportStudio = () => {
       const savedSources = {};
       const savedLayers = [];
       const ownSourceIds = new Set();
-      (curStyle.layers || []).forEach(l => {
+      (curStyle?.layers || []).forEach(l => {
         if (OWN_LAYERS.has(l.id)) {
           savedLayers.push(JSON.parse(JSON.stringify(l)));
           if (l.source) ownSourceIds.add(l.source);
         }
       });
       ownSourceIds.forEach(sid => {
-        if (curStyle.sources[sid]) {
+        if (curStyle.sources?.[sid]) {
           savedSources[sid] = JSON.parse(JSON.stringify(curStyle.sources[sid]));
           const live = pm.getSource(sid);
           if (live && live._data) savedSources[sid].data = live._data;
@@ -298,6 +326,8 @@ const ImageExportStudio = () => {
       pm._currentStyleUrl = newStyle;
       pm.setStyle(newStyle, {diff: false});
       pm.once('style.load', () => {
+        // Another loadPage may have already started — bail if stale
+        if (styleLoadGenRef.current !== myGen) return;
         pm.jumpTo({ center, zoom: z, bearing, pitch });
         Object.entries(savedSources).forEach(([id, src]) => {
           if (!pm.getSource(id)) try { pm.addSource(id, src); } catch(e) {}
@@ -305,45 +335,24 @@ const ImageExportStudio = () => {
         savedLayers.forEach(layer => {
           if (!pm.getLayer(layer.id)) try { pm.addLayer(layer); } catch(e) {}
         });
-        setTimeout(() => {
-          const allLayers = pm.getStyle().layers || [];
-          LAYER_CATEGORIES.forEach(cat => {
-            if (!newLayerVis[cat.key]) {
-              allLayers.forEach(l => {
-                if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
-                  try { pm.setLayoutProperty(l.id, 'visibility', 'none'); } catch(e) {}
-                }
-              });
-            }
-          });
-          try {
-            if (pm.getLayer('sectors-fill-layer')) pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', newRenderMode === 'filled' ? newFillOpacity : 0);
-            if (pm.getLayer('sectors-line-layer')) pm.setPaintProperty('sectors-line-layer', 'line-width', newRenderMode === 'border' ? newBorderWidth : 1);
-          } catch(e) {}
-          isLoadingPageRef.current = false;
-          applyPreviewVizRef.current?.(vizCfg);
-        }, 200);
-      });
-    } else if (pm && pm.isStyleLoaded()) {
-      // Same style (or no specific style) — update camera, layers, render mode, viz directly
-      if (cam) pm.jumpTo({ center: cam.center, zoom: cam.zoom, bearing: cam.bearing, pitch: cam.pitch });
-      const allLayers = pm.getStyle().layers || [];
-      LAYER_CATEGORIES.forEach(cat => {
-        const vis = newLayerVis[cat.key] ? 'visible' : 'none';
-        allLayers.forEach(l => {
-          if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
-            try { pm.setLayoutProperty(l.id, 'visibility', vis); } catch(e) {}
-          }
+        // Wait for idle: after addSource/addLayer the style is temporarily "not loaded"
+        // idle fires only when all tiles are rendered and isStyleLoaded() is true again
+        pm.once('idle', () => {
+          if (styleLoadGenRef.current !== myGen) return; // stale check again
+          commitViz();
         });
       });
-      try {
-        if (pm.getLayer('sectors-fill-layer')) pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', newRenderMode === 'filled' ? newFillOpacity : 0);
-        if (pm.getLayer('sectors-line-layer')) pm.setPaintProperty('sectors-line-layer', 'line-width', newRenderMode === 'border' ? newBorderWidth : 1);
-      } catch(e) {}
-      isLoadingPageRef.current = false;
-      applyPreviewVizRef.current?.(vizCfg);
+    } else if (pm && pm.isStyleLoaded()) {
+      // Same style — update camera, layers, render mode, viz directly
+      if (cam) pm.jumpTo({ center: cam.center, zoom: cam.zoom, bearing: cam.bearing, pitch: cam.pitch });
+      commitViz();
+    } else if (pm) {
+      // Map exists but style is mid-load (e.g. very first open) — wait for idle
+      pm.once('idle', () => {
+        if (styleLoadGenRef.current !== myGen) return;
+        commitViz();
+      });
     } else {
-      console.warn('[Studio] loadPage dropped viz update because pm is null or style not loaded', { pmReady: !!pm, styleLoaded: pm?.isStyleLoaded() });
       // pm not ready yet — just release the loading lock
       isLoadingPageRef.current = false;
     }
@@ -365,7 +374,6 @@ const ImageExportStudio = () => {
     const curIdx = pageIdxRef.current;
     // Serialize current page inline to avoid stale closure
     const savedPage = serializeCurrentPage(exportPagesRef.current[curIdx]?.name);
-    console.log(`[Studio] switchPage from ${curIdx} to ${idx}. Saving page ${curIdx} with attr: ${savedPage.prvVizAttribute}. targetPage attr: ${exportPagesRef.current[idx]?.prvVizAttribute}`);
     const targetPage = exportPagesRef.current[idx];
     if (!targetPage) return;
     // Update pages array with the saved current page
@@ -428,7 +436,10 @@ const ImageExportStudio = () => {
   // Accepts optional config override for use during page load (avoids stale state)
   const applyPreviewVisualization = useCallback((cfg) => {
     const pm = previewMapRef.current;
-    if (!pm || !pm.isStyleLoaded() || !csvData) return;
+    // When called with explicit cfg (from commitViz/page-load), trust that the map is idle.
+    // When called from the viz-reapply effect (no cfg), enforce the style-loaded guard.
+    const styleReady = cfg ? !!pm : (!!pm && pm.isStyleLoaded());
+    if (!styleReady || !csvData) return;
     const vizType = cfg?.prvVizType ?? prvVizType;
     const vizAttr = cfg?.prvVizAttribute ?? prvVizAttribute;
     const vizInd = cfg?.prvVizIndicator ?? prvVizIndicator;
@@ -514,14 +525,9 @@ const ImageExportStudio = () => {
   useEffect(() => {
     if (!showImageStudio || isLoadingPageRef.current) return;
     const version = pageLoadVersionRef.current;
-    console.log('[Studio] viz-reapply effect scheduled — attr:', prvVizAttribute, 'version:', version, 'isLoading:', isLoadingPageRef.current);
     const t = setTimeout(() => {
       // Ensure we haven't switched pages during the debounce
-      if (pageLoadVersionRef.current !== version || isLoadingPageRef.current) {
-        console.log('[Studio] viz-reapply CANCELLED — version mismatch or loading');
-        return;
-      }
-      console.log('[Studio] viz-reapply FIRING — attr:', prvVizAttribute);
+      if (pageLoadVersionRef.current !== version || isLoadingPageRef.current) return;
       applyPreviewVisualization();
     }, 400);
     return () => clearTimeout(t);
