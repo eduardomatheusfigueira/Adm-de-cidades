@@ -14,7 +14,7 @@ const PRESETS = [
 ];
 
 // ── Canvas drawing helpers ──
-function drawNorth(ctx,x,y,size,bearing){const rot=(-bearing*Math.PI)/180,cx=x+size/2,cy=y+size/2,r=size*0.42;ctx.save();ctx.translate(cx,cy);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.85)';ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=Math.max(2,size*0.025);ctx.stroke();const nX=Math.sin(rot)*r*1.3,nY=-Math.cos(rot)*r*1.3;ctx.font=`bold ${Math.round(size*0.2)}px Inter,sans-serif`;ctx.fillStyle='#000';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('N',nX,nY);ctx.rotate(rot);ctx.beginPath();ctx.moveTo(0,-r*0.85);ctx.lineTo(-r*0.18,0);ctx.lineTo(0,r*0.1);ctx.closePath();ctx.fillStyle='#000';ctx.fill();ctx.beginPath();ctx.moveTo(0,-r*0.85);ctx.lineTo(r*0.18,0);ctx.lineTo(0,r*0.1);ctx.closePath();ctx.strokeStyle='#000';ctx.lineWidth=Math.max(1,size*0.018);ctx.stroke();ctx.beginPath();ctx.arc(0,0,r*0.06,0,Math.PI*2);ctx.fillStyle='#000';ctx.fill();[0,Math.PI/2,Math.PI,Math.PI*1.5].forEach((a,i)=>{ctx.beginPath();ctx.moveTo(Math.sin(a)*r*0.85,-Math.cos(a)*r*0.85);ctx.lineTo(Math.sin(a)*r*0.95,-Math.cos(a)*r*0.95);ctx.strokeStyle='#000';ctx.lineWidth=i===0?size*0.025:size*0.015;ctx.stroke();});ctx.restore();}
+function drawNorth(ctx,x,y,size,bearing){const rot=(-bearing*Math.PI)/180,cx=x+size/2,cy=y+size/2,r=size*0.42;ctx.save();ctx.translate(cx,cy);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle='#cccccc';ctx.lineWidth=Math.max(1,size*0.018);ctx.stroke();[0,Math.PI/2,Math.PI,Math.PI*1.5].forEach((a,i)=>{ctx.beginPath();ctx.moveTo(Math.sin(a)*r*0.82,-Math.cos(a)*r*0.82);ctx.lineTo(Math.sin(a)*r*0.94,-Math.cos(a)*r*0.94);ctx.strokeStyle='#555';ctx.lineWidth=i===0?size*0.022:size*0.012;ctx.stroke();});ctx.rotate(rot);ctx.beginPath();ctx.moveTo(0,-r*0.78);ctx.lineTo(-r*0.16,0);ctx.lineTo(0,r*0.08);ctx.closePath();ctx.fillStyle='#222';ctx.fill();ctx.beginPath();ctx.moveTo(0,-r*0.78);ctx.lineTo(r*0.16,0);ctx.lineTo(0,r*0.08);ctx.closePath();ctx.fillStyle='#bbb';ctx.fill();ctx.strokeStyle='#333';ctx.lineWidth=Math.max(1,size*0.015);ctx.stroke();ctx.beginPath();ctx.arc(0,0,r*0.07,0,Math.PI*2);ctx.fillStyle='#222';ctx.fill();ctx.rotate(-rot);const nX=Math.sin(rot)*r*1.32,nY=-Math.cos(rot)*r*1.32,fs=Math.round(size*0.2);ctx.beginPath();ctx.arc(nX,nY,fs*0.72,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle='#cccccc';ctx.lineWidth=Math.max(1,size*0.012);ctx.stroke();ctx.font=`bold ${fs}px Inter,sans-serif`;ctx.fillStyle='#111';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('N',nX,nY);ctx.restore();}
 
 function drawScale(ctx,x,y,w,h,zoom,lat){const STEPS=[1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000],NS=5;const mpp=156543.03392*Math.cos(lat*Math.PI/180)/Math.pow(2,zoom);let best=STEPS[0];for(const s of STEPS){const px=s/mpp;if(px>=200&&px<=300){best=s;break;}if(px>300){best=s;break;}best=s;}const bW=w*0.85,sW=bW/NS,bH=h*0.2,unit=best>=1000?'km':'m',pad=w*0.075;ctx.fillStyle='rgba(255,255,255,0.92)';ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,h,6);ctx.fill();ctx.stroke();const bX=x+pad,bY=y+h*0.5;ctx.font=`${Math.max(8,Math.round(h*0.16))}px Inter,sans-serif`;ctx.fillStyle='#1e293b';ctx.textAlign='center';ctx.textBaseline='bottom';for(let i=0;i<=NS;i++){const d=(best/NS)*i,v=unit==='km'?d/1000:d;ctx.fillText(i===NS?`${Number.isInteger(v)?v:v.toFixed(1)} ${unit}`:`${Number.isInteger(v)?v:v.toFixed(1)}`,bX+sW*i,bY-3);}for(let i=0;i<NS;i++){ctx.fillStyle=i%2===0?'#1e293b':'#fff';ctx.fillRect(bX+sW*i,bY,sW,bH);}ctx.strokeStyle='#1e293b';ctx.lineWidth=1;ctx.strokeRect(bX,bY,bW,bH);ctx.font=`italic ${Math.max(7,Math.round(h*0.13))}px Inter,sans-serif`;ctx.fillStyle='#64748b';ctx.textAlign='center';ctx.fillText('Projeção: Web Mercator (EPSG:3857)',x+w/2,bY+bH+h*0.2);}
 
@@ -268,6 +268,7 @@ const ImageExportStudio = () => {
       prvFilterRegion: pg.prvFilterRegion ?? 'all',
       prvFilterState: pg.prvFilterState ?? 'all',
       prvFilterCityType: pg.prvFilterCityType ?? 'all',
+      prvRenderMode: pg.prvRenderMode ?? 'filled',
     };
 
     // Helper: apply layers + render mode + viz, then release the loading lock
@@ -448,7 +449,7 @@ const ImageExportStudio = () => {
     const fRegion = cfg?.prvFilterRegion ?? prvFilterRegion;
     const fState = cfg?.prvFilterState ?? prvFilterState;
     const fCity = cfg?.prvFilterCityType ?? prvFilterCityType;
-    console.log('[Studio] applyPreviewViz called — attr:', vizAttr, 'cfg?', !!cfg, 'pageIdx:', pageIdxRef.current);
+    const renderMode = cfg?.prvRenderMode ?? prvRenderMode;
 
     // 1. Filter data
     let filtered = [...csvData];
@@ -487,8 +488,15 @@ const ImageExportStudio = () => {
 
     // 4. Apply to preview map
     try {
-      if (pm.getLayer('sectors-fill-layer') && colorExpr) {
-        pm.setPaintProperty('sectors-fill-layer', 'fill-color', colorExpr);
+      if (colorExpr) {
+        // Apply fill-color always (used in 'filled' mode)
+        if (pm.getLayer('sectors-fill-layer')) {
+          pm.setPaintProperty('sectors-fill-layer', 'fill-color', colorExpr);
+        }
+        // Apply line-color when in 'border' mode so colors are visible
+        if (renderMode === 'border' && pm.getLayer('sectors-line-layer')) {
+          pm.setPaintProperty('sectors-line-layer', 'line-color', colorExpr);
+        }
       }
     } catch(e) { console.warn('Viz apply error:', e); }
 
