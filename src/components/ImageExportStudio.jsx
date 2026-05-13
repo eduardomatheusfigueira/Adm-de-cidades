@@ -343,6 +343,7 @@ const ImageExportStudio = () => {
       isLoadingPageRef.current = false;
       applyPreviewVizRef.current?.(vizCfg);
     } else {
+      console.warn('[Studio] loadPage dropped viz update because pm is null or style not loaded', { pmReady: !!pm, styleLoaded: pm?.isStyleLoaded() });
       // pm not ready yet — just release the loading lock
       isLoadingPageRef.current = false;
     }
@@ -364,6 +365,7 @@ const ImageExportStudio = () => {
     const curIdx = pageIdxRef.current;
     // Serialize current page inline to avoid stale closure
     const savedPage = serializeCurrentPage(exportPagesRef.current[curIdx]?.name);
+    console.log(`[Studio] switchPage from ${curIdx} to ${idx}. Saving page ${curIdx} with attr: ${savedPage.prvVizAttribute}. targetPage attr: ${exportPagesRef.current[idx]?.prvVizAttribute}`);
     const targetPage = exportPagesRef.current[idx];
     if (!targetPage) return;
     // Update pages array with the saved current page
@@ -614,6 +616,7 @@ const ImageExportStudio = () => {
         }
       });
 
+      pm._currentStyleUrl = newStyle;
       pm.setStyle(newStyle, {diff: false});
       pm.once('style.load', () => {
         pm.jumpTo({ center, zoom, bearing, pitch });
@@ -754,6 +757,7 @@ const ImageExportStudio = () => {
         preserveDrawingBuffer: true, attributionControl: false,
       });
       pm.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
+      pm._currentStyleUrl = savedStyle || 'mapbox://styles/mapbox/satellite-v9';
       previewMapRef.current = pm;
       pm.on('moveend', () => redrawOverlayCanvas());
       pm.on('idle', () => redrawOverlayCanvas());
