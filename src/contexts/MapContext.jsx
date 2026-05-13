@@ -20,7 +20,7 @@ export const MapProvider = ({ children }) => {
 
   const { geojsonData, indicadoresData, filteredCsvData } = useContext(DataContext);
   // Consumindo diretamente do UIContext, sem valores padrão aqui
-  const { colorAttribute, visualizationConfig, activeEnvironment, setSelectedCityInfo, legendConfigByKey } = useContext(UIContext);
+  const { colorAttribute, visualizationConfig, activeEnvironment, setSelectedCityInfo, legendConfigByKey, showGraticule, graticuleStyle } = useContext(UIContext);
 
   // Annotation context
   const {
@@ -679,6 +679,155 @@ export const MapProvider = ({ children }) => {
 
 
   }, [mapLoaded, allAnnotations, activeVisualizationId, drawingMode, tempCoordinates, cursorPosition, getActiveAnnotations]);
+
+
+  // =============================================
+  // GRATICULE (Parallels & Meridians)
+  // =============================================
+
+  // Helper: build graticule GeoJSON at the given zoom level
+  const buildGraticuleGeoJson = useCallback((currentZoom) => {
+    let interval;
+    if (currentZoom >= 8) interval = 0.5;
+    else if (currentZoom >= 6) interval = 1;
+    else if (currentZoom >= 4) interval = 2;
+    else if (currentZoom >= 2) interval = 5;
+    else interval = 10;
+
+    const features = [];
+
+    for (let lat = -90; lat <= 90; lat += interval) {
+      const coords = [];
+      for (let lng = -180; lng <= 180; lng += 2) {
+        coords.push([lng, lat]);
+      }
+      features.push({
+        type: 'Feature',
+        properties: { label: `${Math.abs(lat)}° ${lat >= 0 ? 'N' : 'S'}`, axis: 'lat' },
+        geometry: { type: 'LineString', coordinates: coords },
+      });
+    }
+
+    for (let lng = -180; lng <= 180; lng += interval) {
+      const coords = [];
+      for (let lat = -85; lat <= 85; lat += 2) {
+        coords.push([lng, lat]);
+      }
+      features.push({
+        type: 'Feature',
+        properties: { label: `${Math.abs(lng)}° ${lng >= 0 ? 'L' : 'O'}`, axis: 'lng' },
+        geometry: { type: 'LineString', coordinates: coords },
+      });
+    }
+
+    return { type: 'FeatureCollection', features };
+  }, []);
+
+  // Resolve Mapbox font name from style options
+  const getGraticuleFonts = useCallback((style) => {
+    const weight = style.bold ? 'Bold' : 'Regular';
+    const variant = style.italic ? 'Italic' : '';
+    // Mapbox GL has limited font combos; DIN Pro supports Regular, Medium, Bold, Italic
+    // Build best available name
+    const mainFont = `DIN Pro ${weight}${variant ? ' ' + variant : ''}`;
+    const fallback = `Arial Unicode MS ${weight}`;
+    return [mainFont, fallback];
+  }, []);
+
+  // Effect 1: Create / Remove graticule layers when toggled
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !map.current.isStyleLoaded()) return;
+
+    const GRATICULE_SOURCE = 'graticule-source';
+    const GRATICULE_LINE_LAYER = 'graticule-lines';
+    const GRATICULE_LABEL_LAYER = 'graticule-labels';
+
+    if (!showGraticule) {
+      if (map.current.getLayer(GRATICULE_LABEL_LAYER)) map.current.removeLayer(GRATICULE_LABEL_LAYER);
+      if (map.current.getLayer(GRATICULE_LINE_LAYER)) map.current.removeLayer(GRATICULE_LINE_LAYER);
+      if (map.current.getSource(GRATICULE_SOURCE)) map.current.removeSource(GRATICULE_SOURCE);
+      return;
+    }
+
+    const geoJson = buildGraticuleGeoJson(map.current.getZoom());
+
+    if (!map.current.getSource(GRATICULE_SOURCE)) {
+      map.current.addSource(GRATICULE_SOURCE, { type: 'geojson', data: geoJson });
+
+      map.current.addLayer({
+        id: GRATICULE_LINE_LAYER,
+        type: 'line',
+        source: GRATICULE_SOURCE,
+        paint: {
+          'line-color': graticuleStyle.lineColor,
+          'line-width': graticuleStyle.lineWidth,
+          'line-dasharray': [4, 4],
+        },
+      });
+
+      map.current.addLayer({
+        id: GRATICULE_LABEL_LAYER,
+        type: 'symbol',
+        source: GRATICULE_SOURCE,
+        layout: {
+          'symbol-placement': 'line',
+          'text-field': ['get', 'label'],
+          'text-size': graticuleStyle.fontSize,
+          'text-font': getGraticuleFonts(graticuleStyle),
+          'text-max-angle': 30,
+          'text-allow-overlap': false,
+          'symbol-spacing': 300,
+          'text-keep-upright': true,
+          'text-letter-spacing': 0.05,
+        },
+        paint: {
+          'text-color': graticuleStyle.textColor,
+          'text-halo-color': graticuleStyle.showHalo ? graticuleStyle.haloColor : 'transparent',
+          'text-halo-width': graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0,
+          'text-halo-blur': 0.2,
+        },
+      });
+    } else {
+      map.current.getSource(GRATICULE_SOURCE).setData(geoJson);
+    }
+  }, [mapLoaded, showGraticule, buildGraticuleGeoJson, getGraticuleFonts]); // eslint-disable-line
+
+  // Effect 2: Live-update paint & layout properties when graticuleStyle changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !showGraticule) return;
+    if (!map.current.getLayer('graticule-lines') || !map.current.getLayer('graticule-labels')) return;
+
+    // Line properties
+    map.current.setPaintProperty('graticule-lines', 'line-color', graticuleStyle.lineColor);
+    map.current.setPaintProperty('graticule-lines', 'line-width', graticuleStyle.lineWidth);
+
+    // Text layout
+    map.current.setLayoutProperty('graticule-labels', 'text-size', graticuleStyle.fontSize);
+    map.current.setLayoutProperty('graticule-labels', 'text-font', getGraticuleFonts(graticuleStyle));
+
+    // Text paint
+    map.current.setPaintProperty('graticule-labels', 'text-color', graticuleStyle.textColor);
+    map.current.setPaintProperty('graticule-labels', 'text-halo-color', graticuleStyle.showHalo ? graticuleStyle.haloColor : 'transparent');
+    map.current.setPaintProperty('graticule-labels', 'text-halo-width', graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0);
+  }, [mapLoaded, showGraticule, graticuleStyle, getGraticuleFonts]);
+
+  // Effect 3: Regenerate GeoJSON data when zoom changes (interval adapts)
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !showGraticule) return;
+
+    const updateGraticuleData = () => {
+      if (!map.current || !map.current.getSource('graticule-source')) return;
+      const geoJson = buildGraticuleGeoJson(map.current.getZoom());
+      map.current.getSource('graticule-source').setData(geoJson);
+    };
+
+    map.current.on('zoomend', updateGraticuleData);
+    return () => {
+      if (map.current) {
+        map.current.off('zoomend', updateGraticuleData);
+      }
+    };
+  }, [mapLoaded, showGraticule, buildGraticuleGeoJson]);
 
 
   const handleMapStyleChange = useCallback((newStyle) => {

@@ -17,6 +17,19 @@ export const UIProvider = ({ children }) => {
   const [showAnnotationLegend, setShowAnnotationLegend] = useState(true);
   const [showNorthArrow, setShowNorthArrow] = useState(true);
   const [showScaleBar, setShowScaleBar] = useState(true);
+  const [showGraticule, setShowGraticule] = useState(false);
+  const [graticuleStyle, setGraticuleStyle] = useState({
+    fontSize: 9,
+    bold: false,
+    italic: false,
+    textColor: '#ffffff',
+    showHalo: true,
+    haloColor: '#000000',
+    haloWidth: 0.5,
+    lineColor: 'rgba(120, 140, 170, 0.45)',
+    lineWidth: 0.8,
+    lineOpacity: 0.45,
+  });
   const [showImageStudio, setShowImageStudio] = useState(false);
 
   // Estados para o modal de importação de geometria
@@ -111,6 +124,10 @@ export const UIProvider = ({ children }) => {
     setShowNorthArrow,
     showScaleBar,
     setShowScaleBar,
+    showGraticule,
+    setShowGraticule,
+    graticuleStyle,
+    setGraticuleStyle,
     showImageStudio,
     setShowImageStudio,
     showGeometryImportModal,

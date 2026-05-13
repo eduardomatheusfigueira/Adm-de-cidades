@@ -1,0 +1,165 @@
+/* Graticule overlay control */
+.graticule-control {
+  position: absolute;
+  top: 80px;
+  left: 10px;
+  z-index: 10;
+  background: var(--surface-color, #1e1e2e);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.3));
+  user-select: none;
+  font-size: 0.75rem;
+  color: var(--text-primary, #e0e0e0);
+  transition: opacity 0.2s;
+  min-width: 180px;
+}
+
+.graticule-control:hover {
+  opacity: 1 !important;
+}
+
+/* Header bar — draggable */
+.graticule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 8px;
+  cursor: move;
+  border-bottom: 1px solid var(--border-color, #333);
+}
+
+.graticule-header .graticule-label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  font-size: 0.72rem;
+}
+
+.graticule-header-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.graticule-header-btns button {
+  background: none;
+  border: none;
+  color: var(--text-secondary, #999);
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 2px 3px;
+  line-height: 1;
+  opacity: 0.6;
+  transition: opacity 0.15s, color 0.15s;
+  border-radius: 3px;
+}
+
+.graticule-header-btns button:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.06);
+}
+
+.graticule-header-btns .graticule-close-btn:hover {
+  color: var(--accent-red, #ef4444);
+}
+
+/* Editor panel */
+.graticule-editor {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.graticule-editor-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.graticule-editor-section-title {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary, #888);
+  font-weight: 600;
+  margin-bottom: 1px;
+}
+
+.graticule-editor-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.graticule-editor-row label {
+  font-size: 0.7rem;
+  color: var(--text-secondary, #aaa);
+  min-width: 52px;
+  white-space: nowrap;
+}
+
+.graticule-editor-row input[type="number"] {
+  width: 48px;
+  padding: 2px 4px;
+  border: 1px solid var(--border-color, #444);
+  border-radius: 3px;
+  background: var(--surface-darker, #161625);
+  color: var(--text-primary, #e0e0e0);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.graticule-editor-row input[type="color"] {
+  width: 24px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--border-color, #444);
+  border-radius: 3px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.graticule-editor-row input[type="range"] {
+  flex: 1;
+  min-width: 60px;
+  height: 4px;
+  accent-color: var(--accent-color, #60a5fa);
+}
+
+/* Toggle buttons for B / I / Halo */
+.graticule-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 4px;
+  border: 1px solid var(--border-color, #444);
+  border-radius: 3px;
+  background: var(--surface-darker, #161625);
+  color: var(--text-secondary, #999);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.graticule-toggle-btn:hover {
+  border-color: var(--text-secondary, #888);
+}
+
+.graticule-toggle-btn.active {
+  background: var(--accent-color, #60a5fa);
+  color: #fff;
+  border-color: var(--accent-color, #60a5fa);
+}
+
+/* Separator */
+.graticule-editor-sep {
+  height: 1px;
+  background: var(--border-color, #333);
+  margin: 2px 0;
+}

@@ -6,6 +6,7 @@ import AnnotationToolbar from './components/AnnotationToolbar';
 import AnnotationLegend from './components/AnnotationLegend';
 import NorthArrow from './components/NorthArrow';
 import ScaleBar from './components/ScaleBar';
+import Graticule from './components/Graticule';
 import './index.css';
 
 import DataVisualizationEnvironment from './components/DataVisualizationEnvironment';
@@ -52,6 +53,7 @@ function AppContent() {
     showAnnotationLegend, setShowAnnotationLegend,
     showNorthArrow, setShowNorthArrow,
     showScaleBar, setShowScaleBar,
+    showGraticule, setShowGraticule,
   } = useContext(UIContext);
 
   // --- Handlers ---
@@ -184,9 +186,10 @@ function AppContent() {
           {mapLoaded && <AnnotationLegend />}
           {mapLoaded && <NorthArrow />}
           {mapLoaded && <ScaleBar />}
+          {mapLoaded && <Graticule />}
 
           {/* Small discrete toggle buttons - bottom-right, above mapbox controls */}
-          {mapLoaded && (!showAttributeLegend || !showAnnotationLegend || !showNorthArrow || !showScaleBar) && (
+          {mapLoaded && (!showAttributeLegend || !showAnnotationLegend || !showNorthArrow || !showScaleBar || !showGraticule) && (
             <div style={{ position: 'absolute', bottom: '120px', right: '10px', display: 'flex', flexDirection: 'column', gap: '6px', zIndex: 10 }}>
               {!showAttributeLegend && (
                 <button
@@ -230,6 +233,17 @@ function AppContent() {
                   onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
                 >
                   📏
+                </button>
+              )}
+              {!showGraticule && (
+                <button
+                  onClick={() => setShowGraticule(true)}
+                  title="Mostrar Paralelos e Meridianos"
+                  style={{ background: 'var(--surface-color)', width: '30px', height: '30px', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', lineHeight: 1, padding: 0, opacity: 0.7, transition: 'opacity 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
+                >
+                  🌐
                 </button>
               )}
             </div>
