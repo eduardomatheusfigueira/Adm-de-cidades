@@ -57,7 +57,6 @@ const FilterMenu = ({ onImportGeometry }) => {
   // --- Map Context ---
   const { map, mapStyle, lng, lat, zoom } = useContext(MapContext);
 
-  // --- UI Context ---
   const {
     colorAttribute,
     setColorAttribute,
@@ -65,6 +64,8 @@ const FilterMenu = ({ onImportGeometry }) => {
     setVisualizationConfig,
     legendConfigByKey,
     updateLegendConfig,
+    exportPages,
+    setExportPages,
   } = useContext(UIContext);
 
   const activeViz = visualizations.find(v => v.id === activeVisualizationId);
@@ -105,6 +106,8 @@ const FilterMenu = ({ onImportGeometry }) => {
       // Annotations
       annotations: annotations,
       visualizationsAnnot: visualizations,
+      // Export pages
+      exportPages: exportPages,
     };
     const json = JSON.stringify(profileData);
     const defaultName = 'perfil_completo.json';
@@ -199,6 +202,10 @@ const FilterMenu = ({ onImportGeometry }) => {
               }
             } else {
               setVisualizations([]);
+            }
+            // Export pages
+            if (profile.exportPages && Array.isArray(profile.exportPages)) {
+              setExportPages(profile.exportPages);
             }
           }
 

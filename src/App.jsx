@@ -7,6 +7,7 @@ import AnnotationLegend from './components/AnnotationLegend';
 import NorthArrow from './components/NorthArrow';
 import ScaleBar from './components/ScaleBar';
 import Graticule from './components/Graticule';
+import ImageExportStudio from './components/ImageExportStudio';
 import './index.css';
 
 import DataVisualizationEnvironment from './components/DataVisualizationEnvironment';
@@ -54,6 +55,7 @@ function AppContent() {
     showNorthArrow, setShowNorthArrow,
     showScaleBar, setShowScaleBar,
     showGraticule, setShowGraticule,
+    showImageStudio, setShowImageStudio,
   } = useContext(UIContext);
 
   // --- Handlers ---
@@ -187,6 +189,7 @@ function AppContent() {
           {mapLoaded && <NorthArrow />}
           {mapLoaded && <ScaleBar />}
           {mapLoaded && <Graticule />}
+          {mapLoaded && <ImageExportStudio />}
 
           {/* Small discrete toggle buttons - bottom-right, above mapbox controls */}
           {mapLoaded && (!showAttributeLegend || !showAnnotationLegend || !showNorthArrow || !showScaleBar || !showGraticule) && (
@@ -246,6 +249,20 @@ function AppContent() {
                   🌐
                 </button>
               )}
+            </div>
+          )}
+          {/* Export Image button - always visible */}
+          {mapLoaded && (
+            <div style={{ position: 'absolute', bottom: '80px', right: '10px', zIndex: 10 }}>
+              <button
+                onClick={() => setShowImageStudio(true)}
+                title="Exportar Imagem em Alta Resolução"
+                style={{ background: 'var(--surface-color)', width: '30px', height: '30px', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', lineHeight: 1, padding: 0, opacity: 0.85, transition: 'opacity 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}
+              >
+                📷
+              </button>
             </div>
           )}
         </div>

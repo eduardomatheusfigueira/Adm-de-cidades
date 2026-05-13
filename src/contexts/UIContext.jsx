@@ -31,6 +31,7 @@ export const UIProvider = ({ children }) => {
     lineOpacity: 0.45,
   });
   const [showImageStudio, setShowImageStudio] = useState(false);
+  const [exportPages, setExportPages] = useState([]);
 
   // Estados para o modal de importação de geometria
   const [showGeometryImportModal, setShowGeometryImportModal] = useState(false);
@@ -130,6 +131,8 @@ export const UIProvider = ({ children }) => {
     setGraticuleStyle,
     showImageStudio,
     setShowImageStudio,
+    exportPages,
+    setExportPages,
     showGeometryImportModal,
     setShowGeometryImportModal, // Expor para App.jsx controlar o modal
     geometryImportData,
