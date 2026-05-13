@@ -1,9 +1,11 @@
-import React, { useState, useContext, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useContext, useCallback, useRef, useEffect, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import '../styles/ImageStudio.css';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { AnnotationContext } from '../contexts/AnnotationContext';
+import { DataContext } from '../contexts/DataContext';
+import { getColorScale } from '../utils/colorUtils';
 
 const PRESETS = [
   { label: 'HD', w: 1920, h: 1080 },
@@ -112,8 +114,9 @@ const OWN_LAYERS = new Set(['sectors-fill-layer','sectors-line-layer','sectors-p
 
 const ImageExportStudio = () => {
   const { map, mapLoaded, mapStyle } = useContext(MapContext);
-  const { showImageStudio, setShowImageStudio, showAttributeLegend, showAnnotationLegend, showNorthArrow, showScaleBar, exportPages, setExportPages } = useContext(UIContext);
+  const { showImageStudio, setShowImageStudio, showAttributeLegend, showAnnotationLegend, showNorthArrow, showScaleBar, exportPages, setExportPages, colorAttribute } = useContext(UIContext);
   const { getActiveAnnotations, visualizations, activeVisualizationId } = useContext(AnnotationContext);
+  const { csvData, csvHeaders, indicadoresData } = useContext(DataContext);
 
   const [preset, setPreset] = useState(0);
   const [customW, setCustomW] = useState(3840);
@@ -124,7 +127,7 @@ const ImageExportStudio = () => {
   const [jpegQuality, setJpegQuality] = useState(0.92);
   const [exporting, setExporting] = useState(false);
   const [progress, setProgress] = useState('');
-  const [openSections, setOpenSections] = useState({ res: true, fmt: false, elem: true, title: false, mapCfg: false });
+  const [openSections, setOpenSections] = useState({ res: true, fmt: false, elem: true, title: false, mapCfg: false, vizFilter: false });
 
   // Map config for preview
   const [previewStyle, setPreviewStyle] = useState('');
@@ -132,6 +135,31 @@ const ImageExportStudio = () => {
   const [prvRenderMode, setPrvRenderMode] = useState('filled');
   const [prvFillOpacity, setPrvFillOpacity] = useState(0.6);
   const [prvBorderWidth, setPrvBorderWidth] = useState(2);
+
+  // Per-page visualization & filter
+  const [prvVizType, setPrvVizType] = useState('attribute');
+  const [prvVizAttribute, setPrvVizAttribute] = useState('Sigla_Regiao');
+  const [prvVizIndicator, setPrvVizIndicator] = useState('');
+  const [prvVizYear, setPrvVizYear] = useState('');
+  const [prvVizValueType, setPrvVizValueType] = useState('value');
+  const [prvFilterRegion, setPrvFilterRegion] = useState('all');
+  const [prvFilterState, setPrvFilterState] = useState('all');
+  const [prvFilterCityType, setPrvFilterCityType] = useState('all');
+
+  // Derived data
+  const excludedAttrs = useMemo(() => new Set(['Codigo_Municipio','Longitude_Municipio','Latitude_Municipio']), []);
+  const vizAttributes = useMemo(() => (csvHeaders || []).filter(h => !excludedAttrs.has(h)), [csvHeaders, excludedAttrs]);
+  const uniqueRegions = useMemo(() => csvData ? [...new Set(csvData.map(c => c.Sigla_Regiao))].filter(Boolean).sort() : [], [csvData]);
+  const uniqueStates = useMemo(() => {
+    if (!csvData) return [];
+    const data = prvFilterRegion === 'all' ? csvData : csvData.filter(c => c.Sigla_Regiao === prvFilterRegion);
+    return [...new Set(data.map(c => c.Sigla_Estado))].filter(Boolean).sort();
+  }, [csvData, prvFilterRegion]);
+  const availableIndicators = useMemo(() => indicadoresData ? [...new Set(indicadoresData.map(i => i.Nome_Indicador))].sort() : [], [indicadoresData]);
+  const availableYears = useMemo(() => {
+    if (!prvVizIndicator || !indicadoresData) return [];
+    return [...new Set(indicadoresData.filter(i => i.Nome_Indicador === prvVizIndicator).map(i => i.Ano_Observacao))].sort((a,b) => b-a);
+  }, [prvVizIndicator, indicadoresData]);
 
   const [incNorth, setIncNorth] = useState(true);
   const [incScale, setIncScale] = useState(true);
@@ -189,9 +217,13 @@ const ImageExportStudio = () => {
       if (pm) { const c = pm.getCenter(); return { center: [c.lng, c.lat], zoom: pm.getZoom(), bearing: pm.getBearing(), pitch: pm.getPitch() }; }
       return null;
     })(),
+    prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
+    prvFilterRegion, prvFilterState, prvFilterCityType,
   }), [preset, customW, customH, useCustom, orientation, format, jpegQuality,
     previewStyle, layerVis, prvRenderMode, prvFillOpacity, prvBorderWidth,
-    incNorth, incScale, incLegend, incAnnLegend, incTitle, titleCfg, overlayPos]);
+    incNorth, incScale, incLegend, incAnnLegend, incTitle, titleCfg, overlayPos,
+    prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
+    prvFilterRegion, prvFilterState, prvFilterCityType]);
 
   const loadPage = useCallback((pg) => {
     if (!pg) return;
@@ -207,6 +239,11 @@ const ImageExportStudio = () => {
     const newFillOpacity = pg.prvFillOpacity ?? 0.6;
     const newBorderWidth = pg.prvBorderWidth ?? 2;
     setPrvRenderMode(newRenderMode); setPrvFillOpacity(newFillOpacity); setPrvBorderWidth(newBorderWidth);
+    setPrvVizType(pg.prvVizType ?? 'attribute'); setPrvVizAttribute(pg.prvVizAttribute ?? 'Sigla_Regiao');
+    setPrvVizIndicator(pg.prvVizIndicator ?? ''); setPrvVizYear(pg.prvVizYear ?? '');
+    setPrvVizValueType(pg.prvVizValueType ?? 'value');
+    setPrvFilterRegion(pg.prvFilterRegion ?? 'all'); setPrvFilterState(pg.prvFilterState ?? 'all');
+    setPrvFilterCityType(pg.prvFilterCityType ?? 'all');
     setIncNorth(pg.incNorth ?? true); setIncScale(pg.incScale ?? true);
     setIncLegend(pg.incLegend ?? true); setIncAnnLegend(pg.incAnnLegend ?? true);
     setIncTitle(pg.incTitle ?? true);
@@ -309,6 +346,8 @@ const ImageExportStudio = () => {
       previewStyle: mapStyle || '',
       layerVis: { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true },
       prvRenderMode: 'filled', prvFillOpacity: 0.6, prvBorderWidth: 2,
+      prvVizType: 'attribute', prvVizAttribute: 'Sigla_Regiao', prvVizIndicator: '', prvVizYear: '', prvVizValueType: 'value',
+      prvFilterRegion: 'all', prvFilterState: 'all', prvFilterCityType: 'all',
       incNorth: true, incScale: true, incLegend: true, incAnnLegend: true, incTitle: true,
       titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
       overlayPos: { north:{x:0.02,y:0.05}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
@@ -342,7 +381,76 @@ const ImageExportStudio = () => {
     return () => clearTimeout(t);
   }, [preset, customW, customH, useCustom, orientation, format, jpegQuality,
     previewStyle, layerVis, prvRenderMode, prvFillOpacity, prvBorderWidth,
-    incNorth, incScale, incLegend, incAnnLegend, incTitle, titleCfg, overlayPos]);
+    incNorth, incScale, incLegend, incAnnLegend, incTitle, titleCfg, overlayPos,
+    prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
+    prvFilterRegion, prvFilterState, prvFilterCityType]);
+
+  // Apply visualization & filters to preview map
+  const applyPreviewVisualization = useCallback(() => {
+    const pm = previewMapRef.current;
+    if (!pm || !pm.isStyleLoaded() || !csvData) return;
+    // 1. Filter data
+    let filtered = [...csvData];
+    if (prvFilterCityType === 'capital') filtered = filtered.filter(c => c.Capital === 'true');
+    else if (prvFilterCityType === 'non-capital') filtered = filtered.filter(c => c.Capital !== 'true');
+    if (prvFilterRegion !== 'all') filtered = filtered.filter(c => c.Sigla_Regiao === prvFilterRegion);
+    if (prvFilterState !== 'all') filtered = filtered.filter(c => c.Sigla_Estado === prvFilterState);
+
+    // 2. Compute color expression
+    let attribute, values, colorExpr;
+    if (prvVizType === 'indicator' && prvVizIndicator && prvVizYear) {
+      attribute = 'visualization_value';
+      values = (indicadoresData || [])
+        .filter(r => r.Nome_Indicador === prvVizIndicator && r.Ano_Observacao === prvVizYear)
+        .map(r => { const p = parseFloat(prvVizValueType === 'position' ? r.Indice_Posicional : r.Valor); return isNaN(p) ? null : p; })
+        .filter(v => v !== null);
+      colorExpr = getColorScale(attribute, values);
+    } else {
+      attribute = prvVizAttribute || 'Sigla_Regiao';
+      values = filtered.map(r => r[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
+      colorExpr = getColorScale(attribute, values);
+    }
+
+    // 3. Apply to preview map
+    try {
+      if (pm.getLayer('sectors-fill-layer') && colorExpr) {
+        pm.setPaintProperty('sectors-fill-layer', 'fill-color', colorExpr);
+      }
+    } catch(e) { console.warn('Viz apply error:', e); }
+
+    // 4. Update legend data for overlay
+    const expr = colorExpr;
+    const exprType = expr?.[0];
+    const items = [];
+    if (exprType === 'match') {
+      for (let i = 2; i < expr.length - 1; i += 2) {
+        items.push({ color: expr[i + 1], value: `${expr[i]}` });
+      }
+    } else if (exprType === 'step') {
+      const nums = values.map(v => parseFloat(v)).filter(v => !isNaN(v)).sort((a, b) => a - b);
+      if (nums.length) {
+        let prev = nums[0];
+        items.push({ color: expr[2], value: `${nums[0].toLocaleString('pt-BR')}` });
+        for (let i = 3; i < expr.length; i += 2) {
+          const th = Number(expr[i]);
+          items[items.length - 1].value = `${prev.toLocaleString('pt-BR')} - ${th.toLocaleString('pt-BR')}`;
+          items.push({ color: expr[i + 1], value: `${th.toLocaleString('pt-BR')} - ${nums[nums.length-1].toLocaleString('pt-BR')}` });
+          prev = th;
+        }
+      }
+    }
+    const title = prvVizType === 'indicator' ? `${prvVizIndicator} (${prvVizYear})` : `Atributo: ${attribute}`;
+    setLegendData({ title, items });
+  }, [csvData, indicadoresData, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
+    prvFilterRegion, prvFilterState, prvFilterCityType]);
+
+  // Re-apply viz when settings change
+  useEffect(() => {
+    if (!showImageStudio || isLoadingPageRef.current) return;
+    const t = setTimeout(() => applyPreviewVisualization(), 300);
+    return () => clearTimeout(t);
+  }, [prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
+    prvFilterRegion, prvFilterState, prvFilterCityType, applyPreviewVisualization]);
 
   const baseW = useCustom ? customW : PRESETS[preset].w;
   const baseH = useCustom ? customH : PRESETS[preset].h;
@@ -469,19 +577,21 @@ const ImageExportStudio = () => {
   // Init on open
   useEffect(() => {
     if (!showImageStudio || !mapLoaded || !map?.current || !previewContainerRef.current) return;
-    setIncNorth(showNorthArrow); setIncScale(showScaleBar);
-    setIncLegend(showAttributeLegend); setIncAnnLegend(showAnnotationLegend);
-    setPreviewStyle(mapStyle || 'mapbox://styles/mapbox/light-v11');
-    setLayerVis({ labels: true, roads: true, buildings: true, admin: true, water: true, landuse: true });
 
     // Init pages: load saved page or create first one
     if (exportPages.length > 0) {
       loadPage(exportPages[currentPageIdx] || exportPages[0]);
     } else {
+      setIncNorth(showNorthArrow); setIncScale(showScaleBar);
+      setIncLegend(showAttributeLegend); setIncAnnLegend(showAnnotationLegend);
+      setPreviewStyle(mapStyle || 'mapbox://styles/mapbox/light-v11');
+      setLayerVis({ labels: true, roads: true, buildings: true, admin: true, water: true, landuse: true });
       setExportPages([{ name: 'Página 1', preset: 0, customW: 3840, customH: 2160, useCustom: false,
         orientation: 'landscape', format: 'png', jpegQuality: 0.92, previewStyle: mapStyle || '',
         layerVis: { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true },
         prvRenderMode: 'filled', prvFillOpacity: 0.6, prvBorderWidth: 2,
+        prvVizType: 'attribute', prvVizAttribute: colorAttribute || 'Sigla_Regiao', prvVizIndicator: '', prvVizYear: '', prvVizValueType: 'value',
+        prvFilterRegion: 'all', prvFilterState: 'all', prvFilterCityType: 'all',
         incNorth: showNorthArrow, incScale: showScaleBar, incLegend: showAttributeLegend, incAnnLegend: showAnnotationLegend, incTitle: true,
         titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
         overlayPos: { north:{x:0.02,y:0.05}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
@@ -599,6 +709,12 @@ const ImageExportStudio = () => {
     } catch (err) { console.error('Export error:', err); setProgress(`Erro: ${err.message}`); setExporting(false); }
   }, [targetW, targetH, format, jpegQuality, incNorth, incScale, incLegend, incAnnLegend, overlayPos, legendData, annData, vizName, setShowImageStudio]);
 
+  // Save current page state before closing
+  const handleClose = useCallback(() => {
+    saveCurrentPage();
+    setShowImageStudio(false);
+  }, [saveCurrentPage, setShowImageStudio]);
+
   if (!showImageStudio || !mapLoaded) return null;
 
   return (
@@ -607,7 +723,7 @@ const ImageExportStudio = () => {
         <div className="studio-sidebar">
           <div className="studio-sidebar-header">
             <h2><span className="studio-icon">📷</span> Exportar Imagem</h2>
-            <button className="studio-close-btn" onClick={() => setShowImageStudio(false)}>✕</button>
+            <button className="studio-close-btn" onClick={handleClose}>✕</button>
           </div>
           <div className="studio-sidebar-body">
             <div className="studio-section">
@@ -815,6 +931,81 @@ const ImageExportStudio = () => {
                 </div>
               </>)}
             </div>
+
+            {/* Visualização e Filtros */}
+            <div className="studio-section">
+              <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, vizFilter: !s.vizFilter}))}>
+                <span>🎨 Visualização e Filtros</span><span className={`studio-chevron ${openSections.vizFilter ? 'open' : ''}`}>▸</span>
+              </div>
+              {openSections.vizFilter && (<>
+                <div className="studio-input-row">
+                  <label>Tipo</label>
+                  <select className="studio-select" value={prvVizType} onChange={e => { setPrvVizType(e.target.value); }}>
+                    <option value="attribute">Por Atributo</option>
+                    <option value="indicator">Por Indicador</option>
+                  </select>
+                </div>
+                {prvVizType === 'attribute' && (
+                  <div className="studio-input-row">
+                    <label>Atributo</label>
+                    <select className="studio-select" value={prvVizAttribute} onChange={e => setPrvVizAttribute(e.target.value)}>
+                      {vizAttributes.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  </div>
+                )}
+                {prvVizType === 'indicator' && (<>
+                  <div className="studio-input-row">
+                    <label>Indicador</label>
+                    <select className="studio-select" value={prvVizIndicator} onChange={e => { setPrvVizIndicator(e.target.value); setPrvVizYear(''); }}>
+                      <option value="">Selecione...</option>
+                      {availableIndicators.map(i => <option key={i} value={i}>{i}</option>)}
+                    </select>
+                  </div>
+                  {prvVizIndicator && (
+                    <div className="studio-input-row">
+                      <label>Ano</label>
+                      <select className="studio-select" value={prvVizYear} onChange={e => setPrvVizYear(e.target.value)}>
+                        <option value="">Selecione...</option>
+                        {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  <div className="studio-input-row">
+                    <label>Valor</label>
+                    <select className="studio-select" value={prvVizValueType} onChange={e => setPrvVizValueType(e.target.value)}>
+                      <option value="value">Valor Absoluto</option>
+                      <option value="position">Índice Posicional</option>
+                    </select>
+                  </div>
+                </>)}
+                <div style={{ marginTop: 8 }}>
+                  <label style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Filtros</label>
+                  <div className="studio-input-row" style={{ marginTop: 4 }}>
+                    <label>Região</label>
+                    <select className="studio-select" value={prvFilterRegion} onChange={e => { setPrvFilterRegion(e.target.value); setPrvFilterState('all'); }}>
+                      <option value="all">Todas</option>
+                      {uniqueRegions.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                  <div className="studio-input-row">
+                    <label>Estado</label>
+                    <select className="studio-select" value={prvFilterState} onChange={e => setPrvFilterState(e.target.value)}>
+                      <option value="all">Todos</option>
+                      {uniqueStates.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="studio-input-row">
+                    <label>Tipo</label>
+                    <select className="studio-select" value={prvFilterCityType} onChange={e => setPrvFilterCityType(e.target.value)}>
+                      <option value="all">Todas</option>
+                      <option value="capital">Capitais</option>
+                      <option value="non-capital">Não Capitais</option>
+                    </select>
+                  </div>
+                </div>
+              </>)}
+            </div>
+
           </div>
         </div>
 
@@ -876,7 +1067,7 @@ const ImageExportStudio = () => {
             ) : (
               <>
                 {progress && <span style={{ fontSize: '0.75rem', color: '#4ade80', marginRight: 'auto' }}>{progress}</span>}
-                <button className="studio-cancel-btn" onClick={() => setShowImageStudio(false)}>Fechar</button>
+                <button className="studio-cancel-btn" onClick={handleClose}>Fechar</button>
                 <button className="studio-export-btn" onClick={handleExport}>📷 Exportar Imagem</button>
               </>
             )}
