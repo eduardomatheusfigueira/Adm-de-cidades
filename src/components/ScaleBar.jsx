@@ -136,6 +136,7 @@ const ScaleBar = () => {
       <div className="scale-bar-graphic">
         <div className="scale-bar-line" style={{ width: scaleInfo.width + 'px' }}></div>
       </div>
+      <div className="scale-bar-projection">Projeção: Web Mercator (EPSG:3857)</div>
     </div>
   );
 };
