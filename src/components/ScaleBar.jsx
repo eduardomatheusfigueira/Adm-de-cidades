@@ -7,7 +7,8 @@ import { UIContext } from '../contexts/UIContext';
 const SCALE_STEPS = [
   1, 2, 5, 10, 20, 50, 100, 200, 500,
   1000, 2000, 5000, 10000, 20000, 50000,
-  100000, 200000, 500000, 1000000
+  100000, 200000, 500000, 1000000,
+  2000000, 5000000, 10000000, 20000000
 ];
 
 const NUM_SEGMENTS = 5;
@@ -77,23 +78,28 @@ const ScaleBar = () => {
 
       const metersPerPixel = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / Math.pow(2, zoom);
 
-      // Target total bar width: 120-200 pixels
-      const targetMinPx = 120;
-      const targetMaxPx = 220;
+      // Target total bar width: 200-300 pixels (wide enough to avoid label overlap)
+      const targetMinPx = 200;
+      const targetMaxPx = 300;
 
       let bestStep = SCALE_STEPS[0];
-      for (const step of SCALE_STEPS) {
+      for (let i = 0; i < SCALE_STEPS.length; i++) {
+        const step = SCALE_STEPS[i];
         const px = step / metersPerPixel;
         if (px >= targetMinPx && px <= targetMaxPx) {
           bestStep = step;
           break;
         }
-        if (px > targetMaxPx) break;
+        if (px > targetMaxPx) {
+          // Prefer this wider step over the previous too-narrow one
+          bestStep = step;
+          break;
+        }
         bestStep = step;
       }
 
       const barWidth = Math.round(bestStep / metersPerPixel);
-      const clampedWidth = Math.max(100, Math.min(250, barWidth));
+      const clampedWidth = Math.max(180, Math.min(400, barWidth));
       const unit = bestStep >= 1000 ? 'km' : 'm';
 
       setScaleInfo({
