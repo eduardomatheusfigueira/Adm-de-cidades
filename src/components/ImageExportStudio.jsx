@@ -199,6 +199,10 @@ const ImageExportStudio = () => {
   const [currentPageIdx, setCurrentPageIdx] = useState(0);
   const pageIdxRef = useRef(0);
   const isLoadingPageRef = useRef(false);
+  const pageLoadVersionRef = useRef(0);
+  const applyPreviewVizRef = useRef(null);
+  const exportPagesRef = useRef([]);
+  exportPagesRef.current = exportPages; // always up to date
 
   // Keep ref in sync
   useEffect(() => { pageIdxRef.current = currentPageIdx; }, [currentPageIdx]);
@@ -227,7 +231,9 @@ const ImageExportStudio = () => {
 
   const loadPage = useCallback((pg) => {
     if (!pg) return;
+    console.log('[Studio] loadPage called — attr:', pg.prvVizAttribute, 'pageIdx:', pageIdxRef.current);
     isLoadingPageRef.current = true;
+    pageLoadVersionRef.current += 1;
     setPreset(pg.preset ?? 0); setCustomW(pg.customW ?? 3840); setCustomH(pg.customH ?? 2160);
     setUseCustom(pg.useCustom ?? false); setOrientation(pg.orientation ?? 'landscape');
     setFormat(pg.format ?? 'png'); setJpegQuality(pg.jpegQuality ?? 0.92);
@@ -265,12 +271,13 @@ const ImageExportStudio = () => {
     // Apply visual changes to the actual preview map instance
     const pm = previewMapRef.current;
     const cam = pg.mapCamera;
-    if (pm && newStyle) {
+
+    if (pm && newStyle && pm._currentStyleUrl !== newStyle) {
+      // Style is changing — save custom layers, switch style, re-add
       const center = cam ? cam.center : pm.getCenter();
       const z = cam ? cam.zoom : pm.getZoom();
       const bearing = cam ? cam.bearing : pm.getBearing();
       const pitch = cam ? cam.pitch : pm.getPitch();
-      // Save custom sources and layers before style change
       const curStyle = pm.getStyle();
       const savedSources = {};
       const savedLayers = [];
@@ -288,18 +295,16 @@ const ImageExportStudio = () => {
           if (live && live._data) savedSources[sid].data = live._data;
         }
       });
-
-      pm.setStyle(newStyle);
+      pm._currentStyleUrl = newStyle;
+      pm.setStyle(newStyle, {diff: false});
       pm.once('style.load', () => {
         pm.jumpTo({ center, zoom: z, bearing, pitch });
-        // Re-add custom sources and layers
         Object.entries(savedSources).forEach(([id, src]) => {
           if (!pm.getSource(id)) try { pm.addSource(id, src); } catch(e) {}
         });
         savedLayers.forEach(layer => {
           if (!pm.getLayer(layer.id)) try { pm.addLayer(layer); } catch(e) {}
         });
-        // Re-apply layer visibility
         setTimeout(() => {
           const allLayers = pm.getStyle().layers || [];
           LAYER_CATEGORIES.forEach(cat => {
@@ -311,43 +316,35 @@ const ImageExportStudio = () => {
               });
             }
           });
-          // Re-apply render mode
           try {
-            if (pm.getLayer('sectors-fill-layer')) {
-              pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', newRenderMode === 'filled' ? newFillOpacity : 0);
-            }
-            if (pm.getLayer('sectors-line-layer')) {
-              pm.setPaintProperty('sectors-line-layer', 'line-width', newRenderMode === 'border' ? newBorderWidth : 1);
-            }
+            if (pm.getLayer('sectors-fill-layer')) pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', newRenderMode === 'filled' ? newFillOpacity : 0);
+            if (pm.getLayer('sectors-line-layer')) pm.setPaintProperty('sectors-line-layer', 'line-width', newRenderMode === 'border' ? newBorderWidth : 1);
           } catch(e) {}
           isLoadingPageRef.current = false;
-          // Apply viz after loading is done
-          setTimeout(() => applyPreviewVisualization(vizCfg), 100);
+          applyPreviewVizRef.current?.(vizCfg);
         }, 200);
       });
-    } else {
-      // No style change, just apply layers and render
-      if (pm && pm.isStyleLoaded()) {
-        if (cam) pm.jumpTo({ center: cam.center, zoom: cam.zoom, bearing: cam.bearing, pitch: cam.pitch });
-        const allLayers = pm.getStyle().layers || [];
-        LAYER_CATEGORIES.forEach(cat => {
-          const vis = newLayerVis[cat.key] ? 'visible' : 'none';
-          allLayers.forEach(l => {
-            if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
-              try { pm.setLayoutProperty(l.id, 'visibility', vis); } catch(e) {}
-            }
-          });
+    } else if (pm && pm.isStyleLoaded()) {
+      // Same style (or no specific style) — update camera, layers, render mode, viz directly
+      if (cam) pm.jumpTo({ center: cam.center, zoom: cam.zoom, bearing: cam.bearing, pitch: cam.pitch });
+      const allLayers = pm.getStyle().layers || [];
+      LAYER_CATEGORIES.forEach(cat => {
+        const vis = newLayerVis[cat.key] ? 'visible' : 'none';
+        allLayers.forEach(l => {
+          if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
+            try { pm.setLayoutProperty(l.id, 'visibility', vis); } catch(e) {}
+          }
         });
-        try {
-          if (pm.getLayer('sectors-fill-layer')) pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', newRenderMode === 'filled' ? newFillOpacity : 0);
-          if (pm.getLayer('sectors-line-layer')) pm.setPaintProperty('sectors-line-layer', 'line-width', newRenderMode === 'border' ? newBorderWidth : 1);
-        } catch(e) {}
-      }
-      setTimeout(() => {
-        isLoadingPageRef.current = false;
-        // Apply viz after loading is done
-        setTimeout(() => applyPreviewVisualization(vizCfg), 100);
-      }, 300);
+      });
+      try {
+        if (pm.getLayer('sectors-fill-layer')) pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', newRenderMode === 'filled' ? newFillOpacity : 0);
+        if (pm.getLayer('sectors-line-layer')) pm.setPaintProperty('sectors-line-layer', 'line-width', newRenderMode === 'border' ? newBorderWidth : 1);
+      } catch(e) {}
+      isLoadingPageRef.current = false;
+      applyPreviewVizRef.current?.(vizCfg);
+    } else {
+      // pm not ready yet — just release the loading lock
+      isLoadingPageRef.current = false;
     }
   }, []);
 
@@ -364,27 +361,26 @@ const ImageExportStudio = () => {
 
   const switchPage = useCallback((idx) => {
     if (idx === pageIdxRef.current) return;
-    // Save current page
     const curIdx = pageIdxRef.current;
-    setExportPages(prev => {
-      const next = [...prev];
-      next[curIdx] = serializeCurrentPage(prev[curIdx]?.name);
-      return next;
-    });
-    // Switch and load
+    // Serialize current page inline to avoid stale closure
+    const savedPage = serializeCurrentPage(exportPagesRef.current[curIdx]?.name);
+    const targetPage = exportPagesRef.current[idx];
+    if (!targetPage) return;
+    // Update pages array with the saved current page
+    const nextPages = [...exportPagesRef.current];
+    nextPages[curIdx] = savedPage;
+    exportPagesRef.current = nextPages;
+    setExportPages(nextPages);
+    // Switch page index and load target
     setCurrentPageIdx(idx);
     pageIdxRef.current = idx;
-    setExportPages(prev => {
-      const pg = prev[idx];
-      if (pg) loadPage(pg);
-      return prev;
-    });
+    loadPage(targetPage);
   }, [serializeCurrentPage, setExportPages, loadPage]);
 
   const addPage = useCallback(() => {
     saveCurrentPage();
     const defaultPage = {
-      name: `Página ${exportPages.length + 1}`,
+      name: `Página ${exportPagesRef.current.length + 1}`,
       preset: 0, customW: 3840, customH: 2160, useCustom: false,
       orientation: 'landscape', format: 'png', jpegQuality: 0.92,
       previewStyle: mapStyle || '',
@@ -396,23 +392,24 @@ const ImageExportStudio = () => {
       titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
       overlayPos: { north:{x:0.02,y:0.05}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
     };
-    const newIdx = exportPages.length;
+    const newIdx = exportPagesRef.current.length;
     setCurrentPageIdx(newIdx);
     pageIdxRef.current = newIdx;
-    setExportPages(prev => [...prev, defaultPage]);
+    setExportPages(prev => { const n = [...prev, defaultPage]; exportPagesRef.current = n; return n; });
     loadPage(defaultPage);
-  }, [saveCurrentPage, setExportPages, loadPage, exportPages.length, mapStyle]);
+  }, [saveCurrentPage, setExportPages, loadPage, mapStyle]);
 
   const deletePage = useCallback((idx) => {
-    if (exportPages.length <= 1) return;
+    if (exportPagesRef.current.length <= 1) return;
     isLoadingPageRef.current = true;
-    const next = exportPages.filter((_, i) => i !== idx);
+    const next = exportPagesRef.current.filter((_, i) => i !== idx);
     const newIdx = Math.min(idx, next.length - 1);
     setCurrentPageIdx(newIdx);
     pageIdxRef.current = newIdx;
+    exportPagesRef.current = next;
     setExportPages(next);
     loadPage(next[newIdx]);
-  }, [exportPages, setExportPages, loadPage]);
+  }, [setExportPages, loadPage]);
 
   // Auto-save current page on config change (guarded)
   useEffect(() => {
@@ -438,6 +435,7 @@ const ImageExportStudio = () => {
     const fRegion = cfg?.prvFilterRegion ?? prvFilterRegion;
     const fState = cfg?.prvFilterState ?? prvFilterState;
     const fCity = cfg?.prvFilterCityType ?? prvFilterCityType;
+    console.log('[Studio] applyPreviewViz called — attr:', vizAttr, 'cfg?', !!cfg, 'pageIdx:', pageIdxRef.current);
 
     // 1. Filter data
     let filtered = [...csvData];
@@ -460,8 +458,21 @@ const ImageExportStudio = () => {
       values = filtered.map(r => r[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
       colorExpr = getColorScale(attribute, values);
     }
+    // 3. Fix step expression if thresholds are not strictly ascending
+    if (colorExpr && colorExpr[0] === 'step') {
+      const fixed = [colorExpr[0], colorExpr[1], colorExpr[2]];
+      let lastThreshold = -Infinity;
+      for (let i = 3; i < colorExpr.length; i += 2) {
+        const th = colorExpr[i];
+        if (th > lastThreshold) {
+          fixed.push(th, colorExpr[i + 1]);
+          lastThreshold = th;
+        }
+      }
+      colorExpr = fixed;
+    }
 
-    // 3. Apply to preview map
+    // 4. Apply to preview map
     try {
       if (pm.getLayer('sectors-fill-layer') && colorExpr) {
         pm.setPaintProperty('sectors-fill-layer', 'fill-color', colorExpr);
@@ -494,10 +505,23 @@ const ImageExportStudio = () => {
   }, [csvData, indicadoresData, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType]);
 
-  // Re-apply viz when settings change
+  // Always keep ref pointing to latest version so loadPage (with [] deps) can call it
+  applyPreviewVizRef.current = applyPreviewVisualization;
+
+  // Re-apply viz when settings change (only for user-driven changes, not page loads)
   useEffect(() => {
     if (!showImageStudio || isLoadingPageRef.current) return;
-    const t = setTimeout(() => applyPreviewVisualization(), 300);
+    const version = pageLoadVersionRef.current;
+    console.log('[Studio] viz-reapply effect scheduled — attr:', prvVizAttribute, 'version:', version, 'isLoading:', isLoadingPageRef.current);
+    const t = setTimeout(() => {
+      // Ensure we haven't switched pages during the debounce
+      if (pageLoadVersionRef.current !== version || isLoadingPageRef.current) {
+        console.log('[Studio] viz-reapply CANCELLED — version mismatch or loading');
+        return;
+      }
+      console.log('[Studio] viz-reapply FIRING — attr:', prvVizAttribute);
+      applyPreviewVisualization();
+    }, 400);
     return () => clearTimeout(t);
   }, [prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType, applyPreviewVisualization]);
@@ -590,7 +614,7 @@ const ImageExportStudio = () => {
         }
       });
 
-      pm.setStyle(newStyle);
+      pm.setStyle(newStyle, {diff: false});
       pm.once('style.load', () => {
         pm.jumpTo({ center, zoom, bearing, pitch });
         // Re-add custom sources
@@ -734,16 +758,27 @@ const ImageExportStudio = () => {
       pm.on('moveend', () => redrawOverlayCanvas());
       pm.on('idle', () => redrawOverlayCanvas());
       pm.once('style.load', () => {
+        // Build viz config from saved page data
+        const initVizCfg = savedPage ? {
+          prvVizType: savedPage.prvVizType ?? 'attribute',
+          prvVizAttribute: savedPage.prvVizAttribute ?? 'Sigla_Regiao',
+          prvVizIndicator: savedPage.prvVizIndicator ?? '',
+          prvVizYear: savedPage.prvVizYear ?? '',
+          prvVizValueType: savedPage.prvVizValueType ?? 'value',
+          prvFilterRegion: savedPage.prvFilterRegion ?? 'all',
+          prvFilterState: savedPage.prvFilterState ?? 'all',
+          prvFilterCityType: savedPage.prvFilterCityType ?? 'all',
+        } : null;
         // If the saved page has a different style, switch to it
         // handlePreviewStyleChange handles saving/re-adding custom layers
         if (savedStyle && savedStyle !== mainMap.getStyle()?.name && savedStyle.startsWith('mapbox://')) {
           // Wait for map to fully settle before switching style
           pm.once('idle', () => {
             handlePreviewStyleChange(savedStyle);
-            setTimeout(() => applyPreviewVisualization(), 500);
+            setTimeout(() => applyPreviewVizRef.current?.(initVizCfg), 500);
           });
         } else {
-          setTimeout(() => applyPreviewVisualization(), 300);
+          setTimeout(() => applyPreviewVizRef.current?.(initVizCfg), 300);
         }
       });
     }, 200);
