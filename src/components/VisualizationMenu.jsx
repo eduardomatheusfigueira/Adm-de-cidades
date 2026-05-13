@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useContext, useMemo, useCallback } from 'react';
 import '../styles/VisualizationMenu.css';
 import { DataContext } from '../contexts/DataContext';
 import { MapContext } from '../contexts/MapContext';
@@ -16,6 +16,8 @@ const VisualizationMenu = ({
   } = useContext(DataContext);
 
   const {
+    map,
+    mapLoaded,
     mapStyle,
     handleMapStyleChange
   } = useContext(MapContext);
@@ -39,6 +41,65 @@ const VisualizationMenu = ({
   const [currentRenderMode, setCurrentRenderMode] = useState('filled'); // 'filled' ou 'border'
   const [currentBorderWidth, setCurrentBorderWidth] = useState(2);
   const [currentFillOpacity, setCurrentFillOpacity] = useState(0.6);
+
+  // Map layer visibility toggles
+  const [mapLayerVisibility, setMapLayerVisibility] = useState({
+    labels: true,
+    roads: true,
+    buildings: true,
+    admin: true,
+    pois: true,
+    water: true,
+    landuse: true,
+  });
+
+  const MAP_LAYER_CATEGORIES = useMemo(() => ([
+    { key: 'labels',    label: 'Rótulos / Textos',       emoji: '🏷️', match: (id) => id.includes('label') },
+    { key: 'roads',     label: 'Ruas e Estradas',        emoji: '🛣️', match: (id) => (id.startsWith('road') || id.startsWith('bridge') || id.startsWith('tunnel')) && !id.includes('label') },
+    { key: 'buildings', label: 'Construções',             emoji: '🏢', match: (id) => id.includes('building') },
+    { key: 'admin',     label: 'Limites Administrativos', emoji: '🗺️', match: (id) => id.includes('admin') || id.includes('boundary') },
+    { key: 'pois',      label: 'Pontos de Interesse',     emoji: '📍', match: (id) => id.includes('poi') && !id.includes('label') },
+    { key: 'water',     label: 'Água',                    emoji: '💧', match: (id) => (id.includes('water') || id.includes('river') || id.includes('stream')) && !id.includes('label') },
+    { key: 'landuse',   label: 'Uso do Solo / Vegetação', emoji: '🌿', match: (id) => id.includes('landuse') || id.includes('landcover') || id.includes('land-structure') || id.includes('national-park') },
+  ]), []);
+
+  // Our own layer IDs that should never be toggled
+  const OWN_LAYER_IDS = useMemo(() => new Set([
+    'sectors-fill-layer', 'sectors-line-layer', 'sectors-point-layer',
+    'annotations-fill-layer', 'annotations-line-solid', 'annotations-line-dashed',
+    'annotations-line-dotted', 'annotations-point-layer', 'annotations-point-labels',
+    'annotations-vertex-layer', 'graticule-lines', 'graticule-labels',
+  ]), []);
+
+  const toggleMapLayerCategory = useCallback((categoryKey) => {
+    if (!map?.current || !mapLoaded || !map.current.isStyleLoaded()) return;
+
+    const category = MAP_LAYER_CATEGORIES.find(c => c.key === categoryKey);
+    if (!category) return;
+
+    const newVisible = !mapLayerVisibility[categoryKey];
+    const visibility = newVisible ? 'visible' : 'none';
+
+    const allLayers = map.current.getStyle().layers || [];
+    allLayers.forEach(layer => {
+      if (OWN_LAYER_IDS.has(layer.id)) return;
+      if (category.match(layer.id)) {
+        try {
+          map.current.setLayoutProperty(layer.id, 'visibility', visibility);
+        } catch (e) { /* some layers may not support it */ }
+      }
+    });
+
+    setMapLayerVisibility(prev => ({ ...prev, [categoryKey]: newVisible }));
+  }, [map, mapLoaded, mapLayerVisibility, MAP_LAYER_CATEGORIES, OWN_LAYER_IDS]);
+
+  // Reset visibility state when map style changes (all layers reset to visible)
+  useEffect(() => {
+    setMapLayerVisibility({
+      labels: true, roads: true, buildings: true,
+      admin: true, pois: true, water: true, landuse: true,
+    });
+  }, [mapStyle]);
 
   const [availableYears, setAvailableYears] = useState([]);
   const [availableIndicators, setAvailableIndicators] = useState([]);
@@ -404,6 +465,22 @@ const VisualizationMenu = ({
                 <option value="mapbox://styles/mapbox/outdoors-v12">Exterior</option>
                 <option value="mapbox://styles/mapbox/satellite-streets-v12">Satélite com Ruas</option>
               </select>
+            </div>
+            <div className="visualization-group map-layers-section">
+              <label>Camadas do Mapa:</label>
+              <div className="map-layer-toggles">
+                {MAP_LAYER_CATEGORIES.map(cat => (
+                  <label key={cat.key} className="map-layer-toggle-item" title={cat.label}>
+                    <input
+                      type="checkbox"
+                      checked={mapLayerVisibility[cat.key]}
+                      onChange={() => toggleMapLayerCategory(cat.key)}
+                    />
+                    <span className="map-layer-toggle-emoji">{cat.emoji}</span>
+                    <span className="map-layer-toggle-text">{cat.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
             <div className="visualization-actions">
               <button className="apply-visualization-button" onClick={handleApplyVisualizationLocal}>Aplicar Visualização de Mapa</button>

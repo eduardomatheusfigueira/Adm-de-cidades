@@ -268,3 +268,57 @@
   border-color: var(--secondary-color);
   outline: none;
 }
+
+/* Map layer visibility toggles */
+.map-layers-section {
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-color);
+}
+
+.map-layer-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: var(--spacing-xs);
+}
+
+.map-layer-toggle-item {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s;
+  margin-bottom: 0 !important;
+  font-size: 0.82rem !important;
+  color: var(--text-primary) !important;
+  font-weight: 400 !important;
+}
+
+.map-layer-toggle-item:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.map-layer-toggle-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--secondary-color);
+  flex-shrink: 0;
+}
+
+.map-layer-toggle-emoji {
+  font-size: 0.85rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.map-layer-toggle-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
