@@ -10,18 +10,21 @@ const SCALE_STEPS = [
   100000, 200000, 500000, 1000000
 ];
 
-const formatDistance = (meters) => {
+const NUM_SEGMENTS = 5;
+
+const formatDistance = (meters, short = false) => {
   if (meters >= 1000) {
     const km = meters / 1000;
-    return km % 1 === 0 ? `${km} km` : `${km.toFixed(1)} km`;
+    const str = km % 1 === 0 ? `${km}` : `${km.toFixed(1)}`;
+    return short ? str : `${str} km`;
   }
-  return `${meters} m`;
+  return short ? `${meters}` : `${meters} m`;
 };
 
 const ScaleBar = () => {
   const { map, mapLoaded } = useContext(MapContext);
   const { showScaleBar, setShowScaleBar } = useContext(UIContext);
-  const [scaleInfo, setScaleInfo] = useState({ width: 100, label: '100 m' });
+  const [scaleInfo, setScaleInfo] = useState({ width: 150, totalDistance: 100, unit: 'm' });
 
   // Drag via direct DOM
   const elRef = useRef(null);
@@ -72,15 +75,12 @@ const ScaleBar = () => {
       const center = m.getCenter();
       const zoom = m.getZoom();
 
-      // Calculate meters per pixel at current zoom and latitude
-      // Formula: metersPerPixel = 156543.03392 * cos(lat * PI / 180) / (2 ^ zoom)
       const metersPerPixel = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / Math.pow(2, zoom);
 
-      // Target bar width: 80-150 pixels
-      const targetMinPx = 60;
-      const targetMaxPx = 150;
+      // Target total bar width: 120-200 pixels
+      const targetMinPx = 120;
+      const targetMaxPx = 220;
 
-      // Find the best round number that fits in our pixel range
       let bestStep = SCALE_STEPS[0];
       for (const step of SCALE_STEPS) {
         const px = step / metersPerPixel;
@@ -93,11 +93,13 @@ const ScaleBar = () => {
       }
 
       const barWidth = Math.round(bestStep / metersPerPixel);
-      const clampedWidth = Math.max(40, Math.min(200, barWidth));
+      const clampedWidth = Math.max(100, Math.min(250, barWidth));
+      const unit = bestStep >= 1000 ? 'km' : 'm';
 
       setScaleInfo({
         width: clampedWidth,
-        label: formatDistance(bestStep),
+        totalDistance: bestStep,
+        unit,
       });
     };
 
@@ -116,6 +118,22 @@ const ScaleBar = () => {
 
   if (!mapLoaded || !showScaleBar) return null;
 
+  // Build segment data
+  const segmentWidth = scaleInfo.width / NUM_SEGMENTS;
+  const distPerSegment = scaleInfo.totalDistance / NUM_SEGMENTS;
+
+  // Labels at each division: 0, seg, 2*seg, ... totalDistance + unit
+  const labels = [];
+  for (let i = 0; i <= NUM_SEGMENTS; i++) {
+    const dist = distPerSegment * i;
+    const displayDist = scaleInfo.unit === 'km' ? dist / 1000 : dist;
+    // Last label includes the unit
+    const text = i === NUM_SEGMENTS
+      ? `${Number.isInteger(displayDist) ? displayDist : displayDist.toFixed(1)} ${scaleInfo.unit}`
+      : `${Number.isInteger(displayDist) ? displayDist : displayDist.toFixed(1)}`;
+    labels.push(text);
+  }
+
   return (
     <div
       ref={elRef}
@@ -123,20 +141,44 @@ const ScaleBar = () => {
       onMouseDown={onDragStart}
       style={{ cursor: 'move' }}
     >
-      <div className="scale-bar-header">
-        <span className="scale-bar-label">{scaleInfo.label}</span>
-        <button
-          className="scale-bar-close"
-          onClick={(e) => { e.stopPropagation(); setShowScaleBar(false); }}
-          title="Ocultar escala"
-        >
-          ✕
-        </button>
+      <button
+        className="scale-bar-close"
+        onClick={(e) => { e.stopPropagation(); setShowScaleBar(false); }}
+        title="Ocultar escala"
+      >
+        ✕
+      </button>
+
+      {/* Labels row */}
+      <div className="scale-bar-labels" style={{ width: scaleInfo.width + 'px' }}>
+        {labels.map((label, i) => (
+          <span
+            key={i}
+            className="scale-bar-tick-label"
+            style={{
+              left: `${(i / NUM_SEGMENTS) * 100}%`,
+            }}
+          >
+            {label}
+          </span>
+        ))}
       </div>
-      <div className="scale-bar-graphic">
-        <div className="scale-bar-line" style={{ width: scaleInfo.width + 'px' }}></div>
+
+      {/* Alternating segments bar */}
+      <div className="scale-bar-segments" style={{ width: scaleInfo.width + 'px' }}>
+        {Array.from({ length: NUM_SEGMENTS }).map((_, i) => (
+          <div
+            key={i}
+            className={`scale-bar-segment ${i % 2 === 0 ? 'filled' : 'empty'}`}
+            style={{ width: segmentWidth + 'px' }}
+          />
+        ))}
       </div>
-      <div className="scale-bar-projection">Projeção: Web Mercator (EPSG:3857)</div>
+
+      {/* Projection */}
+      <div className="scale-bar-footer">
+        <span className="scale-bar-projection">Projeção: Web Mercator (EPSG:3857)</span>
+      </div>
     </div>
   );
 };

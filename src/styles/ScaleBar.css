@@ -9,12 +9,12 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border-color);
-  padding: 6px 12px 8px;
+  padding: 8px 14px 6px;
   z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 0;
   transition: box-shadow var(--transition-fast);
   user-select: none;
 }
@@ -23,26 +23,15 @@
   box-shadow: var(--shadow-lg);
 }
 
-.scale-bar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 8px;
-}
-
-.scale-bar-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
-}
-
+/* Close button */
 .scale-bar-close {
+  position: absolute;
+  top: 2px;
+  right: 4px;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-light);
   line-height: 1;
   padding: 1px 3px;
@@ -59,25 +48,82 @@
   color: var(--error-color);
 }
 
-.scale-bar-graphic {
-  display: flex;
-  align-items: flex-end;
-  height: 10px;
+/* Labels row — positioned above the bar */
+.scale-bar-labels {
+  position: relative;
+  height: 12px;
+  margin-bottom: 1px;
 }
 
-.scale-bar-line {
+.scale-bar-tick-label {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  line-height: 1;
+  top: 0;
+}
+
+/* Last label: don't shift left so much */
+.scale-bar-tick-label:last-child {
+  transform: translateX(-50%);
+}
+
+/* First label: align left edge */
+.scale-bar-tick-label:first-child {
+  transform: translateX(0);
+}
+
+/* Alternating segments bar */
+.scale-bar-segments {
+  display: flex;
   height: 8px;
-  border-left: 2px solid var(--text-primary);
-  border-right: 2px solid var(--text-primary);
-  border-bottom: 2px solid var(--text-primary);
+  border: 1.5px solid var(--text-primary);
+  box-sizing: content-box;
+}
+
+.scale-bar-segment {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.scale-bar-segment.filled {
+  background-color: var(--text-primary);
+}
+
+.scale-bar-segment.empty {
+  background-color: var(--surface-color, #fff);
+}
+
+/* Borders between segments */
+.scale-bar-segment + .scale-bar-segment {
+  border-left: 1px solid var(--text-primary);
+}
+
+/* Footer: title + projection */
+.scale-bar-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 3px;
+  gap: 1px;
+}
+
+.scale-bar-title {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .scale-bar-projection {
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   color: #000000;
   font-style: italic;
   opacity: 0.7;
   letter-spacing: 0.02em;
-  margin-top: 1px;
   white-space: nowrap;
 }
