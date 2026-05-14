@@ -18,9 +18,192 @@ function drawNorth(ctx,x,y,size,bearing){const rot=(-bearing*Math.PI)/180,cx=x+s
 
 function drawScale(ctx,x,y,w,h,zoom,lat){const STEPS=[1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000],NS=5;const mpp=156543.03392*Math.cos(lat*Math.PI/180)/Math.pow(2,zoom);let best=STEPS[0];for(const s of STEPS){const px=s/mpp;if(px>=200&&px<=300){best=s;break;}if(px>300){best=s;break;}best=s;}const bW=w*0.85,sW=bW/NS,bH=h*0.2,unit=best>=1000?'km':'m',pad=w*0.075;ctx.fillStyle='rgba(255,255,255,0.92)';ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,h,6);ctx.fill();ctx.stroke();const bX=x+pad,bY=y+h*0.5;ctx.font=`${Math.max(8,Math.round(h*0.16))}px Inter,sans-serif`;ctx.fillStyle='#1e293b';ctx.textAlign='center';ctx.textBaseline='bottom';for(let i=0;i<=NS;i++){const d=(best/NS)*i,v=unit==='km'?d/1000:d;ctx.fillText(i===NS?`${Number.isInteger(v)?v:v.toFixed(1)} ${unit}`:`${Number.isInteger(v)?v:v.toFixed(1)}`,bX+sW*i,bY-3);}for(let i=0;i<NS;i++){ctx.fillStyle=i%2===0?'#1e293b':'#fff';ctx.fillRect(bX+sW*i,bY,sW,bH);}ctx.strokeStyle='#1e293b';ctx.lineWidth=1;ctx.strokeRect(bX,bY,bW,bH);ctx.font=`italic ${Math.max(7,Math.round(h*0.13))}px Inter,sans-serif`;ctx.fillStyle='#64748b';ctx.textAlign='center';ctx.fillText('Projeção: Web Mercator (EPSG:3857)',x+w/2,bY+bH+h*0.2);}
 
-function drawLegend(ctx,x,y,w,title,items){const p=w*0.06,iH=w*0.1,tH=w*0.14,ss=w*0.07,totH=tH+items.length*iH+p*2;ctx.fillStyle='rgba(255,255,255,0.95)';ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,totH,4);ctx.fill();ctx.stroke();ctx.font=`bold ${Math.max(8,Math.round(w*0.07))}px Inter,sans-serif`;ctx.fillStyle='#0f172a';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(title,x+p,y+p);ctx.strokeStyle='#e2e8f0';ctx.beginPath();ctx.moveTo(x+p,y+tH);ctx.lineTo(x+w-p,y+tH);ctx.stroke();items.forEach((it,i)=>{const iy=y+tH+p/2+i*iH;ctx.fillStyle=it.color||'#ccc';ctx.fillRect(x+p,iy,ss,ss);ctx.strokeStyle='rgba(0,0,0,0.1)';ctx.strokeRect(x+p,iy,ss,ss);ctx.fillStyle='#1e293b';ctx.font=`${Math.max(7,Math.round(w*0.06))}px Inter,sans-serif`;ctx.textBaseline='middle';ctx.fillText(it.value||'',x+p+ss+p/2,iy+ss/2);});}
+// Word-wrap helper: splits text into lines that fit within maxWidth pixels.
+// Returns an array of strings.
+function wrapText(ctx, text, maxWidth) {
+  const words = String(text).split(' ');
+  const lines = [];
+  let current = '';
+  for (const word of words) {
+    const test = current ? `${current} ${word}` : word;
+    if (ctx.measureText(test).width <= maxWidth) {
+      current = test;
+    } else {
+      if (current) lines.push(current);
+      // If a single word is wider than maxWidth, push it as-is
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+  return lines.length ? lines : [''];
+}
 
-function drawAnnLegend(ctx,x,y,w,anns,vizName){const p=w*0.05,iH=w*0.1,tH=w*0.12,totH=tH+anns.length*iH+p*2;ctx.fillStyle='rgba(255,255,255,0.95)';ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,totH,4);ctx.fill();ctx.stroke();ctx.font=`bold ${Math.max(8,Math.round(w*0.06))}px Inter,sans-serif`;ctx.fillStyle='#0f172a';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(vizName||'Informações do Mapa',x+p,y+p);ctx.strokeStyle='#e2e8f0';ctx.beginPath();ctx.moveTo(x+p,y+tH);ctx.lineTo(x+w-p,y+tH);ctx.stroke();anns.forEach((a,i)=>{const iy=y+tH+p/2+i*iH;if(a.type==='point'){const cr=w*0.04,cx2=x+p+cr,cy2=iy+cr;ctx.beginPath();ctx.arc(cx2,cy2,cr,0,Math.PI*2);ctx.fillStyle=a.color||'#fff';ctx.fill();ctx.strokeStyle=(!a.color||a.color==='#FFFFFF'||a.color==='#ffffff')?'#000':a.color;ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#000';ctx.font=`bold ${Math.max(7,Math.round(cr*0.9))}px Inter,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(a.number),cx2,cy2);ctx.textAlign='left';ctx.fillStyle='#1e293b';ctx.font=`${Math.max(7,Math.round(w*0.055))}px Inter,sans-serif`;ctx.fillText(a.description||`Ponto ${a.number}`,x+p+cr*2+p,cy2);}else{const lx=x+p,ly=iy+iH/2;ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(lx+w*0.12,ly);ctx.strokeStyle=a.type==='line'?(a.lineColor||a.color||'#000'):(a.strokeColor||'#000');ctx.lineWidth=Math.min((a.type==='line'?(a.lineWidth??2.5):(a.strokeWidth??2.5)),4);ctx.stroke();ctx.fillStyle='#1e293b';ctx.font=`${Math.max(7,Math.round(w*0.055))}px Inter,sans-serif`;ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(a.description||`${a.type==='line'?'Linha':'Polígono'} ${a.number}`,lx+w*0.15,ly);}});}
+function drawLegend(ctx,x,y,w,title,items){
+  const p=w*0.06, ss=w*0.07;
+  const titleFs=Math.max(8,Math.round(w*0.07));
+  const itemFs=Math.max(7,Math.round(w*0.06));
+  const lineH=titleFs*1.25;
+  const maxTextW=w-p*2;
+
+  // Measure wrapped title
+  ctx.font=`bold ${titleFs}px Inter,sans-serif`;
+  const titleLines=wrapText(ctx,title,maxTextW);
+  const titleBlockH=titleLines.length*lineH+p*0.5;
+
+  // Measure wrapped item labels and compute per-item heights
+  const itemLineH=itemFs*1.25;
+  const itemTextX=p+ss+p*0.5;
+  const itemTextMaxW=maxTextW-ss-p*0.5;
+  ctx.font=`${itemFs}px Inter,sans-serif`;
+  const itemWraps=items.map(it=>wrapText(ctx,it.value||'',itemTextMaxW));
+  const itemHeights=itemWraps.map(lines=>Math.max(ss,lines.length*itemLineH)+p*0.3);
+
+  const dividerY=titleBlockH+p;
+  const totH=dividerY+p*0.5+itemHeights.reduce((a,b)=>a+b,0)+p;
+
+  // Background box
+  ctx.fillStyle='rgba(255,255,255,0.95)';
+  ctx.strokeStyle='rgba(0,0,0,0.08)';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.roundRect(x,y,w,totH,4);ctx.fill();ctx.stroke();
+
+  // Title
+  ctx.font=`bold ${titleFs}px Inter,sans-serif`;
+  ctx.fillStyle='#0f172a';
+  ctx.textAlign='left';ctx.textBaseline='top';
+  titleLines.forEach((line,li)=>ctx.fillText(line,x+p,y+p+li*lineH));
+
+  // Divider
+  ctx.strokeStyle='#e2e8f0';
+  ctx.beginPath();ctx.moveTo(x+p,y+dividerY);ctx.lineTo(x+w-p,y+dividerY);ctx.stroke();
+
+  // Items
+  let curY=y+dividerY+p*0.5;
+  items.forEach((it,i)=>{
+    const lines=itemWraps[i];
+    const ih=itemHeights[i];
+    const swatchTop=curY;
+    ctx.fillStyle=it.color||'#ccc';
+    ctx.fillRect(x+p,swatchTop,ss,ss);
+    ctx.strokeStyle='rgba(0,0,0,0.1)';
+    ctx.strokeRect(x+p,swatchTop,ss,ss);
+    ctx.fillStyle='#1e293b';
+    ctx.font=`${itemFs}px Inter,sans-serif`;
+    ctx.textBaseline='top';
+    lines.forEach((line,li)=>ctx.fillText(line,x+itemTextX,swatchTop+li*itemLineH));
+    curY+=ih;
+  });
+}
+
+function drawAnnLegend(ctx,x,y,w,anns,vizName){
+  const p=w*0.05;
+  const titleFs=Math.max(8,Math.round(w*0.06));
+  const itemFs=Math.max(7,Math.round(w*0.055));
+  const lineH=titleFs*1.25;
+  const itemLineH=itemFs*1.25;
+  const maxTextW=w-p*2;
+
+  // Measure wrapped title
+  ctx.font=`bold ${titleFs}px Inter,sans-serif`;
+  const titleLines=wrapText(ctx,vizName||'Informações do Mapa',maxTextW);
+  const titleBlockH=titleLines.length*lineH+p*0.5;
+  const dividerY=titleBlockH+p;
+
+  // Measure each annotation label
+  ctx.font=`${itemFs}px Inter,sans-serif`;
+  const annData=anns.map(a=>{
+    const cr=w*0.04;
+    const isPoint=a.type==='point';
+    // iconW must match what is actually drawn below
+    const iconW=isPoint ? cr*2+p : w*0.14;
+    const textMaxW=maxTextW-iconW-p*0.5;
+    const label=isPoint
+      ?(a.description||`Ponto ${a.number}`)
+      :(a.description||(a.type==='line'?`Linha ${a.number}`:`Polígono ${a.number}`));
+    ctx.font=`${itemFs}px Inter,sans-serif`;
+    const lines=wrapText(ctx,label,textMaxW);
+    const ih=Math.max(isPoint?cr*2:w*0.06,lines.length*itemLineH)+p*0.3;
+    return {a,lines,ih,cr,iconW};
+  });
+  const totH=dividerY+p*0.5+annData.reduce((s,d)=>s+d.ih,0)+p;
+
+  // Background box
+  ctx.fillStyle='rgba(255,255,255,0.95)';
+  ctx.strokeStyle='rgba(0,0,0,0.08)';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.roundRect(x,y,w,totH,4);ctx.fill();ctx.stroke();
+
+  // Title
+  ctx.font=`bold ${titleFs}px Inter,sans-serif`;
+  ctx.fillStyle='#0f172a';
+  ctx.textAlign='left';ctx.textBaseline='top';
+  titleLines.forEach((line,li)=>ctx.fillText(line,x+p,y+p+li*lineH));
+
+  // Divider
+  ctx.strokeStyle='#e2e8f0';
+  ctx.beginPath();ctx.moveTo(x+p,y+dividerY);ctx.lineTo(x+w-p,y+dividerY);ctx.stroke();
+
+  // Annotations
+  let curY=y+dividerY+p*0.5;
+  annData.forEach(({a,lines,ih,cr})=>{
+    const iy=curY;
+    if(a.type==='point'){
+      const cx2=x+p+cr,cy2=iy+cr;
+      ctx.beginPath();ctx.arc(cx2,cy2,cr,0,Math.PI*2);
+      ctx.fillStyle=a.color||'#fff';ctx.fill();
+      ctx.strokeStyle=(!a.color||a.color==='#FFFFFF'||a.color==='#ffffff')?'#000':a.color;
+      ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='#000';
+      ctx.font=`bold ${Math.max(7,Math.round(cr*0.9))}px Inter,sans-serif`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(String(a.number),cx2,cy2);
+      ctx.textAlign='left';
+      ctx.fillStyle='#1e293b';
+      ctx.font=`${itemFs}px Inter,sans-serif`;
+      ctx.textBaseline='top';
+      lines.forEach((line,li)=>ctx.fillText(line,x+p+cr*2+p,iy+li*itemLineH));
+    } else if (a.type === 'line') {
+      // ── Line icon with dash support ──
+      const iconW = w * 0.14;
+      const lx = x + p, ly = iy + ih * 0.4;
+      const lineColor = a.lineColor || a.color || '#000';
+      const lineW = Math.min(a.lineWidth ?? 2.5, 4);
+      const dash = a.lineStyle === 'dashed' ? [6,3] : a.lineStyle === 'dotted' ? [2,2] : [];
+      ctx.setLineDash(dash);
+      ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + iconW, ly);
+      ctx.strokeStyle = lineColor; ctx.lineWidth = lineW; ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#1e293b';
+      ctx.font = `${itemFs}px Inter,sans-serif`;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      lines.forEach((line, li) => ctx.fillText(line, lx + iconW + p * 0.5, iy + li * itemLineH));
+    } else {
+      // ── Polygon icon: filled rect + border ──
+      const iconW = w * 0.14, iconH = Math.max(w * 0.07, ih * 0.65);
+      const rx = x + p, ry = iy + (ih - iconH) / 2;
+      const fillHex = a.fillColor || a.color || '#cccccc';
+      const fillOp = a.fillOpacity ?? 0.15;
+      // parse hex to rgba
+      const fr = parseInt(fillHex.slice(1,3)||'cc',16);
+      const fg = parseInt(fillHex.slice(3,5)||'cc',16);
+      const fb = parseInt(fillHex.slice(5,7)||'cc',16);
+      ctx.fillStyle = `rgba(${fr},${fg},${fb},${fillOp})`;
+      ctx.fillRect(rx, ry, iconW, iconH);
+      const strokeCol = a.strokeColor || '#000';
+      const strokeW = Math.min(a.strokeWidth ?? 2.5, 4);
+      const dash = a.strokeStyle === 'dashed' ? [6,3] : a.strokeStyle === 'dotted' ? [2,2] : [];
+      ctx.setLineDash(dash);
+      ctx.strokeStyle = strokeCol; ctx.lineWidth = strokeW;
+      ctx.strokeRect(rx, ry, iconW, iconH);
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#1e293b';
+      ctx.font = `${itemFs}px Inter,sans-serif`;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      lines.forEach((line, li) => ctx.fillText(line, rx + iconW + p * 0.5, iy + li * itemLineH));
+    }
+    curY+=ih;
+  });
+}
 
 function drawTitle(ctx, x, y, cfg) {
   const { title, subtitle, fontFamily, titleSize, subtitleSize, titleWeight, subtitleWeight, titleStyle, subtitleStyle, titleColor, subtitleColor, showBg, bgColor, bgOpacity, align } = cfg;
