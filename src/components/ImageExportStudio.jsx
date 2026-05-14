@@ -16,7 +16,7 @@ const PRESETS = [
 // ── Canvas drawing helpers ──
 function drawNorth(ctx,x,y,size,bearing){const rot=(-bearing*Math.PI)/180,cx=x+size/2,cy=y+size/2,r=size*0.42;ctx.save();ctx.translate(cx,cy);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle='#cccccc';ctx.lineWidth=Math.max(1,size*0.018);ctx.stroke();[0,Math.PI/2,Math.PI,Math.PI*1.5].forEach((a,i)=>{ctx.beginPath();ctx.moveTo(Math.sin(a)*r*0.82,-Math.cos(a)*r*0.82);ctx.lineTo(Math.sin(a)*r*0.94,-Math.cos(a)*r*0.94);ctx.strokeStyle='#555';ctx.lineWidth=i===0?size*0.022:size*0.012;ctx.stroke();});ctx.rotate(rot);ctx.beginPath();ctx.moveTo(0,-r*0.78);ctx.lineTo(-r*0.16,0);ctx.lineTo(0,r*0.08);ctx.closePath();ctx.fillStyle='#222';ctx.fill();ctx.beginPath();ctx.moveTo(0,-r*0.78);ctx.lineTo(r*0.16,0);ctx.lineTo(0,r*0.08);ctx.closePath();ctx.fillStyle='#bbb';ctx.fill();ctx.strokeStyle='#333';ctx.lineWidth=Math.max(1,size*0.015);ctx.stroke();ctx.beginPath();ctx.arc(0,0,r*0.07,0,Math.PI*2);ctx.fillStyle='#222';ctx.fill();ctx.rotate(-rot);const nX=Math.sin(rot)*r*1.32,nY=-Math.cos(rot)*r*1.32,fs=Math.round(size*0.2);ctx.beginPath();ctx.arc(nX,nY,fs*0.72,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle='#cccccc';ctx.lineWidth=Math.max(1,size*0.012);ctx.stroke();ctx.font=`bold ${fs}px Inter,sans-serif`;ctx.fillStyle='#111';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('N',nX,nY);ctx.restore();}
 
-function drawScale(ctx,x,y,w,h,zoom,lat){const STEPS=[1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000],NS=5;const mpp=156543.03392*Math.cos(lat*Math.PI/180)/Math.pow(2,zoom);let best=STEPS[0];for(const s of STEPS){const px=s/mpp;if(px>=200&&px<=300){best=s;break;}if(px>300){best=s;break;}best=s;}const bW=w*0.85,sW=bW/NS,bH=h*0.2,unit=best>=1000?'km':'m',pad=w*0.075;ctx.fillStyle='rgba(255,255,255,0.92)';ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,h,6);ctx.fill();ctx.stroke();const bX=x+pad,bY=y+h*0.5;ctx.font=`${Math.max(8,Math.round(h*0.16))}px Inter,sans-serif`;ctx.fillStyle='#1e293b';ctx.textAlign='center';ctx.textBaseline='bottom';for(let i=0;i<=NS;i++){const d=(best/NS)*i,v=unit==='km'?d/1000:d;ctx.fillText(i===NS?`${Number.isInteger(v)?v:v.toFixed(1)} ${unit}`:`${Number.isInteger(v)?v:v.toFixed(1)}`,bX+sW*i,bY-3);}for(let i=0;i<NS;i++){ctx.fillStyle=i%2===0?'#1e293b':'#fff';ctx.fillRect(bX+sW*i,bY,sW,bH);}ctx.strokeStyle='#1e293b';ctx.lineWidth=1;ctx.strokeRect(bX,bY,bW,bH);ctx.font=`italic ${Math.max(7,Math.round(h*0.13))}px Inter,sans-serif`;ctx.fillStyle='#64748b';ctx.textAlign='center';ctx.fillText('Projeção: Web Mercator (EPSG:3857)',x+w/2,bY+bH+h*0.2);}
+function drawScale(ctx,x,y,w,h,zoom,lat){const STEPS=[1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000],NS=5;const mpp=78271.5168*Math.cos(lat*Math.PI/180)/Math.pow(2,zoom);let best=STEPS[0];for(const s of STEPS){const px=s/mpp;if(px>=200&&px<=300){best=s;break;}if(px>300){best=s;break;}best=s;}const bW=w*0.85,sW=bW/NS,bH=h*0.2,unit=best>=1000?'km':'m',pad=w*0.075;ctx.fillStyle='rgba(255,255,255,0.92)';ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,h,6);ctx.fill();ctx.stroke();const bX=x+pad,bY=y+h*0.5;ctx.font=`${Math.max(8,Math.round(h*0.16))}px Inter,sans-serif`;ctx.fillStyle='#1e293b';ctx.textAlign='center';ctx.textBaseline='bottom';for(let i=0;i<=NS;i++){const d=(best/NS)*i,v=unit==='km'?d/1000:d;ctx.fillText(i===NS?`${Number.isInteger(v)?v:v.toFixed(1)} ${unit}`:`${Number.isInteger(v)?v:v.toFixed(1)}`,bX+sW*i,bY-3);}for(let i=0;i<NS;i++){ctx.fillStyle=i%2===0?'#1e293b':'#fff';ctx.fillRect(bX+sW*i,bY,sW,bH);}ctx.strokeStyle='#1e293b';ctx.lineWidth=1;ctx.strokeRect(bX,bY,bW,bH);ctx.font=`italic ${Math.max(7,Math.round(h*0.13))}px Inter,sans-serif`;ctx.fillStyle='#64748b';ctx.textAlign='center';ctx.fillText('Projeção: Web Mercator (EPSG:3857)',x+w/2,bY+bH+h*0.2);}
 
 // Word-wrap helper: splits text into lines that fit within maxWidth pixels.
 // Returns an array of strings.
@@ -243,13 +243,13 @@ function drawTitle(ctx, x, y, cfg) {
 const OVL = { NORTH: 120, SCALE_W: 400, SCALE_H: 80, LEG_W: 280, ANN_W: 340, TITLE_W: 500 };
 
 function drawOverlays(ctx, W, H, opts) {
-  const { incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, bearing, zoom, lat, legendData, annData, vizName, scale, titleCfg } = opts;
+  const { incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, bearing, zoom, lat, legendData, annData, vizName, scale, titleCfg, legendCustomTitle, annLegendCustomTitle } = opts;
   const s = scale || 1;
   if (incTitle && titleCfg) drawTitle(ctx, overlayPos.title.x*W, overlayPos.title.y*H, { ...titleCfg, titleSize: (titleCfg.titleSize||32)*s, subtitleSize: (titleCfg.subtitleSize||18)*s });
   if (incNorth) drawNorth(ctx, overlayPos.north.x*W, overlayPos.north.y*H, OVL.NORTH*s, bearing);
   if (incScale) drawScale(ctx, overlayPos.scale.x*W, overlayPos.scale.y*H, OVL.SCALE_W*s, OVL.SCALE_H*s, zoom, lat);
-  if (incLegend && legendData?.items?.length) drawLegend(ctx, overlayPos.legend.x*W, overlayPos.legend.y*H, OVL.LEG_W*s, legendData.title, legendData.items);
-  if (incAnnLegend && annData?.length) drawAnnLegend(ctx, overlayPos.annLegend.x*W, overlayPos.annLegend.y*H, OVL.ANN_W*s, annData, vizName);
+  if (incLegend && legendData?.items?.length) drawLegend(ctx, overlayPos.legend.x*W, overlayPos.legend.y*H, OVL.LEG_W*s, legendCustomTitle || legendData.title, legendData.items);
+  if (incAnnLegend && annData?.length) drawAnnLegend(ctx, overlayPos.annLegend.x*W, overlayPos.annLegend.y*H, OVL.ANN_W*s, annData, annLegendCustomTitle || vizName);
 }
 
 // Draggable overlay (invisible drag handle)
@@ -349,6 +349,9 @@ const ImageExportStudio = () => {
   const [incLegend, setIncLegend] = useState(true);
   const [incAnnLegend, setIncAnnLegend] = useState(true);
   const [incTitle, setIncTitle] = useState(true);
+  const [incMunPoints, setIncMunPoints] = useState(true);
+  const [legendCustomTitle, setLegendCustomTitle] = useState('');
+  const [annLegendCustomTitle, setAnnLegendCustomTitle] = useState('');
 
   const [titleCfg, setTitleCfg] = useState({
     title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif',
@@ -385,6 +388,7 @@ const ImageExportStudio = () => {
   const pageLoadVersionRef = useRef(0);
   const styleLoadGenRef = useRef(0);   // increments on every loadPage — stale style.load callbacks check this
   const applyPreviewVizRef = useRef(null);
+  // colorExprRef removed — outline is now always set together with fill-color in applyPreviewVisualization
   const exportPagesRef = useRef([]);
   exportPagesRef.current = exportPages; // always up to date
 
@@ -397,7 +401,8 @@ const ImageExportStudio = () => {
     previewStyle,
     layerVis: { ...layerVis },
     prvRenderMode, prvFillOpacity, prvBorderWidth,
-    incNorth, incScale, incLegend, incAnnLegend, incTitle,
+    incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints,
+    legendCustomTitle, annLegendCustomTitle,
     titleCfg: { ...titleCfg },
     overlayPos: JSON.parse(JSON.stringify(overlayPos)),
     mapCamera: (() => {
@@ -409,7 +414,8 @@ const ImageExportStudio = () => {
     prvFilterRegion, prvFilterState, prvFilterCityType,
   }), [preset, customW, customH, useCustom, orientation, format, jpegQuality,
     previewStyle, layerVis, prvRenderMode, prvFillOpacity, prvBorderWidth,
-    incNorth, incScale, incLegend, incAnnLegend, incTitle, titleCfg, overlayPos,
+    incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints,
+    legendCustomTitle, annLegendCustomTitle, titleCfg, overlayPos,
     prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType]);
 
@@ -438,6 +444,9 @@ const ImageExportStudio = () => {
     setIncNorth(pg.incNorth ?? true); setIncScale(pg.incScale ?? true);
     setIncLegend(pg.incLegend ?? true); setIncAnnLegend(pg.incAnnLegend ?? true);
     setIncTitle(pg.incTitle ?? true);
+    setIncMunPoints(pg.incMunPoints ?? true);
+    setLegendCustomTitle(pg.legendCustomTitle ?? '');
+    setAnnLegendCustomTitle(pg.annLegendCustomTitle ?? '');
     if (pg.titleCfg) setTitleCfg({ ...pg.titleCfg });
     if (pg.overlayPos) setOverlayPos(JSON.parse(JSON.stringify(pg.overlayPos)));
 
@@ -456,6 +465,7 @@ const ImageExportStudio = () => {
 
     // Helper: apply layers + render mode + viz, then release the loading lock
     // Only runs if the generation still matches (no newer loadPage has been called)
+    const newMunPoints = pg.incMunPoints ?? true;
     const commitViz = () => {
       if (styleLoadGenRef.current !== myGen) return; // stale — a newer loadPage has taken over
       const pm = previewMapRef.current;
@@ -470,8 +480,16 @@ const ImageExportStudio = () => {
         });
       });
       try {
-        if (pm.getLayer('sectors-fill-layer')) pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', newRenderMode === 'filled' ? newFillOpacity : 0);
-        if (pm.getLayer('sectors-line-layer')) pm.setPaintProperty('sectors-line-layer', 'line-width', newRenderMode === 'border' ? newBorderWidth : 1);
+        if (pm.getLayer('sectors-fill-layer')) {
+          pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', newRenderMode === 'filled' ? newFillOpacity : 0);
+          // fill-outline-color will be set by applyPreviewVisualization (always = fill-color expression)
+        }
+        if (pm.getLayer('sectors-line-layer')) {
+          pm.setPaintProperty('sectors-line-layer', 'line-width', newRenderMode === 'border' ? newBorderWidth : 0);
+          pm.setPaintProperty('sectors-line-layer', 'line-opacity', newRenderMode === 'border' ? 1 : 0);
+        }
+        // Municipality points toggle
+        if (pm.getLayer('sectors-point-layer')) pm.setLayoutProperty('sectors-point-layer', 'visibility', newMunPoints ? 'visible' : 'none');
       } catch(e) {}
       // Apply viz directly with correct cfg (bypasses stale React state)
       applyPreviewVizRef.current?.(vizCfg);
@@ -672,12 +690,13 @@ const ImageExportStudio = () => {
     // 4. Apply to preview map
     try {
       if (colorExpr) {
-        // Apply fill-color always (used in 'filled' mode)
         if (pm.getLayer('sectors-fill-layer')) {
           pm.setPaintProperty('sectors-fill-layer', 'fill-color', colorExpr);
+          // Always match outline to fill — in border mode fill-opacity is 0 so this is invisible anyway
+          pm.setPaintProperty('sectors-fill-layer', 'fill-outline-color', colorExpr);
         }
-        // Apply line-color when in 'border' mode so colors are visible
-        if (renderMode === 'border' && pm.getLayer('sectors-line-layer')) {
+        // Always sync line-color so switching modes shows correct colors immediately
+        if (pm.getLayer('sectors-line-layer')) {
           pm.setPaintProperty('sectors-line-layer', 'line-color', colorExpr);
         }
       }
@@ -876,13 +895,19 @@ const ImageExportStudio = () => {
     try {
       if (pm.getLayer('sectors-fill-layer')) {
         pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', prvRenderMode === 'filled' ? prvFillOpacity : 0);
+        // fill-outline-color is managed by applyPreviewVisualization (always = fill-color)
       }
       if (pm.getLayer('sectors-line-layer')) {
-        pm.setPaintProperty('sectors-line-layer', 'line-width', prvRenderMode === 'border' ? prvBorderWidth : 1);
-        pm.setPaintProperty('sectors-line-layer', 'line-opacity', 1);
+        // line-color is managed by applyPreviewVisualization; only width/opacity change here
+        pm.setPaintProperty('sectors-line-layer', 'line-width', prvRenderMode === 'border' ? prvBorderWidth : 0);
+        pm.setPaintProperty('sectors-line-layer', 'line-opacity', prvRenderMode === 'border' ? 1 : 0);
+      }
+      // Municipality points toggle
+      if (pm.getLayer('sectors-point-layer')) {
+        pm.setLayoutProperty('sectors-point-layer', 'visibility', incMunPoints ? 'visible' : 'none');
       }
     } catch(e) {}
-  }, [prvRenderMode, prvFillOpacity, prvBorderWidth]);
+  }, [prvRenderMode, prvFillOpacity, prvBorderWidth, incMunPoints]);
 
   useEffect(() => { applyPreviewRender(); }, [applyPreviewRender]);
 
@@ -1006,8 +1031,9 @@ const ImageExportStudio = () => {
       incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos,
       bearing: pm.getBearing(), zoom: pm.getZoom(), lat: center.lat,
       legendData, annData, vizName, scale: 1, titleCfg,
+      legendCustomTitle, annLegendCustomTitle,
     });
-  }, [incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg]);
+  }, [incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle]);
 
   // Redraw on any overlay change
   useEffect(() => { redrawOverlayCanvas(); }, [redrawOverlayCanvas, frameSize]);
@@ -1043,6 +1069,7 @@ const ImageExportStudio = () => {
         incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos,
         bearing, zoom: exportZoom, lat: center.lat,
         legendData, annData, vizName, scale: 1, titleCfg,
+        legendCustomTitle, annLegendCustomTitle,
       });
 
       setProgress('Gerando arquivo...');
@@ -1155,8 +1182,33 @@ const ImageExportStudio = () => {
               <label className="studio-check-row"><input type="checkbox" checked={incNorth} onChange={e => setIncNorth(e.target.checked)} /><span className="studio-check-label">🧭 Indicador de Norte</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incScale} onChange={e => setIncScale(e.target.checked)} /><span className="studio-check-label">📏 Barra de Escala</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incLegend} onChange={e => setIncLegend(e.target.checked)} /><span className="studio-check-label">🎨 Legenda de Cores</span></label>
+              {incLegend && (
+                <div className="studio-input-row" style={{ marginTop: 2, marginBottom: 4, paddingLeft: 18 }}>
+                  <label style={{ fontSize: '0.65rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>Título</label>
+                  <input
+                    className="studio-text-input"
+                    type="text"
+                    value={legendCustomTitle}
+                    onChange={e => setLegendCustomTitle(e.target.value)}
+                    placeholder={legendData?.title || 'Título automático'}
+                  />
+                </div>
+              )}
               <label className="studio-check-row"><input type="checkbox" checked={incAnnLegend} onChange={e => setIncAnnLegend(e.target.checked)} /><span className="studio-check-label">ℹ️ Informações do Mapa</span></label>
+              {incAnnLegend && (
+                <div className="studio-input-row" style={{ marginTop: 2, marginBottom: 4, paddingLeft: 18 }}>
+                  <label style={{ fontSize: '0.65rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>Título</label>
+                  <input
+                    className="studio-text-input"
+                    type="text"
+                    value={annLegendCustomTitle}
+                    onChange={e => setAnnLegendCustomTitle(e.target.value)}
+                    placeholder={vizName || 'Informações do Mapa'}
+                  />
+                </div>
+              )}
               <label className="studio-check-row"><input type="checkbox" checked={incTitle} onChange={e => setIncTitle(e.target.checked)} /><span className="studio-check-label">🏷️ Título</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incMunPoints} onChange={e => setIncMunPoints(e.target.checked)} /><span className="studio-check-label">📍 Pontos dos Municípios</span></label>
               <p style={{ fontSize: '0.65rem', color: '#64748b', marginTop: 4, fontStyle: 'italic' }}>
                 Arraste as bordas azuis no preview para reposicionar.
               </p>
