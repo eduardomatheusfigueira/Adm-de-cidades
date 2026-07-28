@@ -116,7 +116,7 @@ const AnnotationLegend = () => {
                     fillOpacity={ann.type === 'polygon' ? (ann.fillOpacity ?? 0.15) : undefined}
                   />
                 )}
-                <span className="annotation-view-description">{ann.description || `${TYPE_LABELS[ann.type]} ${ann.number}`}</span>
+                <span className="annotation-view-description">{ann.description || `${TYPE_LABELS[ann?.type] || 'Elemento'} ${ann.number}`}</span>
               </div>
             ))}
           </div>

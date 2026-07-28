@@ -1492,7 +1492,7 @@ const ImageExportStudio = () => {
                 <div style={{ paddingLeft: 18, marginTop: 2, marginBottom: 6 }}>
                   <div className="studio-input-row" style={{ marginBottom: 4 }}>
                     <label style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Estilo</label>
-                    <select className="studio-select" value={northArrowStyle.type} onChange={e => setNorthArrowStyle(s => ({ ...s, type: e.target.value }))}>
+                    <select className="studio-select" value={northArrowStyle?.type || 'noun'} onChange={e => setNorthArrowStyle(s => ({ ...(s || {}), type: e.target.value }))}>
                       <option value="noun">Estilizada (Noun)</option>
                       <option value="classic">Clássica</option>
                       <option value="minimal">Minimalista</option>
@@ -1500,12 +1500,12 @@ const ImageExportStudio = () => {
                     </select>
                   </div>
                   <label className="studio-check-row" style={{ marginBottom: 4 }}>
-                    <input type="checkbox" checked={northArrowStyle.showBg} onChange={e => setNorthArrowStyle(s => ({ ...s, showBg: e.target.checked }))} />
+                    <input type="checkbox" checked={northArrowStyle?.showBg ?? true} onChange={e => setNorthArrowStyle(s => ({ ...(s || {}), showBg: e.target.checked }))} />
                     <span className="studio-check-label" style={{ fontSize: '0.7rem' }}>Fundo branco</span>
                   </label>
                   <div className="studio-input-row">
                     <label style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Cor</label>
-                    <input type="color" value={northArrowStyle.color} onChange={e => setNorthArrowStyle(s => ({ ...s, color: e.target.value }))} />
+                    <input type="color" value={northArrowStyle?.color || '#1e293b'} onChange={e => setNorthArrowStyle(s => ({ ...(s || {}), color: e.target.value }))} />
                   </div>
                 </div>
               )}

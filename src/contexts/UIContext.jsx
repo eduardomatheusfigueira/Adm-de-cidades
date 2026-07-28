@@ -30,6 +30,11 @@ export const UIProvider = ({ children }) => {
     lineWidth: 0.8,
     lineOpacity: 0.45,
   });
+  const [northArrowStyle, setNorthArrowStyle] = useState({
+    type: 'noun', // 'noun', 'classic', 'minimal', 'compass'
+    showBg: true,
+    color: '#1e293b',
+  });
   const [showImageStudio, setShowImageStudio] = useState(false);
   const [exportPages, setExportPages] = useState([]);
 
@@ -129,6 +134,8 @@ export const UIProvider = ({ children }) => {
     setShowGraticule,
     graticuleStyle,
     setGraticuleStyle,
+    northArrowStyle,
+    setNorthArrowStyle,
     showImageStudio,
     setShowImageStudio,
     exportPages,
