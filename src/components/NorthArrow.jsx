@@ -21,29 +21,6 @@ const NorthArrow = () => {
   }, [map, mapLoaded]);
 
   if (!mapLoaded || !showNorthArrow) return null;
-import React, { useContext, useState, useEffect } from 'react';
-import { Rnd } from 'react-rnd';
-import '../styles/NorthArrow.css';
-import { MapContext } from '../contexts/MapContext';
-import { UIContext } from '../contexts/UIContext';
-
-const NorthArrow = () => {
-  const { map, mapLoaded } = useContext(MapContext);
-  const { showNorthArrow, setShowNorthArrow, northArrowStyle } = useContext(UIContext);
-  const [bearing, setBearing] = useState(0);
-  const [arrowSize, setArrowSize] = useState(90);
-
-  useEffect(() => {
-    if (!map?.current || !mapLoaded) return;
-    const updateBearing = () => setBearing(map.current.getBearing());
-    updateBearing();
-    map.current.on('rotate', updateBearing);
-    return () => {
-      if (map.current) map.current.off('rotate', updateBearing);
-    };
-  }, [map, mapLoaded]);
-
-  if (!mapLoaded || !showNorthArrow) return null;
 
   const rotation = -bearing;
   const styleType = northArrowStyle?.type || 'noun';

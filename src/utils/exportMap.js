@@ -364,7 +364,6 @@ ${hasAnnotations ? `<div class="widget legend-panel" id="annotLegend" style="bot
   <svg id="northSvg" viewBox="0 0 200 200" style="width:90%;height:90%;transition:transform 0.15s ease-out">
     ${northSvgInner}
   </svg>
-</div>`
 </div>
 
 <!-- Scale Bar -->
