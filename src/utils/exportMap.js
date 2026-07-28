@@ -106,37 +106,52 @@ export function generateExportHtml({
   const nColor = northArrowStyle?.color || '#1e293b';
 
   const northSvgInner = nType === 'noun' ? `
-    <circle cx="100" cy="100" r="44" fill="none" stroke="${nColor}" stroke-width="3"/>
-    <circle cx="100" cy="100" r="36" fill="none" stroke="${nColor}" stroke-width="3"/>
-    <line x1="45" y1="100" x2="155" y2="100" stroke="${nColor}" stroke-width="2.5"/>
-    <line x1="100" y1="100" x2="100" y2="165" stroke="${nColor}" stroke-width="2.5"/>
-    <line x1="125" y1="75" x2="145" y2="55" stroke="${nColor}" stroke-width="2"/>
-    <line x1="75" y1="75" x2="55" y2="55" stroke="${nColor}" stroke-width="2"/>
-    <line x1="125" y1="125" x2="145" y2="145" stroke="${nColor}" stroke-width="2"/>
-    <line x1="75" y1="125" x2="55" y2="145" stroke="${nColor}" stroke-width="2"/>
-    <polygon points="100,15 70,95 100,78" fill="${nColor}" stroke="${nColor}" stroke-width="1"/>
-    <polygon points="100,15 130,95 100,78" fill="#666666" stroke="${nColor}" stroke-width="1"/>
-    <text x="100" y="52" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" stroke="#000000" stroke-width="3" paint-order="stroke fill" font-size="24" font-weight="900" font-family="Inter,Arial,sans-serif">N</text>
+    <g color="${nColor}">
+      <text x="100" y="18" text-anchor="middle" dominant-baseline="middle" fill="currentColor" font-size="22" font-weight="800" font-family="Inter,system-ui,sans-serif" letter-spacing="1">N</text>
+      <circle cx="100" cy="115" r="38" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <circle cx="100" cy="115" r="30" fill="none" stroke="currentColor" stroke-width="1.4"/>
+      <line x1="45" y1="115" x2="155" y2="115" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="100" y1="102" x2="100" y2="175" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <line x1="77" y1="92" x2="62" y2="77" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="123" y1="92" x2="138" y2="77" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="77" y1="138" x2="62" y2="153" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="123" y1="138" x2="138" y2="153" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <polygon points="100,46 76,115 100,102" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="miter"/>
+      <polygon points="100,46 124,115 100,102" fill="${nShowBg ? '#ffffff' : 'rgba(255,255,255,0.75)'}" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/>
+    </g>
   ` : nType === 'classic' ? `
-    <circle cx="100" cy="100" r="92" fill="none" stroke="${nColor}" stroke-width="4"/>
-    <line x1="100" y1="12" x2="100" y2="24" stroke="${nColor}" stroke-width="3"/>
-    <line x1="176" y1="100" x2="188" y2="100" stroke="${nColor}" stroke-width="2"/>
-    <line x1="100" y1="176" x2="100" y2="188" stroke="${nColor}" stroke-width="2"/>
-    <line x1="12" y1="100" x2="24" y2="100" stroke="${nColor}" stroke-width="2"/>
-    <circle cx="100" cy="100" r="6" fill="${nColor}"/>
-    <polygon points="100,22 88,100 100,90" fill="${nColor}" stroke="${nColor}" stroke-width="1"/>
-    <polygon points="100,22 112,100 100,90" fill="none" stroke="${nColor}" stroke-width="2"/>
-    <polygon points="100,178 88,100 100,110" fill="none" stroke="${nColor}" stroke-width="1.5" opacity="0.4"/>
-    <polygon points="100,178 112,100 100,110" fill="none" stroke="${nColor}" stroke-width="1.5" opacity="0.4"/>
-    <text x="100" y="48" text-anchor="middle" dominant-baseline="middle" fill="${nColor}" font-size="20" font-weight="900">N</text>
+    <g color="${nColor}">
+      <circle cx="100" cy="114" r="70" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <circle cx="100" cy="114" r="63" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      <polygon points="100,46 91,114 100,106" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      <polygon points="100,46 109,114 100,106" fill="${nShowBg ? '#cbd5e1' : 'rgba(255,255,255,0.75)'}" stroke="currentColor" stroke-width="1"/>
+      <polygon points="100,182 91,114 100,122" fill="${nShowBg ? '#94a3b8' : 'rgba(255,255,255,0.4)'}" stroke="currentColor" stroke-width="1"/>
+      <polygon points="100,182 109,114 100,122" fill="currentColor" opacity="0.4" stroke="currentColor" stroke-width="1"/>
+      <circle cx="100" cy="114" r="4.5" fill="currentColor" stroke="#ffffff" stroke-width="1.2"/>
+      <circle cx="100" cy="16" r="13" fill="currentColor"/>
+      <text x="100" y="17" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" font-size="12" font-weight="900" font-family="Inter,sans-serif">N</text>
+    </g>
   ` : nType === 'minimal' ? `
-    <polygon points="100,20 70,160 100,130 130,160" fill="${nColor}"/>
-    <text x="100" y="70" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" font-size="28" font-weight="900">N</text>
+    <g color="${nColor}">
+      <text x="100" y="18" text-anchor="middle" dominant-baseline="middle" fill="currentColor" font-size="18" font-weight="800" font-family="Inter,sans-serif" letter-spacing="1">N</text>
+      <line x1="100" y1="46" x2="100" y2="175" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="76" y1="110" x2="124" y2="110" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <polygon points="100,46 74,115 100,100" fill="currentColor"/>
+      <polygon points="100,46 126,115 100,100" fill="${nShowBg ? '#ffffff' : 'rgba(255,255,255,0.85)'}" stroke="currentColor" stroke-width="2"/>
+    </g>
   ` : `
-    <polygon points="100,15 115,85 185,100 115,115 100,185 85,115 15,100 85,85" fill="${nColor}" stroke="${nColor}" stroke-width="2"/>
-    <polygon points="100,15 100,100 185,100 100,100 100,185 100,100 15,100 100,100" fill="#666666" opacity="0.5"/>
-    <circle cx="100" cy="100" r="12" fill="${nColor}" stroke="#ffffff" stroke-width="2"/>
-    <text x="100" y="50" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" stroke="#000000" stroke-width="3" paint-order="stroke fill" font-size="22" font-weight="900">N</text>
+    <g color="${nColor}">
+      <text x="100" y="16" text-anchor="middle" dominant-baseline="middle" fill="currentColor" font-size="18" font-weight="900" font-family="Inter,sans-serif">N</text>
+      <polygon points="100,42 100,112 84,112" fill="currentColor"/>
+      <polygon points="100,42 100,112 116,112" fill="${nShowBg ? '#ffffff' : 'rgba(255,255,255,0.85)'}" stroke="currentColor" stroke-width="1"/>
+      <polygon points="100,182 100,112 84,112" fill="${nShowBg ? '#94a3b8' : 'rgba(255,255,255,0.5)'}" stroke="currentColor" stroke-width="1"/>
+      <polygon points="100,182 100,112 116,112" fill="currentColor"/>
+      <polygon points="170,112 100,112 100,96" fill="currentColor"/>
+      <polygon points="170,112 100,112 100,128" fill="${nShowBg ? '#ffffff' : 'rgba(255,255,255,0.85)'}" stroke="currentColor" stroke-width="1"/>
+      <polygon points="30,112 100,112 100,96" fill="${nShowBg ? '#ffffff' : 'rgba(255,255,255,0.85)'}" stroke="currentColor" stroke-width="1"/>
+      <polygon points="30,112 100,112 100,128" fill="currentColor"/>
+      <circle cx="100" cy="112" r="7" fill="currentColor" stroke="#ffffff" stroke-width="1.8"/>
+    </g>
   `;
 
   return `<!DOCTYPE html>

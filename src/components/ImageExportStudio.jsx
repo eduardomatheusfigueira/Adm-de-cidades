@@ -21,15 +21,15 @@ function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
   const rot = (-bearing * Math.PI) / 180;
   const cx = x + size / 2;
   const cy = y + size / 2;
-  const r = size * 0.44;
+  const r = size * 0.45;
 
   ctx.save();
   ctx.translate(cx, cy);
 
-  // Optional background card
+  // Optional background card with comfortable breathing room
   if (showBg) {
     ctx.beginPath();
-    ctx.arc(0, 0, r * 1.05, 0, Math.PI * 2);
+    ctx.arc(0, 0, r * 1.1, 0, Math.PI * 2);
     ctx.fillStyle = '#ffffff';
     ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,0.12)';
@@ -49,40 +49,40 @@ function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
 
-    // Top 'N' label
+    // Top 'N' label with comfortable clearance
     const fs = Math.round(size * 0.22);
     ctx.font = `800 ${fs}px Inter, system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('N', 0, -66 * scale);
+    ctx.fillText('N', 0, -74 * scale);
 
     // Outer & Inner Concentric Rings
-    ctx.lineWidth = Math.max(1.2, 2.5 * scale);
-    ctx.beginPath(); ctx.arc(0, 15 * scale, 42 * scale, 0, Math.PI * 2); ctx.stroke();
-    ctx.lineWidth = Math.max(1, 1.5 * scale);
-    ctx.beginPath(); ctx.arc(0, 15 * scale, 35 * scale, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = Math.max(1.2, 2.2 * scale);
+    ctx.beginPath(); ctx.arc(0, 15 * scale, 38 * scale, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = Math.max(1, 1.4 * scale);
+    ctx.beginPath(); ctx.arc(0, 15 * scale, 30 * scale, 0, Math.PI * 2); ctx.stroke();
 
     // Horizontal & Vertical axes
     ctx.lineWidth = Math.max(1, 2 * scale);
     ctx.beginPath();
-    ctx.moveTo(-58 * scale, 15 * scale); ctx.lineTo(58 * scale, 15 * scale);
-    ctx.moveTo(0, 2 * scale); ctx.lineTo(0, 78 * scale);
+    ctx.moveTo(-55 * scale, 15 * scale); ctx.lineTo(55 * scale, 15 * scale);
+    ctx.moveTo(0, 2 * scale); ctx.lineTo(0, 75 * scale);
     ctx.stroke();
 
     // 45° Intercardinal spokes
-    ctx.lineWidth = Math.max(1, 1.8 * scale);
+    ctx.lineWidth = Math.max(1, 1.6 * scale);
     ctx.beginPath();
-    ctx.moveTo(-26 * scale, -11 * scale); ctx.lineTo(-40 * scale, -25 * scale);
-    ctx.moveTo(26 * scale, -11 * scale); ctx.lineTo(40 * scale, -25 * scale);
-    ctx.moveTo(-26 * scale, 41 * scale); ctx.lineTo(-40 * scale, 55 * scale);
-    ctx.moveTo(26 * scale, 41 * scale); ctx.lineTo(40 * scale, 55 * scale);
+    ctx.moveTo(-23 * scale, -8 * scale); ctx.lineTo(-38 * scale, -23 * scale);
+    ctx.moveTo(23 * scale, -8 * scale); ctx.lineTo(38 * scale, -23 * scale);
+    ctx.moveTo(-23 * scale, 38 * scale); ctx.lineTo(-38 * scale, 53 * scale);
+    ctx.moveTo(23 * scale, 38 * scale); ctx.lineTo(38 * scale, 53 * scale);
     ctx.stroke();
 
-    // Slender Sharp Top Needle
+    // Slender Sharp Top Needle (starts at y=-54 for 28px clearance under N)
     // Left facet (solid fill)
     ctx.beginPath();
-    ctx.moveTo(0, -62 * scale);
-    ctx.lineTo(-26 * scale, 15 * scale);
+    ctx.moveTo(0, -54 * scale);
+    ctx.lineTo(-24 * scale, 15 * scale);
     ctx.lineTo(0, 2 * scale);
     ctx.closePath();
     ctx.fillStyle = color;
@@ -90,11 +90,11 @@ function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
 
     // Right facet (light contrasting fill)
     ctx.beginPath();
-    ctx.moveTo(0, -62 * scale);
-    ctx.lineTo(26 * scale, 15 * scale);
+    ctx.moveTo(0, -54 * scale);
+    ctx.lineTo(24 * scale, 15 * scale);
     ctx.lineTo(0, 2 * scale);
     ctx.closePath();
-    ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.7)';
+    ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.75)';
     ctx.fill();
     ctx.stroke();
 
@@ -103,90 +103,90 @@ function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
     ctx.strokeStyle = color;
 
     // Outer & Inner Rings
-    ctx.lineWidth = Math.max(1.2, 2.5 * scale);
-    ctx.beginPath(); ctx.arc(0, 8 * scale, 80 * scale, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = Math.max(1.2, 2.2 * scale);
+    ctx.beginPath(); ctx.arc(0, 14 * scale, 70 * scale, 0, Math.PI * 2); ctx.stroke();
     ctx.lineWidth = Math.max(1, 1.2 * scale);
-    ctx.beginPath(); ctx.arc(0, 8 * scale, 72 * scale, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 14 * scale, 63 * scale, 0, Math.PI * 2); ctx.stroke();
 
     // Ticks
     [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].forEach(angle => {
       const rad = (angle * Math.PI) / 180;
       const isMain = angle % 90 === 0;
-      const r1 = (isMain ? 68 : 72) * scale;
-      const r2 = 80 * scale;
+      const r1 = (isMain ? 58 : 63) * scale;
+      const r2 = 70 * scale;
       const x1 = Math.sin(rad) * r1;
-      const y1 = 8 * scale - Math.cos(rad) * r1;
+      const y1 = 14 * scale - Math.cos(rad) * r1;
       const x2 = Math.sin(rad) * r2;
-      const y2 = 8 * scale - Math.cos(rad) * r2;
-      ctx.lineWidth = isMain ? Math.max(1.5, 2.5 * scale) : Math.max(1, 1 * scale);
+      const y2 = 14 * scale - Math.cos(rad) * r2;
+      ctx.lineWidth = isMain ? Math.max(1.5, 2.2 * scale) : Math.max(1, 1 * scale);
       ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
     });
 
-    // Faceted Needle
+    // Faceted Needle (starts at y=-54)
     // North Left (dark)
-    ctx.beginPath(); ctx.moveTo(0, -66 * scale); ctx.lineTo(-10 * scale, 8 * scale); ctx.lineTo(0, 0); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(0, -54 * scale); ctx.lineTo(-9 * scale, 14 * scale); ctx.lineTo(0, 6 * scale); ctx.closePath();
     ctx.fillStyle = color; ctx.fill();
     // North Right (light)
-    ctx.beginPath(); ctx.moveTo(0, -66 * scale); ctx.lineTo(10 * scale, 8 * scale); ctx.lineTo(0, 0); ctx.closePath();
-    ctx.fillStyle = showBg ? '#cbd5e1' : 'rgba(255,255,255,0.7)'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -54 * scale); ctx.lineTo(9 * scale, 14 * scale); ctx.lineTo(0, 6 * scale); ctx.closePath();
+    ctx.fillStyle = showBg ? '#cbd5e1' : 'rgba(255,255,255,0.75)'; ctx.fill(); ctx.stroke();
     // South Left (light)
-    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(-10 * scale, 8 * scale); ctx.lineTo(0, 16 * scale); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(-9 * scale, 14 * scale); ctx.lineTo(0, 22 * scale); ctx.closePath();
     ctx.fillStyle = showBg ? '#94a3b8' : 'rgba(255,255,255,0.4)'; ctx.fill(); ctx.stroke();
     // South Right (dark)
-    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(10 * scale, 8 * scale); ctx.lineTo(0, 16 * scale); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(9 * scale, 14 * scale); ctx.lineTo(0, 22 * scale); ctx.closePath();
     ctx.fillStyle = color; ctx.globalAlpha = 0.4; ctx.fill(); ctx.globalAlpha = 1.0;
 
     // Center Pivot
-    ctx.beginPath(); ctx.arc(0, 8 * scale, 5 * scale, 0, Math.PI * 2);
-    ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5 * scale; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 14 * scale, 4.5 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.2 * scale; ctx.stroke();
 
     // Top 'N' Badge
-    ctx.beginPath(); ctx.arc(0, -82 * scale, 14 * scale, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
-    ctx.font = `900 ${Math.round(13 * scale * 1.5)}px Inter, sans-serif`;
+    ctx.beginPath(); ctx.arc(0, -84 * scale, 13 * scale, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+    ctx.font = `900 ${Math.round(12 * scale * 1.5)}px Inter, sans-serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff';
-    ctx.fillText('N', 0, -81 * scale);
+    ctx.fillText('N', 0, -83 * scale);
 
   } else if (style === 'minimal') {
     ctx.fillStyle = color; ctx.strokeStyle = color;
     const fs = Math.round(size * 0.18);
     ctx.font = `800 ${fs}px Inter, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('N', 0, -80 * scale);
+    ctx.fillText('N', 0, -74 * scale);
 
-    ctx.lineWidth = Math.max(1.5, 2.5 * scale);
-    ctx.beginPath(); ctx.moveTo(0, -68 * scale); ctx.lineTo(0, 75 * scale); ctx.stroke();
-    ctx.lineWidth = Math.max(1, 1.8 * scale);
-    ctx.beginPath(); ctx.moveTo(-25 * scale, 0); ctx.lineTo(25 * scale, 0); ctx.stroke();
+    ctx.lineWidth = Math.max(1.5, 2.2 * scale);
+    ctx.beginPath(); ctx.moveTo(0, -54 * scale); ctx.lineTo(0, 75 * scale); ctx.stroke();
+    ctx.lineWidth = Math.max(1, 1.6 * scale);
+    ctx.beginPath(); ctx.moveTo(-24 * scale, 10 * scale); ctx.lineTo(24 * scale, 10 * scale); ctx.stroke();
 
-    ctx.beginPath(); ctx.moveTo(0, -68 * scale); ctx.lineTo(-28 * scale, 10 * scale); ctx.lineTo(0, -6 * scale); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(0, -54 * scale); ctx.lineTo(-26 * scale, 15 * scale); ctx.lineTo(0, 0); ctx.closePath();
     ctx.fillStyle = color; ctx.fill();
-    ctx.beginPath(); ctx.moveTo(0, -68 * scale); ctx.lineTo(28 * scale, 10 * scale); ctx.lineTo(0, -6 * scale); ctx.closePath();
-    ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.8)'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -54 * scale); ctx.lineTo(26 * scale, 15 * scale); ctx.lineTo(0, 0); ctx.closePath();
+    ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.stroke();
 
   } else if (style === 'compass') {
     ctx.fillStyle = color; ctx.strokeStyle = color;
     const fs = Math.round(size * 0.18);
     ctx.font = `900 ${fs}px Inter, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('N', 0, -84 * scale);
+    ctx.fillText('N', 0, -76 * scale);
 
     // North
-    ctx.beginPath(); ctx.moveTo(0, -72 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(-18 * scale, 5 * scale); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(0, -72 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(18 * scale, 5 * scale); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(0, -58 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(-16 * scale, 12 * scale); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, -58 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(16 * scale, 12 * scale); ctx.closePath();
     ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.stroke();
     // South
-    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(-18 * scale, 5 * scale); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(-16 * scale, 12 * scale); ctx.closePath();
     ctx.fillStyle = showBg ? '#94a3b8' : 'rgba(255,255,255,0.5)'; ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(18 * scale, 5 * scale); ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(16 * scale, 12 * scale); ctx.closePath(); ctx.fillStyle = color; ctx.fill();
     // East
-    ctx.beginPath(); ctx.moveTo(77 * scale, 5 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(0, -13 * scale); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(77 * scale, 5 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(0, 23 * scale); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(70 * scale, 12 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(0, -4 * scale); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(70 * scale, 12 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(0, 28 * scale); ctx.closePath();
     ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.stroke();
     // West
-    ctx.beginPath(); ctx.moveTo(-77 * scale, 5 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(0, -13 * scale); ctx.closePath();
+    ctx.beginPath(); ctx.moveTo(-70 * scale, 12 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(0, -4 * scale); ctx.closePath();
     ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-77 * scale, 5 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(0, 23 * scale); ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-70 * scale, 12 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(0, 28 * scale); ctx.closePath(); ctx.fillStyle = color; ctx.fill();
 
-    ctx.beginPath(); ctx.arc(0, 5 * scale, 8 * scale, 0, Math.PI * 2);
-    ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2 * scale; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 12 * scale, 7 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.8 * scale; ctx.stroke();
   }
 
   ctx.restore();
