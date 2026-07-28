@@ -14,7 +14,183 @@ const PRESETS = [
 ];
 
 // ── Canvas drawing helpers ──
-function drawNorth(ctx,x,y,size,bearing){const rot=(-bearing*Math.PI)/180,cx=x+size/2,cy=y+size/2,r=size*0.42;ctx.save();ctx.translate(cx,cy);ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle='#cccccc';ctx.lineWidth=Math.max(1,size*0.018);ctx.stroke();[0,Math.PI/2,Math.PI,Math.PI*1.5].forEach((a,i)=>{ctx.beginPath();ctx.moveTo(Math.sin(a)*r*0.82,-Math.cos(a)*r*0.82);ctx.lineTo(Math.sin(a)*r*0.94,-Math.cos(a)*r*0.94);ctx.strokeStyle='#555';ctx.lineWidth=i===0?size*0.022:size*0.012;ctx.stroke();});ctx.rotate(rot);ctx.beginPath();ctx.moveTo(0,-r*0.78);ctx.lineTo(-r*0.16,0);ctx.lineTo(0,r*0.08);ctx.closePath();ctx.fillStyle='#222';ctx.fill();ctx.beginPath();ctx.moveTo(0,-r*0.78);ctx.lineTo(r*0.16,0);ctx.lineTo(0,r*0.08);ctx.closePath();ctx.fillStyle='#bbb';ctx.fill();ctx.strokeStyle='#333';ctx.lineWidth=Math.max(1,size*0.015);ctx.stroke();ctx.beginPath();ctx.arc(0,0,r*0.07,0,Math.PI*2);ctx.fillStyle='#222';ctx.fill();ctx.rotate(-rot);const nX=Math.sin(rot)*r*1.32,nY=-Math.cos(rot)*r*1.32,fs=Math.round(size*0.2);ctx.beginPath();ctx.arc(nX,nY,fs*0.72,0,Math.PI*2);ctx.fillStyle='#ffffff';ctx.fill();ctx.strokeStyle='#cccccc';ctx.lineWidth=Math.max(1,size*0.012);ctx.stroke();ctx.font=`bold ${fs}px Inter,sans-serif`;ctx.fillStyle='#111';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('N',nX,nY);ctx.restore();}
+function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
+  const style = cfg.type || 'noun';
+  const showBg = cfg.showBg ?? true;
+  const color = cfg.color || '#1e293b';
+  const rot = (-bearing * Math.PI) / 180;
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+  const r = size * 0.44;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Optional background card
+  if (showBg) {
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 1.05, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = Math.max(1, size * 0.015);
+    ctx.stroke();
+  } else {
+    // Add subtle shadow when transparent
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = Math.max(2, size * 0.04);
+    ctx.shadowOffsetY = Math.max(1, size * 0.02);
+  }
+
+  ctx.rotate(rot);
+  const scale = size / 200;
+
+  if (style === 'noun') {
+    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+
+    // Top 'N' label
+    const fs = Math.round(size * 0.22);
+    ctx.font = `800 ${fs}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('N', 0, -66 * scale);
+
+    // Outer & Inner Concentric Rings
+    ctx.lineWidth = Math.max(1.2, 2.5 * scale);
+    ctx.beginPath(); ctx.arc(0, 15 * scale, 42 * scale, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = Math.max(1, 1.5 * scale);
+    ctx.beginPath(); ctx.arc(0, 15 * scale, 35 * scale, 0, Math.PI * 2); ctx.stroke();
+
+    // Horizontal & Vertical axes
+    ctx.lineWidth = Math.max(1, 2 * scale);
+    ctx.beginPath();
+    ctx.moveTo(-58 * scale, 15 * scale); ctx.lineTo(58 * scale, 15 * scale);
+    ctx.moveTo(0, 2 * scale); ctx.lineTo(0, 78 * scale);
+    ctx.stroke();
+
+    // 45° Intercardinal spokes
+    ctx.lineWidth = Math.max(1, 1.8 * scale);
+    ctx.beginPath();
+    ctx.moveTo(-26 * scale, -11 * scale); ctx.lineTo(-40 * scale, -25 * scale);
+    ctx.moveTo(26 * scale, -11 * scale); ctx.lineTo(40 * scale, -25 * scale);
+    ctx.moveTo(-26 * scale, 41 * scale); ctx.lineTo(-40 * scale, 55 * scale);
+    ctx.moveTo(26 * scale, 41 * scale); ctx.lineTo(40 * scale, 55 * scale);
+    ctx.stroke();
+
+    // Slender Sharp Top Needle
+    // Left facet (solid fill)
+    ctx.beginPath();
+    ctx.moveTo(0, -62 * scale);
+    ctx.lineTo(-26 * scale, 15 * scale);
+    ctx.lineTo(0, 2 * scale);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // Right facet (light contrasting fill)
+    ctx.beginPath();
+    ctx.moveTo(0, -62 * scale);
+    ctx.lineTo(26 * scale, 15 * scale);
+    ctx.lineTo(0, 2 * scale);
+    ctx.closePath();
+    ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.7)';
+    ctx.fill();
+    ctx.stroke();
+
+  } else if (style === 'classic') {
+    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+
+    // Outer & Inner Rings
+    ctx.lineWidth = Math.max(1.2, 2.5 * scale);
+    ctx.beginPath(); ctx.arc(0, 8 * scale, 80 * scale, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = Math.max(1, 1.2 * scale);
+    ctx.beginPath(); ctx.arc(0, 8 * scale, 72 * scale, 0, Math.PI * 2); ctx.stroke();
+
+    // Ticks
+    [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].forEach(angle => {
+      const rad = (angle * Math.PI) / 180;
+      const isMain = angle % 90 === 0;
+      const r1 = (isMain ? 68 : 72) * scale;
+      const r2 = 80 * scale;
+      const x1 = Math.sin(rad) * r1;
+      const y1 = 8 * scale - Math.cos(rad) * r1;
+      const x2 = Math.sin(rad) * r2;
+      const y2 = 8 * scale - Math.cos(rad) * r2;
+      ctx.lineWidth = isMain ? Math.max(1.5, 2.5 * scale) : Math.max(1, 1 * scale);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    });
+
+    // Faceted Needle
+    // North Left (dark)
+    ctx.beginPath(); ctx.moveTo(0, -66 * scale); ctx.lineTo(-10 * scale, 8 * scale); ctx.lineTo(0, 0); ctx.closePath();
+    ctx.fillStyle = color; ctx.fill();
+    // North Right (light)
+    ctx.beginPath(); ctx.moveTo(0, -66 * scale); ctx.lineTo(10 * scale, 8 * scale); ctx.lineTo(0, 0); ctx.closePath();
+    ctx.fillStyle = showBg ? '#cbd5e1' : 'rgba(255,255,255,0.7)'; ctx.fill(); ctx.stroke();
+    // South Left (light)
+    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(-10 * scale, 8 * scale); ctx.lineTo(0, 16 * scale); ctx.closePath();
+    ctx.fillStyle = showBg ? '#94a3b8' : 'rgba(255,255,255,0.4)'; ctx.fill(); ctx.stroke();
+    // South Right (dark)
+    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(10 * scale, 8 * scale); ctx.lineTo(0, 16 * scale); ctx.closePath();
+    ctx.fillStyle = color; ctx.globalAlpha = 0.4; ctx.fill(); ctx.globalAlpha = 1.0;
+
+    // Center Pivot
+    ctx.beginPath(); ctx.arc(0, 8 * scale, 5 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5 * scale; ctx.stroke();
+
+    // Top 'N' Badge
+    ctx.beginPath(); ctx.arc(0, -82 * scale, 14 * scale, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+    ctx.font = `900 ${Math.round(13 * scale * 1.5)}px Inter, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#ffffff';
+    ctx.fillText('N', 0, -81 * scale);
+
+  } else if (style === 'minimal') {
+    ctx.fillStyle = color; ctx.strokeStyle = color;
+    const fs = Math.round(size * 0.18);
+    ctx.font = `800 ${fs}px Inter, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('N', 0, -80 * scale);
+
+    ctx.lineWidth = Math.max(1.5, 2.5 * scale);
+    ctx.beginPath(); ctx.moveTo(0, -68 * scale); ctx.lineTo(0, 75 * scale); ctx.stroke();
+    ctx.lineWidth = Math.max(1, 1.8 * scale);
+    ctx.beginPath(); ctx.moveTo(-25 * scale, 0); ctx.lineTo(25 * scale, 0); ctx.stroke();
+
+    ctx.beginPath(); ctx.moveTo(0, -68 * scale); ctx.lineTo(-28 * scale, 10 * scale); ctx.lineTo(0, -6 * scale); ctx.closePath();
+    ctx.fillStyle = color; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, -68 * scale); ctx.lineTo(28 * scale, 10 * scale); ctx.lineTo(0, -6 * scale); ctx.closePath();
+    ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.8)'; ctx.fill(); ctx.stroke();
+
+  } else if (style === 'compass') {
+    ctx.fillStyle = color; ctx.strokeStyle = color;
+    const fs = Math.round(size * 0.18);
+    ctx.font = `900 ${fs}px Inter, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('N', 0, -84 * scale);
+
+    // North
+    ctx.beginPath(); ctx.moveTo(0, -72 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(-18 * scale, 5 * scale); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, -72 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(18 * scale, 5 * scale); ctx.closePath();
+    ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.stroke();
+    // South
+    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(-18 * scale, 5 * scale); ctx.closePath();
+    ctx.fillStyle = showBg ? '#94a3b8' : 'rgba(255,255,255,0.5)'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(18 * scale, 5 * scale); ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+    // East
+    ctx.beginPath(); ctx.moveTo(77 * scale, 5 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(0, -13 * scale); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(77 * scale, 5 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(0, 23 * scale); ctx.closePath();
+    ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.stroke();
+    // West
+    ctx.beginPath(); ctx.moveTo(-77 * scale, 5 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(0, -13 * scale); ctx.closePath();
+    ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-77 * scale, 5 * scale); ctx.lineTo(0, 5 * scale); ctx.lineTo(0, 23 * scale); ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+
+    ctx.beginPath(); ctx.arc(0, 5 * scale, 8 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2 * scale; ctx.stroke();
+  }
+
+  ctx.restore();
+}
 
 function drawScale(ctx,x,y,w,h,zoom,lat){const STEPS=[1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000],NS=5;const mpp=78271.5168*Math.cos(lat*Math.PI/180)/Math.pow(2,zoom);let best=STEPS[0];for(const s of STEPS){const px=s/mpp;if(px>=200&&px<=300){best=s;break;}if(px>300){best=s;break;}best=s;}const bW=w*0.85,sW=bW/NS,bH=h*0.2,unit=best>=1000?'km':'m',pad=w*0.075;ctx.fillStyle='rgba(255,255,255,0.92)';ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,h,6);ctx.fill();ctx.stroke();const bX=x+pad,bY=y+h*0.5;ctx.font=`${Math.max(8,Math.round(h*0.16))}px Inter,sans-serif`;ctx.fillStyle='#1e293b';ctx.textAlign='center';ctx.textBaseline='bottom';for(let i=0;i<=NS;i++){const d=(best/NS)*i,v=unit==='km'?d/1000:d;ctx.fillText(i===NS?`${Number.isInteger(v)?v:v.toFixed(1)} ${unit}`:`${Number.isInteger(v)?v:v.toFixed(1)}`,bX+sW*i,bY-3);}for(let i=0;i<NS;i++){ctx.fillStyle=i%2===0?'#1e293b':'#fff';ctx.fillRect(bX+sW*i,bY,sW,bH);}ctx.strokeStyle='#1e293b';ctx.lineWidth=1;ctx.strokeRect(bX,bY,bW,bH);ctx.font=`italic ${Math.max(7,Math.round(h*0.13))}px Inter,sans-serif`;ctx.fillStyle='#64748b';ctx.textAlign='center';ctx.fillText('Projeção: Web Mercator (EPSG:3857)',x+w/2,bY+bH+h*0.2);}
 
@@ -243,10 +419,10 @@ function drawTitle(ctx, x, y, cfg) {
 const OVL = { NORTH: 120, SCALE_W: 400, SCALE_H: 80, LEG_W: 280, ANN_W: 340, TITLE_W: 500 };
 
 function drawOverlays(ctx, W, H, opts) {
-  const { incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, bearing, zoom, lat, legendData, annData, vizName, scale, titleCfg, legendCustomTitle, annLegendCustomTitle } = opts;
+  const { incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, bearing, zoom, lat, legendData, annData, vizName, scale, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle } = opts;
   const s = scale || 1;
   if (incTitle && titleCfg) drawTitle(ctx, overlayPos.title.x*W, overlayPos.title.y*H, { ...titleCfg, titleSize: (titleCfg.titleSize||32)*s, subtitleSize: (titleCfg.subtitleSize||18)*s });
-  if (incNorth) drawNorth(ctx, overlayPos.north.x*W, overlayPos.north.y*H, OVL.NORTH*s, bearing);
+  if (incNorth) drawNorth(ctx, overlayPos.north.x*W, overlayPos.north.y*H, OVL.NORTH*s, bearing, northArrowStyle);
   if (incScale) drawScale(ctx, overlayPos.scale.x*W, overlayPos.scale.y*H, OVL.SCALE_W*s, OVL.SCALE_H*s, zoom, lat);
   if (incLegend && legendData?.items?.length) drawLegend(ctx, overlayPos.legend.x*W, overlayPos.legend.y*H, OVL.LEG_W*s, legendCustomTitle || legendData.title, legendData.items);
   if (incAnnLegend && annData?.length) drawAnnLegend(ctx, overlayPos.annLegend.x*W, overlayPos.annLegend.y*H, OVL.ANN_W*s, annData, annLegendCustomTitle || vizName);
@@ -310,7 +486,7 @@ function studioHexToRgba(hex, alpha) {
 
 const ImageExportStudio = () => {
   const { map, mapLoaded, mapStyle } = useContext(MapContext);
-  const { showImageStudio, setShowImageStudio, showAttributeLegend, showAnnotationLegend, showNorthArrow, showScaleBar, showGraticule, graticuleStyle, setGraticuleStyle, exportPages, setExportPages, colorAttribute } = useContext(UIContext);
+  const { showImageStudio, setShowImageStudio, showAttributeLegend, showAnnotationLegend, showNorthArrow, showScaleBar, showGraticule, graticuleStyle, setGraticuleStyle, northArrowStyle, setNorthArrowStyle, exportPages, setExportPages, colorAttribute } = useContext(UIContext);
   const { getActiveAnnotations, visualizations, activeVisualizationId } = useContext(AnnotationContext);
   const { csvData, csvHeaders, indicadoresData } = useContext(DataContext);
 
@@ -1159,9 +1335,9 @@ const ImageExportStudio = () => {
       incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos,
       bearing: pm.getBearing(), zoom: pm.getZoom(), lat: center.lat,
       legendData, annData, vizName, scale: 1, titleCfg,
-      legendCustomTitle, annLegendCustomTitle,
+      legendCustomTitle, annLegendCustomTitle, northArrowStyle,
     });
-  }, [incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle]);
+  }, [incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle]);
 
   // Keep ref always pointing to the latest redraw function — map event listeners
   // use this ref to avoid stale closures that cause overlay/handle desync.
@@ -1201,7 +1377,7 @@ const ImageExportStudio = () => {
         incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos,
         bearing, zoom: exportZoom, lat: center.lat,
         legendData, annData, vizName, scale: 1, titleCfg,
-        legendCustomTitle, annLegendCustomTitle,
+        legendCustomTitle, annLegendCustomTitle, northArrowStyle,
       });
 
       setProgress('Gerando arquivo...');
@@ -1312,6 +1488,27 @@ const ImageExportStudio = () => {
               </div>
               {openSections.elem && (<>
               <label className="studio-check-row"><input type="checkbox" checked={incNorth} onChange={e => setIncNorth(e.target.checked)} /><span className="studio-check-label">🧭 Indicador de Norte</span></label>
+              {incNorth && (
+                <div style={{ paddingLeft: 18, marginTop: 2, marginBottom: 6 }}>
+                  <div className="studio-input-row" style={{ marginBottom: 4 }}>
+                    <label style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Estilo</label>
+                    <select className="studio-select" value={northArrowStyle.type} onChange={e => setNorthArrowStyle(s => ({ ...s, type: e.target.value }))}>
+                      <option value="noun">Estilizada (Noun)</option>
+                      <option value="classic">Clássica</option>
+                      <option value="minimal">Minimalista</option>
+                      <option value="compass">Rosa dos Ventos</option>
+                    </select>
+                  </div>
+                  <label className="studio-check-row" style={{ marginBottom: 4 }}>
+                    <input type="checkbox" checked={northArrowStyle.showBg} onChange={e => setNorthArrowStyle(s => ({ ...s, showBg: e.target.checked }))} />
+                    <span className="studio-check-label" style={{ fontSize: '0.7rem' }}>Fundo branco</span>
+                  </label>
+                  <div className="studio-input-row">
+                    <label style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Cor</label>
+                    <input type="color" value={northArrowStyle.color} onChange={e => setNorthArrowStyle(s => ({ ...s, color: e.target.value }))} />
+                  </div>
+                </div>
+              )}
               <label className="studio-check-row"><input type="checkbox" checked={incScale} onChange={e => setIncScale(e.target.checked)} /><span className="studio-check-label">📏 Barra de Escala</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incLegend} onChange={e => setIncLegend(e.target.checked)} /><span className="studio-check-label">🎨 Legenda de Cores</span></label>
               {incLegend && (

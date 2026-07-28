@@ -17,6 +17,7 @@ export function generateExportHtml({
   renderMode,
   fillOpacity,
   borderWidth,
+  northArrowStyle,
 }) {
   const DEFAULT_FILL = '#FFFFFF';
   const DEFAULT_BORDER = '#000000';
@@ -100,6 +101,43 @@ export function generateExportHtml({
   const effectiveFillOpacity = fillOpacity ?? 0.6;
   const effectiveBorderWidth = borderWidth || 2;
   const initialBearing = mapBearing || 0;
+  const nType = northArrowStyle?.type || 'noun';
+  const nShowBg = northArrowStyle?.showBg ?? true;
+  const nColor = northArrowStyle?.color || '#1e293b';
+
+  const northSvgInner = nType === 'noun' ? `
+    <circle cx="100" cy="100" r="44" fill="none" stroke="${nColor}" stroke-width="3"/>
+    <circle cx="100" cy="100" r="36" fill="none" stroke="${nColor}" stroke-width="3"/>
+    <line x1="45" y1="100" x2="155" y2="100" stroke="${nColor}" stroke-width="2.5"/>
+    <line x1="100" y1="100" x2="100" y2="165" stroke="${nColor}" stroke-width="2.5"/>
+    <line x1="125" y1="75" x2="145" y2="55" stroke="${nColor}" stroke-width="2"/>
+    <line x1="75" y1="75" x2="55" y2="55" stroke="${nColor}" stroke-width="2"/>
+    <line x1="125" y1="125" x2="145" y2="145" stroke="${nColor}" stroke-width="2"/>
+    <line x1="75" y1="125" x2="55" y2="145" stroke="${nColor}" stroke-width="2"/>
+    <polygon points="100,15 70,95 100,78" fill="${nColor}" stroke="${nColor}" stroke-width="1"/>
+    <polygon points="100,15 130,95 100,78" fill="#666666" stroke="${nColor}" stroke-width="1"/>
+    <text x="100" y="52" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" stroke="#000000" stroke-width="3" paint-order="stroke fill" font-size="24" font-weight="900" font-family="Inter,Arial,sans-serif">N</text>
+  ` : nType === 'classic' ? `
+    <circle cx="100" cy="100" r="92" fill="none" stroke="${nColor}" stroke-width="4"/>
+    <line x1="100" y1="12" x2="100" y2="24" stroke="${nColor}" stroke-width="3"/>
+    <line x1="176" y1="100" x2="188" y2="100" stroke="${nColor}" stroke-width="2"/>
+    <line x1="100" y1="176" x2="100" y2="188" stroke="${nColor}" stroke-width="2"/>
+    <line x1="12" y1="100" x2="24" y2="100" stroke="${nColor}" stroke-width="2"/>
+    <circle cx="100" cy="100" r="6" fill="${nColor}"/>
+    <polygon points="100,22 88,100 100,90" fill="${nColor}" stroke="${nColor}" stroke-width="1"/>
+    <polygon points="100,22 112,100 100,90" fill="none" stroke="${nColor}" stroke-width="2"/>
+    <polygon points="100,178 88,100 100,110" fill="none" stroke="${nColor}" stroke-width="1.5" opacity="0.4"/>
+    <polygon points="100,178 112,100 100,110" fill="none" stroke="${nColor}" stroke-width="1.5" opacity="0.4"/>
+    <text x="100" y="48" text-anchor="middle" dominant-baseline="middle" fill="${nColor}" font-size="20" font-weight="900">N</text>
+  ` : nType === 'minimal' ? `
+    <polygon points="100,20 70,160 100,130 130,160" fill="${nColor}"/>
+    <text x="100" y="70" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" font-size="28" font-weight="900">N</text>
+  ` : `
+    <polygon points="100,15 115,85 185,100 115,115 100,185 85,115 15,100 85,85" fill="${nColor}" stroke="${nColor}" stroke-width="2"/>
+    <polygon points="100,15 100,100 185,100 100,100 100,185 100,100 15,100 100,100" fill="#666666" opacity="0.5"/>
+    <circle cx="100" cy="100" r="12" fill="${nColor}" stroke="#ffffff" stroke-width="2"/>
+    <text x="100" y="50" text-anchor="middle" dominant-baseline="middle" fill="#ffffff" stroke="#000000" stroke-width="3" paint-order="stroke fill" font-size="22" font-weight="900">N</text>
+  `;
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -306,21 +344,12 @@ ${hasAnnotations ? `<div class="widget legend-panel" id="annotLegend" style="bot
 </div>` : ''}
 
 <!-- North Arrow -->
-<div class="widget north-arrow" id="northArrow" style="top:80px;left:16px;">
+<div class="widget north-arrow" id="northArrow" style="top:80px;left:16px;background:${nShowBg ? '#ffffff' : 'transparent'};border:${nShowBg ? '1px solid #e2e8f0' : 'none'};box-shadow:${nShowBg ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'};">
   <span class="north-close" onclick="hideWidget('northArrow','btnNorth')">\u2715</span>
   <svg id="northSvg" viewBox="0 0 200 200" style="width:90%;height:90%;transition:transform 0.15s ease-out">
-    <circle cx="100" cy="100" r="92" fill="none" stroke="#1e293b" stroke-width="4"/>
-    <line x1="100" y1="12" x2="100" y2="24" stroke="#1e293b" stroke-width="3"/>
-    <line x1="176" y1="100" x2="188" y2="100" stroke="#1e293b" stroke-width="2"/>
-    <line x1="100" y1="176" x2="100" y2="188" stroke="#1e293b" stroke-width="2"/>
-    <line x1="12" y1="100" x2="24" y2="100" stroke="#1e293b" stroke-width="2"/>
-    <circle cx="100" cy="100" r="6" fill="#1e293b"/>
-    <polygon points="100,22 88,100 100,90" fill="#1e293b" stroke="#1e293b" stroke-width="1"/>
-    <polygon points="100,22 112,100 100,90" fill="none" stroke="#1e293b" stroke-width="2"/>
-    <polygon points="100,178 88,100 100,110" fill="none" stroke="#1e293b" stroke-width="1.5" opacity="0.4"/>
-    <polygon points="100,178 112,100 100,110" fill="none" stroke="#1e293b" stroke-width="1.5" opacity="0.4"/>
-    <text x="100" y="48" text-anchor="middle" dominant-baseline="middle" fill="#1e293b" font-size="18" font-weight="900" font-family="Inter,Arial,sans-serif">N</text>
+    ${northSvgInner}
   </svg>
+</div>`
 </div>
 
 <!-- Scale Bar -->
