@@ -295,9 +295,22 @@ const LAYER_CATEGORIES = [
 
 const OWN_LAYERS = new Set(['sectors-fill-layer','sectors-line-layer','sectors-point-layer','annotations-fill-layer','annotations-line-solid','annotations-line-dashed','annotations-line-dotted','annotations-point-layer','annotations-point-labels','annotations-vertex-layer','graticule-lines','graticule-labels']);
 
+// Helpers for graticule line color (rgba string ↔ hex)
+function studioRgbaToHex(rgba) {
+  if (!rgba) return '#788caa';
+  if (rgba.startsWith('#')) return rgba;
+  const m = rgba.match(/[\d.]+/g);
+  if (!m || m.length < 3) return '#788caa';
+  return `#${Math.round(Number(m[0])).toString(16).padStart(2,'0')}${Math.round(Number(m[1])).toString(16).padStart(2,'0')}${Math.round(Number(m[2])).toString(16).padStart(2,'0')}`;
+}
+function studioHexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 const ImageExportStudio = () => {
   const { map, mapLoaded, mapStyle } = useContext(MapContext);
-  const { showImageStudio, setShowImageStudio, showAttributeLegend, showAnnotationLegend, showNorthArrow, showScaleBar, exportPages, setExportPages, colorAttribute } = useContext(UIContext);
+  const { showImageStudio, setShowImageStudio, showAttributeLegend, showAnnotationLegend, showNorthArrow, showScaleBar, showGraticule, graticuleStyle, setGraticuleStyle, exportPages, setExportPages, colorAttribute } = useContext(UIContext);
   const { getActiveAnnotations, visualizations, activeVisualizationId } = useContext(AnnotationContext);
   const { csvData, csvHeaders, indicadoresData } = useContext(DataContext);
 
@@ -350,6 +363,7 @@ const ImageExportStudio = () => {
   const [incAnnLegend, setIncAnnLegend] = useState(true);
   const [incTitle, setIncTitle] = useState(true);
   const [incMunPoints, setIncMunPoints] = useState(true);
+  const [incGraticule, setIncGraticule] = useState(false);
   const [legendCustomTitle, setLegendCustomTitle] = useState('');
   const [annLegendCustomTitle, setAnnLegendCustomTitle] = useState('');
 
@@ -375,6 +389,8 @@ const ImageExportStudio = () => {
   const previewFrameRef = useRef(null);
   const overlayCanvasRef = useRef(null);
   const wrapperRef = useRef(null);
+  const redrawOverlayCanvasRef = useRef(null);
+  const rafIdRef = useRef(null);
   const [frameSize, setFrameSize] = useState({ w: 800, h: 450 });
 
   // Viewport zoom/pan (workspace navigation)
@@ -401,7 +417,7 @@ const ImageExportStudio = () => {
     previewStyle,
     layerVis: { ...layerVis },
     prvRenderMode, prvFillOpacity, prvBorderWidth,
-    incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints,
+    incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule,
     legendCustomTitle, annLegendCustomTitle,
     titleCfg: { ...titleCfg },
     overlayPos: JSON.parse(JSON.stringify(overlayPos)),
@@ -414,7 +430,7 @@ const ImageExportStudio = () => {
     prvFilterRegion, prvFilterState, prvFilterCityType,
   }), [preset, customW, customH, useCustom, orientation, format, jpegQuality,
     previewStyle, layerVis, prvRenderMode, prvFillOpacity, prvBorderWidth,
-    incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints,
+    incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule,
     legendCustomTitle, annLegendCustomTitle, titleCfg, overlayPos,
     prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType]);
@@ -445,6 +461,7 @@ const ImageExportStudio = () => {
     setIncLegend(pg.incLegend ?? true); setIncAnnLegend(pg.incAnnLegend ?? true);
     setIncTitle(pg.incTitle ?? true);
     setIncMunPoints(pg.incMunPoints ?? true);
+    setIncGraticule(pg.incGraticule ?? false);
     setLegendCustomTitle(pg.legendCustomTitle ?? '');
     setAnnLegendCustomTitle(pg.annLegendCustomTitle ?? '');
     if (pg.titleCfg) setTitleCfg({ ...pg.titleCfg });
@@ -466,6 +483,7 @@ const ImageExportStudio = () => {
     // Helper: apply layers + render mode + viz, then release the loading lock
     // Only runs if the generation still matches (no newer loadPage has been called)
     const newMunPoints = pg.incMunPoints ?? true;
+    const newGraticule = pg.incGraticule ?? false;
     const commitViz = () => {
       if (styleLoadGenRef.current !== myGen) return; // stale — a newer loadPage has taken over
       const pm = previewMapRef.current;
@@ -490,6 +508,39 @@ const ImageExportStudio = () => {
         }
         // Municipality points toggle
         if (pm.getLayer('sectors-point-layer')) pm.setLayoutProperty('sectors-point-layer', 'visibility', newMunPoints ? 'visible' : 'none');
+        // Graticule — create on-demand if needed
+        if (newGraticule) {
+          if (!pm.getSource('graticule-source')) {
+            const zoom = pm.getZoom();
+            let interval;
+            if (zoom >= 8) interval = 0.5;
+            else if (zoom >= 6) interval = 1;
+            else if (zoom >= 4) interval = 2;
+            else if (zoom >= 2) interval = 5;
+            else interval = 10;
+            const gFeatures = [];
+            for (let lat = -90; lat <= 90; lat += interval) {
+              const c = []; for (let lng = -180; lng <= 180; lng += 2) c.push([lng, lat]);
+              gFeatures.push({ type: 'Feature', properties: { label: `${Math.abs(lat)}° ${lat >= 0 ? 'N' : 'S'}`, axis: 'lat' }, geometry: { type: 'LineString', coordinates: c } });
+            }
+            for (let lng = -180; lng <= 180; lng += interval) {
+              const c = []; for (let lat = -85; lat <= 85; lat += 2) c.push([lng, lat]);
+              gFeatures.push({ type: 'Feature', properties: { label: `${Math.abs(lng)}° ${lng >= 0 ? 'L' : 'O'}`, axis: 'lng' }, geometry: { type: 'LineString', coordinates: c } });
+            }
+            try {
+              pm.addSource('graticule-source', { type: 'geojson', data: { type: 'FeatureCollection', features: gFeatures } });
+              pm.addLayer({ id: 'graticule-lines', type: 'line', source: 'graticule-source', paint: { 'line-color': 'rgba(120,140,170,0.45)', 'line-width': 0.8, 'line-dasharray': [4, 4] } });
+              pm.addLayer({ id: 'graticule-labels', type: 'symbol', source: 'graticule-source',
+                layout: { 'symbol-placement': 'line', 'text-field': ['get', 'label'], 'text-size': 9, 'text-font': ['DIN Pro Regular', 'Arial Unicode MS Regular'], 'text-max-angle': 30, 'text-allow-overlap': false, 'symbol-spacing': 300, 'text-keep-upright': true, 'text-letter-spacing': 0.05 },
+                paint: { 'text-color': '#ffffff', 'text-halo-color': '#000000', 'text-halo-width': 0.5, 'text-halo-blur': 0.2 } });
+            } catch(e) {}
+          }
+          if (pm.getLayer('graticule-lines')) pm.setLayoutProperty('graticule-lines', 'visibility', 'visible');
+          if (pm.getLayer('graticule-labels')) pm.setLayoutProperty('graticule-labels', 'visibility', 'visible');
+        } else {
+          if (pm.getLayer('graticule-lines')) pm.setLayoutProperty('graticule-lines', 'visibility', 'none');
+          if (pm.getLayer('graticule-labels')) pm.setLayoutProperty('graticule-labels', 'visibility', 'none');
+        }
       } catch(e) {}
       // Apply viz directly with correct cfg (bypasses stale React state)
       applyPreviewVizRef.current?.(vizCfg);
@@ -630,7 +681,7 @@ const ImageExportStudio = () => {
     return () => clearTimeout(t);
   }, [preset, customW, customH, useCustom, orientation, format, jpegQuality,
     previewStyle, layerVis, prvRenderMode, prvFillOpacity, prvBorderWidth,
-    incNorth, incScale, incLegend, incAnnLegend, incTitle, titleCfg, overlayPos,
+    incNorth, incScale, incLegend, incAnnLegend, incTitle, incGraticule, titleCfg, overlayPos,
     prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType]);
 
@@ -776,6 +827,14 @@ const ImageExportStudio = () => {
     setViewZoom(z => Math.max(0.05, Math.min(z * delta, 3)));
   }, []);
 
+  // Attach non-passive wheel listener to allow e.preventDefault() without browser warnings
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el || !showImageStudio) return;
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [showImageStudio, handleWheel]);
+
   // Viewport pan (middle-click or Ctrl+click)
   const handleWrapperMouseDown = useCallback((e) => {
     if (e.button === 1 || (e.button === 0 && e.ctrlKey)) {
@@ -906,8 +965,57 @@ const ImageExportStudio = () => {
       if (pm.getLayer('sectors-point-layer')) {
         pm.setLayoutProperty('sectors-point-layer', 'visibility', incMunPoints ? 'visible' : 'none');
       }
+      // Graticule (parallels & meridians) — create layers on-demand if they don't exist
+      if (incGraticule) {
+        if (!pm.getSource('graticule-source')) {
+          // Build graticule GeoJSON for current zoom
+          const zoom = pm.getZoom();
+          let interval;
+          if (zoom >= 8) interval = 0.5;
+          else if (zoom >= 6) interval = 1;
+          else if (zoom >= 4) interval = 2;
+          else if (zoom >= 2) interval = 5;
+          else interval = 10;
+          const features = [];
+          for (let lat = -90; lat <= 90; lat += interval) {
+            const coords = [];
+            for (let lng = -180; lng <= 180; lng += 2) coords.push([lng, lat]);
+            features.push({ type: 'Feature', properties: { label: `${Math.abs(lat)}° ${lat >= 0 ? 'N' : 'S'}`, axis: 'lat' }, geometry: { type: 'LineString', coordinates: coords } });
+          }
+          for (let lng = -180; lng <= 180; lng += interval) {
+            const coords = [];
+            for (let lat = -85; lat <= 85; lat += 2) coords.push([lng, lat]);
+            features.push({ type: 'Feature', properties: { label: `${Math.abs(lng)}° ${lng >= 0 ? 'L' : 'O'}`, axis: 'lng' }, geometry: { type: 'LineString', coordinates: coords } });
+          }
+          pm.addSource('graticule-source', { type: 'geojson', data: { type: 'FeatureCollection', features } });
+          const gWeight = graticuleStyle.bold ? 'Bold' : 'Regular';
+          const gVariant = graticuleStyle.italic ? ' Italic' : '';
+          pm.addLayer({ id: 'graticule-lines', type: 'line', source: 'graticule-source', paint: { 'line-color': graticuleStyle.lineColor, 'line-width': graticuleStyle.lineWidth, 'line-dasharray': [4, 4] } });
+          pm.addLayer({ id: 'graticule-labels', type: 'symbol', source: 'graticule-source',
+            layout: { 'symbol-placement': 'line', 'text-field': ['get', 'label'], 'text-size': graticuleStyle.fontSize, 'text-font': [`DIN Pro ${gWeight}${gVariant}`, `Arial Unicode MS ${gWeight}`], 'text-max-angle': 30, 'text-allow-overlap': false, 'symbol-spacing': 300, 'text-keep-upright': true, 'text-letter-spacing': 0.05 },
+            paint: { 'text-color': graticuleStyle.textColor, 'text-halo-color': graticuleStyle.showHalo ? graticuleStyle.haloColor : 'transparent', 'text-halo-width': graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0, 'text-halo-blur': 0.2 } });
+        }
+        if (pm.getLayer('graticule-lines')) {
+          pm.setLayoutProperty('graticule-lines', 'visibility', 'visible');
+          pm.setPaintProperty('graticule-lines', 'line-color', graticuleStyle.lineColor);
+          pm.setPaintProperty('graticule-lines', 'line-width', graticuleStyle.lineWidth);
+        }
+        if (pm.getLayer('graticule-labels')) {
+          pm.setLayoutProperty('graticule-labels', 'visibility', 'visible');
+          pm.setLayoutProperty('graticule-labels', 'text-size', graticuleStyle.fontSize);
+          const gWeight = graticuleStyle.bold ? 'Bold' : 'Regular';
+          const gVariant = graticuleStyle.italic ? ' Italic' : '';
+          pm.setLayoutProperty('graticule-labels', 'text-font', [`DIN Pro ${gWeight}${gVariant}`, `Arial Unicode MS ${gWeight}`]);
+          pm.setPaintProperty('graticule-labels', 'text-color', graticuleStyle.textColor);
+          pm.setPaintProperty('graticule-labels', 'text-halo-color', graticuleStyle.showHalo ? graticuleStyle.haloColor : 'transparent');
+          pm.setPaintProperty('graticule-labels', 'text-halo-width', graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0);
+        }
+      } else {
+        if (pm.getLayer('graticule-lines')) pm.setLayoutProperty('graticule-lines', 'visibility', 'none');
+        if (pm.getLayer('graticule-labels')) pm.setLayoutProperty('graticule-labels', 'visibility', 'none');
+      }
     } catch(e) {}
-  }, [prvRenderMode, prvFillOpacity, prvBorderWidth, incMunPoints]);
+  }, [prvRenderMode, prvFillOpacity, prvBorderWidth, incMunPoints, incGraticule, graticuleStyle]);
 
   useEffect(() => { applyPreviewRender(); }, [applyPreviewRender]);
 
@@ -981,8 +1089,17 @@ const ImageExportStudio = () => {
       pm.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
       pm._currentStyleUrl = savedStyle || 'mapbox://styles/mapbox/satellite-v9';
       previewMapRef.current = pm;
-      pm.on('moveend', () => redrawOverlayCanvas());
-      pm.on('idle', () => redrawOverlayCanvas());
+      // Use ref-based callback to avoid stale closures — ensures overlays
+      // always redraw with the latest positions/state after map events.
+      const scheduleOverlayRedraw = () => {
+        if (rafIdRef.current) return; // already scheduled for this frame
+        rafIdRef.current = requestAnimationFrame(() => {
+          rafIdRef.current = null;
+          redrawOverlayCanvasRef.current?.();
+        });
+      };
+      pm.on('moveend', scheduleOverlayRedraw);
+      pm.on('idle', scheduleOverlayRedraw);
       pm.once('style.load', () => {
         // Build viz config from saved page data
         const initVizCfg = savedPage ? {
@@ -1008,7 +1125,7 @@ const ImageExportStudio = () => {
         }
       });
     }, 200);
-    return () => { clearTimeout(timer); if (previewMapRef.current) { previewMapRef.current.remove(); previewMapRef.current = null; } };
+    return () => { clearTimeout(timer); if (rafIdRef.current) { cancelAnimationFrame(rafIdRef.current); rafIdRef.current = null; } if (previewMapRef.current) { previewMapRef.current.remove(); previewMapRef.current = null; } };
   }, [showImageStudio, mapLoaded]);
 
   // Redraw overlay canvas (called on any change)
@@ -1018,13 +1135,24 @@ const ImageExportStudio = () => {
     const pm = previewMapRef.current;
     if (!canvas || !frame || !pm) return;
     const w = frame.clientWidth, h = frame.clientHeight;
-    canvas.width = w * window.devicePixelRatio;
-    canvas.height = h * window.devicePixelRatio;
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
+    if (w === 0 || h === 0) return;
+    // Skip full redraw if no overlays are visible
+    const anyVisible = incNorth || incScale || incLegend || incAnnLegend || incTitle;
+    const dpr = window.devicePixelRatio || 1;
+    const targetCW = Math.round(w * dpr);
+    const targetCH = Math.round(h * dpr);
+    // Only resize canvas when dimensions actually changed (resizing clears context state)
+    if (canvas.width !== targetCW || canvas.height !== targetCH) {
+      canvas.width = targetCW;
+      canvas.height = targetCH;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+    }
     const ctx = canvas.getContext('2d');
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    // Reset transform and clear — use setTransform instead of scale to avoid accumulation
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
+    if (!anyVisible) return;
     const center = pm.getCenter();
     // Frame is at actual target resolution, so scale=1 (fixed pixel sizes)
     drawOverlays(ctx, w, h, {
@@ -1034,6 +1162,10 @@ const ImageExportStudio = () => {
       legendCustomTitle, annLegendCustomTitle,
     });
   }, [incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle]);
+
+  // Keep ref always pointing to the latest redraw function — map event listeners
+  // use this ref to avoid stale closures that cause overlay/handle desync.
+  redrawOverlayCanvasRef.current = redrawOverlayCanvas;
 
   // Redraw on any overlay change
   useEffect(() => { redrawOverlayCanvas(); }, [redrawOverlayCanvas, frameSize]);
@@ -1209,6 +1341,70 @@ const ImageExportStudio = () => {
               )}
               <label className="studio-check-row"><input type="checkbox" checked={incTitle} onChange={e => setIncTitle(e.target.checked)} /><span className="studio-check-label">🏷️ Título</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incMunPoints} onChange={e => setIncMunPoints(e.target.checked)} /><span className="studio-check-label">📍 Pontos dos Municípios</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incGraticule} onChange={e => setIncGraticule(e.target.checked)} /><span className="studio-check-label">🌐 Paralelos e Meridianos</span></label>
+              {incGraticule && (
+                <div style={{ paddingLeft: 18, marginTop: 2, marginBottom: 6 }}>
+                  {/* Line controls */}
+                  <label style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, display: 'block', marginBottom: 2 }}>Linha</label>
+                  <div className="studio-input-row" style={{ marginBottom: 2 }}>
+                    <label>Cor</label>
+                    <input type="color" value={studioRgbaToHex(graticuleStyle.lineColor)}
+                      onChange={e => setGraticuleStyle(s => ({ ...s, lineColor: studioHexToRgba(e.target.value, s.lineOpacity) }))} />
+                  </div>
+                  <div className="studio-range-row" style={{ marginBottom: 2 }}>
+                    <label>Espessura</label>
+                    <input type="range" className="studio-range" min={0.2} max={3} step={0.1} value={graticuleStyle.lineWidth}
+                      onChange={e => setGraticuleStyle(s => ({ ...s, lineWidth: Number(e.target.value) }))} />
+                    <span className="studio-range-value">{graticuleStyle.lineWidth}</span>
+                  </div>
+                  <div className="studio-range-row" style={{ marginBottom: 4 }}>
+                    <label>Opacidade</label>
+                    <input type="range" className="studio-range" min={0.05} max={1} step={0.05} value={graticuleStyle.lineOpacity}
+                      onChange={e => {
+                        const op = Number(e.target.value);
+                        const hex = studioRgbaToHex(graticuleStyle.lineColor);
+                        setGraticuleStyle(s => ({ ...s, lineOpacity: op, lineColor: studioHexToRgba(hex, op) }));
+                      }} />
+                    <span className="studio-range-value">{Math.round(graticuleStyle.lineOpacity * 100)}%</span>
+                  </div>
+                  {/* Text controls */}
+                  <label style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, display: 'block', marginTop: 4, marginBottom: 2 }}>Texto</label>
+                  <div className="studio-input-row" style={{ marginBottom: 2 }}>
+                    <label>Tam.</label>
+                    <input type="number" className="studio-num-input" min={6} max={18} step={1} value={graticuleStyle.fontSize}
+                      onChange={e => setGraticuleStyle(s => ({ ...s, fontSize: Number(e.target.value) }))} style={{ width: 44 }} />
+                    <button className={`studio-toolbar-btn${graticuleStyle.bold ? ' active' : ''}`}
+                      onClick={() => setGraticuleStyle(s => ({ ...s, bold: !s.bold }))} title="Negrito"
+                      style={{ fontWeight: 'bold', padding: '2px 6px', fontSize: '0.65rem', minWidth: 22 }}>B</button>
+                    <button className={`studio-toolbar-btn${graticuleStyle.italic ? ' active' : ''}`}
+                      onClick={() => setGraticuleStyle(s => ({ ...s, italic: !s.italic }))} title="Itálico"
+                      style={{ fontStyle: 'italic', padding: '2px 6px', fontSize: '0.65rem', minWidth: 22 }}>I</button>
+                  </div>
+                  <div className="studio-input-row" style={{ marginBottom: 2 }}>
+                    <label>Cor texto</label>
+                    <input type="color" value={graticuleStyle.textColor}
+                      onChange={e => setGraticuleStyle(s => ({ ...s, textColor: e.target.value }))} />
+                  </div>
+                  <div className="studio-input-row" style={{ marginBottom: 2 }}>
+                    <label>Borda</label>
+                    <button className={`studio-toolbar-btn${graticuleStyle.showHalo ? ' active' : ''}`}
+                      onClick={() => setGraticuleStyle(s => ({ ...s, showHalo: !s.showHalo }))}
+                      style={{ padding: '2px 6px', fontSize: '0.6rem', minWidth: 30 }}>
+                      {graticuleStyle.showHalo ? 'ON' : 'OFF'}
+                    </button>
+                    {graticuleStyle.showHalo && (
+                      <>
+                        <input type="color" value={graticuleStyle.haloColor}
+                          onChange={e => setGraticuleStyle(s => ({ ...s, haloColor: e.target.value }))} title="Cor da borda" />
+                        <input type="range" className="studio-range" min={0.1} max={2} step={0.1}
+                          value={graticuleStyle.haloWidth}
+                          onChange={e => setGraticuleStyle(s => ({ ...s, haloWidth: Number(e.target.value) }))} style={{ width: 50 }} />
+                        <span className="studio-range-value">{graticuleStyle.haloWidth}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
               <p style={{ fontSize: '0.65rem', color: '#64748b', marginTop: 4, fontStyle: 'italic' }}>
                 Arraste as bordas azuis no preview para reposicionar.
               </p>
@@ -1432,7 +1628,7 @@ const ImageExportStudio = () => {
             </div>
           </div>
           <div ref={wrapperRef} className="studio-preview-wrapper"
-            onWheel={handleWheel} onMouseDown={handleWrapperMouseDown}
+            onMouseDown={handleWrapperMouseDown}
             style={{ cursor: 'grab', overflow: 'hidden', position: 'relative' }}>
             <div style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%, -50%) translate(${viewPan.x}px, ${viewPan.y}px) scale(${viewZoom})`, transformOrigin: 'center center' }}>
               <div ref={previewFrameRef} className="studio-preview-frame" style={{ width: targetW, height: targetH, position: 'relative', overflow: 'hidden' }}>
