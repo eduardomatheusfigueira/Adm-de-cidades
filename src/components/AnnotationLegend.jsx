@@ -3,6 +3,7 @@ import { Rnd } from 'react-rnd';
 import '../styles/AnnotationLegend.css';
 import { AnnotationContext } from '../contexts/AnnotationContext';
 import { UIContext } from '../contexts/UIContext';
+import { getAnnotationMeasurement } from '../utils/geoUtils';
 
 const TYPE_ICONS = { point: '📍', line: '📏', polygon: '⬡' };
 const TYPE_LABELS = { point: 'Ponto', line: 'Linha', polygon: 'Polígono' };
@@ -49,7 +50,7 @@ const AnnotationLegend = () => {
     isViewMode, setIsViewMode,
   } = useContext(AnnotationContext);
 
-  const { showAnnotationLegend, setShowAnnotationLegend } = useContext(UIContext);
+  const { showAnnotationLegend, setShowAnnotationLegend, showMeasurements, setShowMeasurements } = useContext(UIContext);
 
   const activeAnnotations = getActiveAnnotations();
   const activeViz = visualizations.find(v => v.id === activeVisualizationId);
@@ -94,31 +95,67 @@ const AnnotationLegend = () => {
           <div className="annotation-legend-header annotation-legend-drag-handle" style={{ cursor: 'move', userSelect: 'none' }}>
             <h3 className="annotation-legend-title">{activeViz?.name || 'Informações do Mapa'}</h3>
             <div className="annotation-legend-header-actions">
+              <button
+                className={`annotation-legend-edit-btn ${showMeasurements ? 'active' : ''}`}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={() => setShowMeasurements(!showMeasurements)}
+                title={showMeasurements ? 'Ocultar medidas no mapa' : 'Exibir medidas no mapa'}
+                style={{ opacity: showMeasurements ? 1 : 0.45 }}
+              >
+                📐
+              </button>
               <button className="annotation-legend-edit-btn" onMouseDown={(e) => e.stopPropagation()} onClick={() => setIsViewMode(false)} title="Editar">✏️</button>
               <button className="annotation-legend-close" onMouseDown={(e) => e.stopPropagation()} onClick={() => setShowAnnotationLegend(false)} title="Ocultar painel">✕</button>
             </div>
           </div>
           <div className="annotation-legend-list">
-            {activeAnnotations.map(ann => (
-              <div key={ann.id} className="annotation-view-item">
-                {ann.type === 'point' && (
-                  <span className="annotation-view-number" style={{ backgroundColor: ann.color || '#FFFFFF', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : ann.color }}>
-                    {ann.number}
-                  </span>
-                )}
-                {(ann.type === 'line' || ann.type === 'polygon') && (
-                  <LineSample
-                    color={ann.type === 'line' ? (ann.lineColor || ann.color || '#000') : (ann.strokeColor || '#000')}
-                    width={ann.type === 'line' ? (ann.lineWidth ?? 2.5) : (ann.strokeWidth ?? 2.5)}
-                    style={ann.type === 'line' ? (ann.lineStyle || 'solid') : (ann.strokeStyle || 'solid')}
-                    type={ann.type}
-                    fillColor={ann.type === 'polygon' ? (ann.fillColor || ann.color) : undefined}
-                    fillOpacity={ann.type === 'polygon' ? (ann.fillOpacity ?? 0.15) : undefined}
-                  />
-                )}
-                <span className="annotation-view-description">{ann.description || `${TYPE_LABELS[ann?.type] || 'Elemento'} ${ann.number}`}</span>
+            {activeAnnotations.length === 0 && (
+              <p className="annotation-legend-empty">Nenhuma informação ou medição inserida.</p>
+            )}
+            {activeAnnotations.filter(a => !a.isMeasurement).length > 0 && (
+              <div className="annotation-section-block">
+                <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>📍 Anotações do Mapa</div>
+                {activeAnnotations.filter(a => !a.isMeasurement).map(ann => (
+                  <div key={ann.id} className="annotation-view-item">
+                    {ann.type === 'point' && (
+                      <span className="annotation-view-number" style={{ backgroundColor: ann.color || '#FFFFFF', borderColor: (ann.color === '#FFFFFF' || ann.color === '#ffffff' || !ann.color) ? '#000000' : ann.color }}>
+                        {ann.number}
+                      </span>
+                    )}
+                    {(ann.type === 'line' || ann.type === 'polygon') && (
+                      <LineSample
+                        color={ann.type === 'line' ? (ann.lineColor || ann.color || '#000') : (ann.strokeColor || '#000')}
+                        width={ann.type === 'line' ? (ann.lineWidth ?? 2.5) : (ann.strokeWidth ?? 2.5)}
+                        style={ann.type === 'line' ? (ann.lineStyle || 'solid') : (ann.strokeStyle || 'solid')}
+                        type={ann.type}
+                        fillColor={ann.type === 'polygon' ? (ann.fillColor || ann.color) : undefined}
+                        fillOpacity={ann.type === 'polygon' ? (ann.fillOpacity ?? 0.15) : undefined}
+                      />
+                    )}
+                    <span className="annotation-view-description">
+                      {ann.description || `${TYPE_LABELS[ann?.type] || 'Elemento'} ${ann.number}`}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+            {activeAnnotations.filter(a => a.isMeasurement).length > 0 && (
+              <div className="annotation-section-block" style={{ marginTop: activeAnnotations.filter(a => !a.isMeasurement).length > 0 ? 8 : 0 }}>
+                <div style={{ fontSize: '0.65rem', color: '#38bdf8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>📐 Medições</div>
+                {activeAnnotations.filter(a => a.isMeasurement).map(ann => {
+                  const meas = showMeasurements ? (ann.measurement || getAnnotationMeasurement(ann)) : '';
+                  return (
+                    <div key={ann.id} className="annotation-view-item">
+                      <span style={{ fontSize: '0.9rem', marginRight: 4 }}>{ann.type === 'line' ? '📏' : '⬡'}</span>
+                      <span className="annotation-view-description">
+                        {ann.description || (ann.type === 'line' ? `Medição de Distância ${ann.number}` : `Medição de Área ${ann.number}`)}
+                        {meas ? <span style={{ opacity: 0.85, fontWeight: 600, color: '#0284c7', marginLeft: 6 }}>({meas})</span> : null}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </Rnd>

@@ -6,6 +6,7 @@ import { UIContext } from '../contexts/UIContext';
 import { AnnotationContext } from '../contexts/AnnotationContext';
 import { DataContext } from '../contexts/DataContext';
 import { getColorScale } from '../utils/colorUtils';
+import { getAnnotationMeasurement } from '../utils/geoUtils';
 
 const PRESETS = [
   { label: 'HD', w: 1920, h: 1080 },
@@ -271,7 +272,7 @@ function drawLegend(ctx,x,y,w,title,items){
   });
 }
 
-function drawAnnLegend(ctx,x,y,w,anns,vizName){
+function drawAnnLegend(ctx,x,y,w,anns,vizName,incMeasurements=true){
   const p=w*0.05;
   const titleFs=Math.max(8,Math.round(w*0.06));
   const itemFs=Math.max(7,Math.round(w*0.055));
@@ -293,9 +294,12 @@ function drawAnnLegend(ctx,x,y,w,anns,vizName){
     // iconW must match what is actually drawn below
     const iconW=isPoint ? cr*2+p : w*0.14;
     const textMaxW=maxTextW-iconW-p*0.5;
-    const label=isPoint
+    const meas = incMeasurements ? (a.measurement || getAnnotationMeasurement(a)) : '';
+    const measStr = meas ? ` (${meas})` : '';
+    const baseLabel = isPoint
       ?(a.description||`Ponto ${a.number}`)
       :(a.description||(a.type==='line'?`Linha ${a.number}`:`Polígono ${a.number}`));
+    const label = baseLabel + measStr;
     ctx.font=`${itemFs}px Inter,sans-serif`;
     const lines=wrapText(ctx,label,textMaxW);
     const ih=Math.max(isPoint?cr*2:w*0.06,lines.length*itemLineH)+p*0.3;
@@ -418,38 +422,240 @@ function drawTitle(ctx, x, y, cfg) {
 // Fixed overlay sizes in pixels (designed for readable output)
 const OVL = { NORTH: 120, SCALE_W: 400, SCALE_H: 80, LEG_W: 280, ANN_W: 340, TITLE_W: 500 };
 
-function drawOverlays(ctx, W, H, opts) {
-  const { incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, bearing, zoom, lat, legendData, annData, vizName, scale, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle } = opts;
-  const s = scale || 1;
-  if (incTitle && titleCfg) drawTitle(ctx, overlayPos.title.x*W, overlayPos.title.y*H, { ...titleCfg, titleSize: (titleCfg.titleSize||32)*s, subtitleSize: (titleCfg.subtitleSize||18)*s });
-  if (incNorth) drawNorth(ctx, overlayPos.north.x*W, overlayPos.north.y*H, OVL.NORTH*s, bearing, northArrowStyle);
-  if (incScale) drawScale(ctx, overlayPos.scale.x*W, overlayPos.scale.y*H, OVL.SCALE_W*s, OVL.SCALE_H*s, zoom, lat);
-  if (incLegend && legendData?.items?.length) drawLegend(ctx, overlayPos.legend.x*W, overlayPos.legend.y*H, OVL.LEG_W*s, legendCustomTitle || legendData.title, legendData.items);
-  if (incAnnLegend && annData?.length) drawAnnLegend(ctx, overlayPos.annLegend.x*W, overlayPos.annLegend.y*H, OVL.ANN_W*s, annData, annLegendCustomTitle || vizName);
+// ── Custom studio element drawing ──
+function drawCustomStudioElement(ctx, W, H, el) {
+  if (!el || el.visible === false) return;
+
+  const x = el.x * W;
+  const y = el.y * H;
+  const globalOpacity = el.opacity ?? 1;
+
+  ctx.save();
+  ctx.globalAlpha = globalOpacity;
+
+  if (el.type === 'text') {
+    const weight = el.fontWeight || 'normal';
+    const style = el.fontStyle || '';
+    const size = el.fontSize || 16;
+    ctx.font = `${style} ${weight} ${size}px Inter, sans-serif`.trim();
+    const pad = Math.round(size * 0.5);
+    const text = el.text || 'Texto';
+    const boxW = el.w || 200;
+    const maxTextW = Math.max(20, boxW - pad * 2);
+
+    // Word wrapping per line/paragraph
+    const lines = [];
+    const paragraphs = text.split('\n');
+    for (const para of paragraphs) {
+      if (!para) { lines.push(''); continue; }
+      const words = para.split(' ');
+      let cur = '';
+      for (const word of words) {
+        const test = cur ? `${cur} ${word}` : word;
+        if (ctx.measureText(test).width > maxTextW && cur) {
+          lines.push(cur);
+          cur = word;
+        } else {
+          cur = test;
+        }
+      }
+      if (cur) lines.push(cur);
+    }
+
+    const lineHeight = Math.round(size * 1.3);
+    const textContentH = lines.length * lineHeight;
+    const boxH = el.h || Math.max(Math.round(size * 1.5 + pad * 2), textContentH + pad * 2);
+    const radius = el.borderRadius ?? Math.round(size * 0.25);
+
+    // Background
+    if (el.bgColor && el.bgColor !== 'transparent') {
+      ctx.fillStyle = el.bgColor;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, boxW, boxH, radius);
+      else ctx.rect(x, y, boxW, boxH);
+      ctx.fill();
+    }
+    // Border
+    if (el.strokeColor && el.strokeColor !== 'transparent' && (el.strokeWidth || 0) > 0) {
+      ctx.strokeStyle = el.strokeColor;
+      ctx.lineWidth = el.strokeWidth;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, boxW, boxH, radius);
+      else ctx.rect(x, y, boxW, boxH);
+      ctx.stroke();
+    }
+    // Multi-line Text rendering
+    ctx.fillStyle = el.color || '#ffffff';
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+    const startY = y + pad;
+    lines.forEach((line, idx) => {
+      ctx.fillText(line, x + pad, startY + idx * lineHeight);
+    });
+
+  } else if (el.type === 'rect') {
+    const rw = el.w || 160;
+    const rh = el.h || 100;
+    const radius = el.borderRadius ?? 6;
+    // Fill
+    if (el.bgColor && el.bgColor !== 'transparent') {
+      ctx.fillStyle = el.bgColor;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, rw, rh, radius);
+      else ctx.rect(x, y, rw, rh);
+      ctx.fill();
+    }
+    // Stroke
+    if (el.strokeColor && el.strokeColor !== 'transparent' && (el.strokeWidth || 0) > 0) {
+      ctx.strokeStyle = el.strokeColor;
+      ctx.lineWidth = el.strokeWidth;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, rw, rh, radius);
+      else ctx.rect(x, y, rw, rh);
+      ctx.stroke();
+    }
+
+  } else if (el.type === 'circle') {
+    const rw = (el.w || 100) / 2;
+    const rh = (el.h || 100) / 2;
+    const cx = x + rw;
+    const cy = y + rh;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, Math.max(1, rw), Math.max(1, rh), 0, 0, Math.PI * 2);
+    if (el.bgColor && el.bgColor !== 'transparent') {
+      ctx.fillStyle = el.bgColor;
+      ctx.fill();
+    }
+    if (el.strokeColor && el.strokeColor !== 'transparent' && (el.strokeWidth || 0) > 0) {
+      ctx.strokeStyle = el.strokeColor;
+      ctx.lineWidth = el.strokeWidth;
+      ctx.stroke();
+    }
+
+  } else if (el.type === 'arrow') {
+    // Arrow uses x2/y2 as fractions of canvas for the endpoint
+    const x2 = (el.x2 ?? (el.x + 0.1)) * W;
+    const y2 = (el.y2 ?? el.y) * H;
+    const sw = el.strokeWidth || 3;
+
+    // Shaft
+    ctx.strokeStyle = el.strokeColor || '#ef4444';
+    ctx.lineWidth = sw;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    // Arrowhead — size proportional to stroke width
+    const angle = Math.atan2(y2 - y, x2 - x);
+    const headLen = Math.max(12, sw * 4);
+    ctx.fillStyle = el.strokeColor || '#ef4444';
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
-// Draggable overlay (invisible drag handle)
-const DragHandle = ({ id, pos, onMove, visible, size }) => {
+function drawOverlays(ctx, W, H, opts) {
+  const {
+    incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle,
+    overlayPos, bearing, zoom, lat, legendData, annData, vizName, scale,
+    titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle,
+    elementsStack, studioElements
+  } = opts;
+
+  const s = scale || 1;
+  const stack = elementsStack || ['title', 'north', 'scale', 'legend', 'annLegend'];
+
+  stack.forEach(id => {
+    if (id === 'title' && incTitle && titleCfg) {
+      drawTitle(ctx, overlayPos.title.x * W, overlayPos.title.y * H, { ...titleCfg, titleSize: (titleCfg.titleSize || 32) * s, subtitleSize: (titleCfg.subtitleSize || 18) * s });
+    } else if (id === 'north' && incNorth) {
+      drawNorth(ctx, overlayPos.north.x * W, overlayPos.north.y * H, OVL.NORTH * s, bearing, northArrowStyle);
+    } else if (id === 'scale' && incScale) {
+      drawScale(ctx, overlayPos.scale.x * W, overlayPos.scale.y * H, OVL.SCALE_W * s, OVL.SCALE_H * s, zoom, lat);
+    } else if (id === 'legend' && incLegend && legendData?.items?.length) {
+      drawLegend(ctx, overlayPos.legend.x * W, overlayPos.legend.y * H, OVL.LEG_W * s, legendCustomTitle || legendData.title, legendData.items);
+    } else if (id === 'annLegend' && incAnnLegend && annData?.length) {
+      drawAnnLegend(ctx, overlayPos.annLegend.x * W, overlayPos.annLegend.y * H, OVL.ANN_W * s, annData, annLegendCustomTitle || vizName, incMeasurements);
+    } else if (id.startsWith('studio-el-')) {
+      const el = (studioElements || []).find(e => e.id === id);
+      if (el) drawCustomStudioElement(ctx, W, H, el);
+    }
+  });
+}
+
+// Draggable & Resizable overlay handle
+const DragHandle = ({ id, pos, onMove, visible, size, isSelected, onSelect, onResize, canResize }) => {
   const ref = useRef(null);
-  const onDown = useCallback((e) => {
+
+  const onDownMove = useCallback((e) => {
     if (!ref.current) return;
     e.preventDefault(); e.stopPropagation();
+    if (onSelect) onSelect();
     const rect = ref.current.getBoundingClientRect();
     const ox = e.clientX - rect.left, oy = e.clientY - rect.top;
     const onMv = (ev) => {
-      const pr = ref.current.parentElement.getBoundingClientRect();
+      const parent = ref.current.parentElement;
+      if (!parent) return;
+      const pr = parent.getBoundingClientRect();
       onMove(id, Math.max(0, Math.min((ev.clientX - pr.left - ox) / pr.width, 0.95)),
                   Math.max(0, Math.min((ev.clientY - pr.top - oy) / pr.height, 0.95)));
     };
     const onUp = () => { window.removeEventListener('mousemove', onMv); window.removeEventListener('mouseup', onUp); };
     window.addEventListener('mousemove', onMv); window.addEventListener('mouseup', onUp);
-  }, [id, onMove]);
+  }, [id, onMove, onSelect]);
+
+  const onDownResize = useCallback((e) => {
+    if (!ref.current) return;
+    e.preventDefault(); e.stopPropagation();
+    if (onSelect) onSelect();
+    const parent = ref.current.parentElement;
+    if (!parent) return;
+    const pr = parent.getBoundingClientRect();
+    const scaleFactor = pr.width / (parent.offsetWidth || pr.width);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startW = size?.w || 100;
+    const startH = size?.h || 60;
+
+    const onMv = (ev) => {
+      const dx = (ev.clientX - startX) / (scaleFactor || 1);
+      const dy = (ev.clientY - startY) / (scaleFactor || 1);
+      const newW = Math.max(20, Math.round(startW + dx));
+      const newH = Math.max(20, Math.round(startH + dy));
+      if (onResize) onResize(id, newW, newH);
+    };
+    const onUp = () => { window.removeEventListener('mousemove', onMv); window.removeEventListener('mouseup', onUp); };
+    window.addEventListener('mousemove', onMv); window.addEventListener('mouseup', onUp);
+  }, [id, size, onResize, onSelect]);
+
   if (!visible) return null;
-  return <div ref={ref} onMouseDown={onDown} style={{
-    position: 'absolute', left: `${pos.x*100}%`, top: `${pos.y*100}%`,
-    width: size?.w || 40, height: size?.h || 40, cursor: 'move', zIndex: 20,
-    border: '2px dashed rgba(0,150,255,0.5)', borderRadius: 3, background: 'rgba(0,150,255,0.05)',
-  }} title="Arraste para reposicionar" />;
+
+  return (
+    <div ref={ref} onMouseDown={onDownMove} style={{
+      position: 'absolute', left: `${pos.x*100}%`, top: `${pos.y*100}%`,
+      width: size?.w || 40, height: size?.h || 40, cursor: 'move', zIndex: isSelected ? 25 : 20,
+      border: isSelected ? '2px solid #38bdf8' : '2px dashed rgba(0,150,255,0.4)',
+      boxShadow: isSelected ? '0 0 8px rgba(56,189,248,0.5)' : 'none',
+      borderRadius: 3, background: isSelected ? 'rgba(56,189,248,0.12)' : 'rgba(0,150,255,0.03)',
+    }} title="Clique para selecionar / Arraste para mover">
+      {canResize && (
+        <div onMouseDown={onDownResize} style={{
+          position: 'absolute', right: -6, bottom: -6,
+          width: 12, height: 12, borderRadius: 2,
+          background: '#38bdf8', border: '1px solid #ffffff',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
+          cursor: 'nwse-resize', zIndex: 30,
+        }} title="Arraste para redimensionar" />
+      )}
+    </div>
+  );
 };
 
 const MAP_STYLES = [
@@ -540,6 +746,7 @@ const ImageExportStudio = () => {
   const [incTitle, setIncTitle] = useState(true);
   const [incMunPoints, setIncMunPoints] = useState(true);
   const [incGraticule, setIncGraticule] = useState(false);
+  const [incMeasurements, setIncMeasurements] = useState(true);
   const [legendCustomTitle, setLegendCustomTitle] = useState('');
   const [annLegendCustomTitle, setAnnLegendCustomTitle] = useState('');
 
@@ -559,6 +766,118 @@ const ImageExportStudio = () => {
   const [legendData, setLegendData] = useState(null);
   const [annData, setAnnData] = useState([]);
   const [vizName, setVizName] = useState('');
+
+  // Custom detailing elements & Z-Index stack
+  const [studioElements, setStudioElements] = useState([]);
+  const [elementsStack, setElementsStack] = useState(['title', 'north', 'scale', 'legend', 'annLegend']);
+  const [selectedStudioElId, setSelectedStudioElId] = useState(null);
+
+  // Helper to ensure input[type="color"] receives valid #rrggbb string
+  const toValidHexColor = (val, fallback = '#3b82f6') => {
+    if (!val || typeof val !== 'string' || val === 'transparent') return fallback;
+    if (val.startsWith('#')) {
+      if (val.length === 7) return val;
+      if (val.length === 9) return val.substring(0, 7); // strip alpha from #rrgGBBaa
+      if (val.length === 4) return `#${val[1]}${val[1]}${val[2]}${val[2]}${val[3]}${val[3]}`;
+    }
+    return fallback;
+  };
+
+  const ELEMENT_DEFAULTS = {
+    text: { w: 200, h: 40, text: 'Texto de Detalhe', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ffffff', bgColor: '#0f172a', strokeColor: '#3b82f6', strokeWidth: 0, opacity: 1 },
+    rect: { w: 160, h: 100, text: '', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ffffff', bgColor: '#1e293b', strokeColor: '#3b82f6', strokeWidth: 2, borderRadius: 6, opacity: 1 },
+    circle: { w: 100, h: 100, text: '', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ffffff', bgColor: '#1e293b', strokeColor: '#3b82f6', strokeWidth: 2, opacity: 1 },
+    arrow: { w: 0, h: 0, text: '', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ef4444', bgColor: '#000000', strokeColor: '#ef4444', strokeWidth: 3, opacity: 1 },
+  };
+
+  const addStudioElement = useCallback((type) => {
+    const id = `studio-el-${Date.now()}`;
+    const defaults = ELEMENT_DEFAULTS[type] || ELEMENT_DEFAULTS.rect;
+    const newEl = {
+      id, type, visible: true,
+      x: 0.3, y: 0.3,
+      ...defaults,
+      // Arrow endpoint
+      ...(type === 'arrow' ? { x2: 0.5, y2: 0.3 } : {}),
+    };
+    setStudioElements(prev => [...prev, newEl]);
+    setElementsStack(prev => [...prev, id]);
+    setSelectedStudioElId(id);
+  }, []);
+
+  const duplicateStudioElement = useCallback((id) => {
+    setStudioElements(prev => {
+      const src = prev.find(e => e.id === id);
+      if (!src) return prev;
+      const newId = `studio-el-${Date.now()}`;
+      const copy = { ...src, id: newId, x: Math.min(src.x + 0.03, 0.9), y: Math.min(src.y + 0.03, 0.9) };
+      if (copy.x2 !== undefined) copy.x2 = Math.min((src.x2 ?? 0) + 0.03, 0.95);
+      if (copy.y2 !== undefined) copy.y2 = Math.min((src.y2 ?? 0) + 0.03, 0.95);
+      setElementsStack(stk => [...stk, newId]);
+      setSelectedStudioElId(newId);
+      return [...prev, copy];
+    });
+  }, []);
+
+  const removeStudioElement = useCallback((id) => {
+    setStudioElements(prev => prev.filter(e => e.id !== id));
+    setElementsStack(prev => prev.filter(item => item !== id));
+    setSelectedStudioElId(prev => prev === id ? null : prev);
+  }, []);
+
+  const updateStudioElement = useCallback((id, updates) => {
+    setStudioElements(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
+  }, []);
+
+  const toggleElementVisibility = useCallback((id) => {
+    // For built-in overlays, toggle their inc* state
+    if (id === 'title') return setIncTitle(v => !v);
+    if (id === 'north') return setIncNorth(v => !v);
+    if (id === 'scale') return setIncScale(v => !v);
+    if (id === 'legend') return setIncLegend(v => !v);
+    if (id === 'annLegend') return setIncAnnLegend(v => !v);
+    // For custom elements, toggle visible
+    setStudioElements(prev => prev.map(e => e.id === id ? { ...e, visible: !e.visible } : e));
+  }, []);
+
+  const moveElementStack = useCallback((id, direction) => {
+    setElementsStack(prev => {
+      const idx = prev.indexOf(id);
+      if (idx === -1) return prev;
+      const next = [...prev];
+      if (direction === 'front') { next.splice(idx, 1); next.push(id); }
+      else if (direction === 'back') { next.splice(idx, 1); next.unshift(id); }
+      else if (direction === 'up' && idx < next.length - 1) { [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]; }
+      else if (direction === 'down' && idx > 0) { [next[idx], next[idx - 1]] = [next[idx - 1], next[idx]]; }
+      return next;
+    });
+  }, []);
+
+  const isOverlayId = (id) => ['title', 'north', 'scale', 'legend', 'annLegend'].includes(id);
+  const isElementVisible = (id) => {
+    if (id === 'title') return incTitle;
+    if (id === 'north') return incNorth;
+    if (id === 'scale') return incScale;
+    if (id === 'legend') return incLegend;
+    if (id === 'annLegend') return incAnnLegend;
+    const el = studioElements.find(e => e.id === id);
+    return el ? el.visible !== false : false;
+  };
+
+  const getElementInfo = (id) => {
+    if (id === 'title') return { name: '🏷️ Título', icon: '🏷️' };
+    if (id === 'north') return { name: '🧭 Norte', icon: '🧭' };
+    if (id === 'scale') return { name: '📏 Escala', icon: '📏' };
+    if (id === 'legend') return { name: '🎨 Legenda', icon: '🎨' };
+    if (id === 'annLegend') return { name: 'ℹ️ Info Mapa', icon: 'ℹ️' };
+    const el = studioElements.find(e => e.id === id);
+    if (!el) return { name: id, icon: '?' };
+    if (el.type === 'text') return { name: `💬 ${(el.text || 'Texto').substring(0, 16)}`, icon: '💬' };
+    if (el.type === 'rect') return { name: '🔲 Quadro', icon: '🔲' };
+    if (el.type === 'circle') return { name: '⭕ Círculo', icon: '⭕' };
+    if (el.type === 'arrow') return { name: '↗️ Seta', icon: '↗️' };
+    return { name: `Elemento`, icon: '?' };
+  };
 
   const previewMapRef = useRef(null);
   const previewContainerRef = useRef(null);
@@ -604,12 +923,14 @@ const ImageExportStudio = () => {
     })(),
     prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType,
+    studioElements: JSON.parse(JSON.stringify(studioElements)),
+    elementsStack: [...elementsStack],
   }), [preset, customW, customH, useCustom, orientation, format, jpegQuality,
     previewStyle, layerVis, prvRenderMode, prvFillOpacity, prvBorderWidth,
     incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule,
     legendCustomTitle, annLegendCustomTitle, titleCfg, overlayPos,
     prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
-    prvFilterRegion, prvFilterState, prvFilterCityType]);
+    prvFilterRegion, prvFilterState, prvFilterCityType, studioElements, elementsStack]);
 
   const loadPage = useCallback((pg) => {
     if (!pg) return;
@@ -642,6 +963,9 @@ const ImageExportStudio = () => {
     setAnnLegendCustomTitle(pg.annLegendCustomTitle ?? '');
     if (pg.titleCfg) setTitleCfg({ ...pg.titleCfg });
     if (pg.overlayPos) setOverlayPos(JSON.parse(JSON.stringify(pg.overlayPos)));
+    setStudioElements(pg.studioElements ? JSON.parse(JSON.stringify(pg.studioElements)) : []);
+    setElementsStack(pg.elementsStack ? [...pg.elementsStack] : ['title', 'north', 'scale', 'legend', 'annLegend']);
+    setSelectedStudioElId(null);
 
     // Build viz config from page data to pass directly (avoids stale state)
     const vizCfg = {
@@ -1313,7 +1637,7 @@ const ImageExportStudio = () => {
     const w = frame.clientWidth, h = frame.clientHeight;
     if (w === 0 || h === 0) return;
     // Skip full redraw if no overlays are visible
-    const anyVisible = incNorth || incScale || incLegend || incAnnLegend || incTitle;
+    const anyVisible = incNorth || incScale || incLegend || incAnnLegend || incTitle || studioElements.length > 0;
     const dpr = window.devicePixelRatio || 1;
     const targetCW = Math.round(w * dpr);
     const targetCH = Math.round(h * dpr);
@@ -1332,12 +1656,13 @@ const ImageExportStudio = () => {
     const center = pm.getCenter();
     // Frame is at actual target resolution, so scale=1 (fixed pixel sizes)
     drawOverlays(ctx, w, h, {
-      incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos,
+      incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos,
       bearing: pm.getBearing(), zoom: pm.getZoom(), lat: center.lat,
       legendData, annData, vizName, scale: 1, titleCfg,
       legendCustomTitle, annLegendCustomTitle, northArrowStyle,
+      elementsStack, studioElements,
     });
-  }, [incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle]);
+  }, [incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
 
   // Keep ref always pointing to the latest redraw function — map event listeners
   // use this ref to avoid stale closures that cause overlay/handle desync.
@@ -1374,10 +1699,11 @@ const ImageExportStudio = () => {
 
       setProgress('Desenhando elementos...');
       drawOverlays(ctx, targetW, targetH, {
-        incNorth, incScale, incLegend, incAnnLegend, incTitle, overlayPos,
+        incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos,
         bearing, zoom: exportZoom, lat: center.lat,
         legendData, annData, vizName, scale: 1, titleCfg,
         legendCustomTitle, annLegendCustomTitle, northArrowStyle,
+        elementsStack, studioElements,
       });
 
       setProgress('Gerando arquivo...');
@@ -1391,7 +1717,7 @@ const ImageExportStudio = () => {
         setTimeout(() => setProgress(''), 3000);
       }, mime, format==='jpeg'?jpegQuality:undefined);
     } catch (err) { console.error('Export error:', err); setProgress(`Erro: ${err.message}`); setExporting(false); }
-  }, [targetW, targetH, format, jpegQuality, incNorth, incScale, incLegend, incAnnLegend, overlayPos, legendData, annData, vizName, setShowImageStudio]);
+  }, [targetW, targetH, format, jpegQuality, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
 
   // Save current page state before closing
   const handleClose = useCallback(() => {
@@ -1538,6 +1864,7 @@ const ImageExportStudio = () => {
               )}
               <label className="studio-check-row"><input type="checkbox" checked={incTitle} onChange={e => setIncTitle(e.target.checked)} /><span className="studio-check-label">🏷️ Título</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incMunPoints} onChange={e => setIncMunPoints(e.target.checked)} /><span className="studio-check-label">📍 Pontos dos Municípios</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incMeasurements} onChange={e => setIncMeasurements(e.target.checked)} /><span className="studio-check-label">📐 Exibir Medidas nas Anotações</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incGraticule} onChange={e => setIncGraticule(e.target.checked)} /><span className="studio-check-label">🌐 Paralelos e Meridianos</span></label>
               {incGraticule && (
                 <div style={{ paddingLeft: 18, marginTop: 2, marginBottom: 6 }}>
@@ -1605,6 +1932,146 @@ const ImageExportStudio = () => {
               <p style={{ fontSize: '0.65rem', color: '#64748b', marginTop: 4, fontStyle: 'italic' }}>
                 Arraste as bordas azuis no preview para reposicionar.
               </p>
+              </>)}
+            </div>
+
+            <div className="studio-section">
+              <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, customElem: !s.customElem}))}>
+                <span>✏️ Detalhes e Camadas</span><span className={`studio-chevron ${openSections.customElem ? 'open' : ''}`}>▸</span>
+              </div>
+              {openSections.customElem && (<>
+                {/* Add element buttons */}
+                <div className="studio-add-buttons">
+                  <button className="studio-add-btn" onClick={() => addStudioElement('text')} title="Adicionar Texto"><span>💬</span> Texto</button>
+                  <button className="studio-add-btn" onClick={() => addStudioElement('rect')} title="Adicionar Quadro"><span>🔲</span> Quadro</button>
+                  <button className="studio-add-btn" onClick={() => addStudioElement('circle')} title="Adicionar Círculo"><span>⭕</span> Círculo</button>
+                  <button className="studio-add-btn" onClick={() => addStudioElement('arrow')} title="Adicionar Seta"><span>↗️</span> Seta</button>
+                </div>
+
+                {/* Layer stack list */}
+                <div className="studio-layers-header">Ordem das Camadas (Topo → Fundo)</div>
+                <div className="studio-layers-list">
+                  {[...elementsStack].reverse().map(id => {
+                    const info = getElementInfo(id);
+                    const visible = isElementVisible(id);
+                    const isSelected = selectedStudioElId === id;
+                    const isOvl = isOverlayId(id);
+                    return (
+                      <div key={id} className={`studio-layer-item${isSelected ? ' selected' : ''}${!visible ? ' hidden-layer' : ''}`}
+                        onClick={() => setSelectedStudioElId(isSelected ? null : id)}>
+                        <button className="studio-layer-vis" onClick={(e) => { e.stopPropagation(); toggleElementVisibility(id); }}
+                          title={visible ? 'Ocultar' : 'Mostrar'}>{visible ? '👁' : '👁‍🗨'}</button>
+                        <span className="studio-layer-name">{info.name}</span>
+                        <div className="studio-layer-controls">
+                          <button onClick={(e) => { e.stopPropagation(); moveElementStack(id, 'front'); }} title="Topo">⏫</button>
+                          <button onClick={(e) => { e.stopPropagation(); moveElementStack(id, 'up'); }} title="Acima">🔼</button>
+                          <button onClick={(e) => { e.stopPropagation(); moveElementStack(id, 'down'); }} title="Abaixo">🔽</button>
+                          <button onClick={(e) => { e.stopPropagation(); moveElementStack(id, 'back'); }} title="Fundo">⏬</button>
+                          {!isOvl && (
+                            <button className="studio-layer-delete" onClick={(e) => { e.stopPropagation(); removeStudioElement(id); }} title="Excluir">✕</button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Properties panel for selected element */}
+                {selectedStudioElId && (() => {
+                  const sel = studioElements.find(e => e.id === selectedStudioElId);
+                  if (!sel) return null; // overlay selected — no custom props
+                  return (
+                    <div className="studio-props-panel">
+                      <div className="studio-props-title">Propriedades — {getElementInfo(sel.id).name}</div>
+
+                      {/* Text content */}
+                      {sel.type === 'text' && (
+                        <div className="studio-input-row" style={{ marginBottom: 4 }}>
+                          <label>Texto</label>
+                          <input type="text" className="studio-text-input" value={sel.text || ''} onChange={e => updateStudioElement(sel.id, { text: e.target.value })} />
+                        </div>
+                      )}
+
+                      {/* Font size + bold/italic (text only) */}
+                      {sel.type === 'text' && (
+                        <div className="studio-input-row" style={{ marginBottom: 4 }}>
+                          <label>Fonte</label>
+                          <input type="number" className="studio-num-input" min={8} max={72} step={1} value={sel.fontSize || 16}
+                            onChange={e => updateStudioElement(sel.id, { fontSize: Number(e.target.value) })} style={{ width: 44 }} />
+                          <span style={{ fontSize: '0.6rem', color: '#64748b', marginLeft: 2 }}>px</span>
+                          <button className={`studio-toolbar-btn${sel.fontWeight === 'bold' ? ' active' : ''}`}
+                            onClick={() => updateStudioElement(sel.id, { fontWeight: sel.fontWeight === 'bold' ? 'normal' : 'bold' })}
+                            style={{ fontWeight: 'bold', padding: '2px 6px', fontSize: '0.65rem', minWidth: 22, marginLeft: 4 }}>B</button>
+                          <button className={`studio-toolbar-btn${sel.fontStyle === 'italic' ? ' active' : ''}`}
+                            onClick={() => updateStudioElement(sel.id, { fontStyle: sel.fontStyle === 'italic' ? '' : 'italic' })}
+                            style={{ fontStyle: 'italic', padding: '2px 6px', fontSize: '0.65rem', minWidth: 22 }}>I</button>
+                        </div>
+                      )}
+
+                      {/* Text color (text only) */}
+                      {sel.type === 'text' && (
+                        <div className="studio-input-row" style={{ marginBottom: 4 }}>
+                          <label>Cor texto</label>
+                          <input type="color" value={toValidHexColor(sel.color, '#ffffff')} onChange={e => updateStudioElement(sel.id, { color: e.target.value })} />
+                        </div>
+                      )}
+
+                      {/* Background color (not arrows) */}
+                      {sel.type !== 'arrow' && (
+                        <div className="studio-input-row" style={{ marginBottom: 4 }}>
+                          <label>Fundo</label>
+                          <input type="color" value={toValidHexColor(sel.bgColor, '#0f172a')}
+                            onChange={e => updateStudioElement(sel.id, { bgColor: e.target.value })} />
+                        </div>
+                      )}
+
+                      {/* Stroke color */}
+                      <div className="studio-input-row" style={{ marginBottom: 4 }}>
+                        <label>{sel.type === 'arrow' ? 'Cor' : 'Borda'}</label>
+                        <input type="color" value={toValidHexColor(sel.strokeColor, '#3b82f6')} onChange={e => updateStudioElement(sel.id, { strokeColor: e.target.value })} />
+                      </div>
+
+                      {/* Stroke width */}
+                      <div className="studio-range-row" style={{ marginBottom: 4 }}>
+                        <label>Espessura</label>
+                        <input type="range" className="studio-range" min={0} max={10} step={0.5} value={sel.strokeWidth ?? 2}
+                          onChange={e => updateStudioElement(sel.id, { strokeWidth: Number(e.target.value) })} />
+                        <span className="studio-range-value">{sel.strokeWidth ?? 2}px</span>
+                      </div>
+
+                      {/* Opacity */}
+                      <div className="studio-range-row" style={{ marginBottom: 4 }}>
+                        <label>Opacidade</label>
+                        <input type="range" className="studio-range" min={0.1} max={1} step={0.05} value={sel.opacity ?? 1}
+                          onChange={e => updateStudioElement(sel.id, { opacity: Number(e.target.value) })} />
+                        <span className="studio-range-value">{Math.round((sel.opacity ?? 1) * 100)}%</span>
+                      </div>
+
+                      {/* Dimensions (rect & circle only) */}
+                      {(sel.type === 'rect' || sel.type === 'circle') && (
+                        <div className="studio-input-row" style={{ marginBottom: 4 }}>
+                          <label>Largura</label>
+                          <input type="number" className="studio-num-input" min={10} max={2000} step={5} value={sel.w || 100}
+                            onChange={e => updateStudioElement(sel.id, { w: Number(e.target.value) })} style={{ width: 52 }} />
+                          <label style={{ marginLeft: 4 }}>Altura</label>
+                          <input type="number" className="studio-num-input" min={10} max={2000} step={5} value={sel.h || 100}
+                            onChange={e => updateStudioElement(sel.id, { h: Number(e.target.value) })} style={{ width: 52 }} />
+                        </div>
+                      )}
+
+                      {/* Actions row */}
+                      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                        <button className="studio-add-btn" style={{ flex: 1 }} onClick={() => duplicateStudioElement(sel.id)}>📋 Duplicar</button>
+                        <button className="studio-add-btn" style={{ flex: 1, background: 'rgba(239,68,68,0.15)', color: '#f87171' }}
+                          onClick={() => removeStudioElement(sel.id)}>🗑️ Excluir</button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <p style={{ fontSize: '0.6rem', color: '#475569', marginTop: 6, fontStyle: 'italic', lineHeight: 1.3 }}>
+                  Arraste as bordas azuis no preview para reposicionar. Setas possuem dois pontos de arraste.
+                </p>
               </>)}
             </div>
 
@@ -1836,11 +2303,40 @@ const ImageExportStudio = () => {
                 {/* Drag handles */}
                 {(() => {
                   return (<>
-                    <DragHandle id="title" pos={overlayPos.title} onMove={moveOverlay} visible={incTitle} size={{ w: OVL.TITLE_W, h: (titleCfg.titleSize||32) + (titleCfg.subtitle ? (titleCfg.subtitleSize||18) + 6 : 0) + 32 }} />
-                    <DragHandle id="north" pos={overlayPos.north} onMove={moveOverlay} visible={incNorth} size={{ w: OVL.NORTH, h: OVL.NORTH }} />
-                    <DragHandle id="scale" pos={overlayPos.scale} onMove={moveOverlay} visible={incScale} size={{ w: OVL.SCALE_W, h: OVL.SCALE_H }} />
-                    <DragHandle id="legend" pos={overlayPos.legend} onMove={moveOverlay} visible={incLegend && legendData?.items?.length > 0} size={{ w: OVL.LEG_W, h: Math.max(30, (legendData?.items?.length||1)*OVL.LEG_W*0.1+OVL.LEG_W*0.2) }} />
-                    <DragHandle id="annLegend" pos={overlayPos.annLegend} onMove={moveOverlay} visible={incAnnLegend && annData.length > 0} size={{ w: OVL.ANN_W, h: Math.max(30, annData.length*OVL.ANN_W*0.1+OVL.ANN_W*0.15) }} />
+                    <DragHandle id="title" pos={overlayPos.title} onMove={moveOverlay} visible={incTitle} isSelected={selectedStudioElId === 'title'} onSelect={() => setSelectedStudioElId('title')} size={{ w: OVL.TITLE_W, h: (titleCfg.titleSize||32) + (titleCfg.subtitle ? (titleCfg.subtitleSize||18) + 6 : 0) + 32 }} />
+                    <DragHandle id="north" pos={overlayPos.north} onMove={moveOverlay} visible={incNorth} isSelected={selectedStudioElId === 'north'} onSelect={() => setSelectedStudioElId('north')} size={{ w: OVL.NORTH, h: OVL.NORTH }} />
+                    <DragHandle id="scale" pos={overlayPos.scale} onMove={moveOverlay} visible={incScale} isSelected={selectedStudioElId === 'scale'} onSelect={() => setSelectedStudioElId('scale')} size={{ w: OVL.SCALE_W, h: OVL.SCALE_H }} />
+                    <DragHandle id="legend" pos={overlayPos.legend} onMove={moveOverlay} visible={incLegend && legendData?.items?.length > 0} isSelected={selectedStudioElId === 'legend'} onSelect={() => setSelectedStudioElId('legend')} size={{ w: OVL.LEG_W, h: Math.max(30, (legendData?.items?.length||1)*OVL.LEG_W*0.1+OVL.LEG_W*0.2) }} />
+                    <DragHandle id="annLegend" pos={overlayPos.annLegend} onMove={moveOverlay} visible={incAnnLegend && annData.length > 0} isSelected={selectedStudioElId === 'annLegend'} onSelect={() => setSelectedStudioElId('annLegend')} size={{ w: OVL.ANN_W, h: Math.max(30, annData.length*OVL.ANN_W*0.1+OVL.ANN_W*0.15) }} />
+                    {studioElements.filter(el => el.visible !== false).map(el => {
+                      const isSel = selectedStudioElId === el.id;
+                      return (
+                        <React.Fragment key={el.id}>
+                          <DragHandle
+                            id={el.id}
+                            pos={{ x: el.x, y: el.y }}
+                            onMove={(id, x, y) => updateStudioElement(id, { x, y })}
+                            visible={true}
+                            isSelected={isSel}
+                            onSelect={() => setSelectedStudioElId(el.id)}
+                            canResize={el.type !== 'arrow'}
+                            onResize={(id, w, h) => updateStudioElement(id, { w, h })}
+                            size={{ w: el.type === 'arrow' ? 14 : (el.w || 140), h: el.type === 'arrow' ? 14 : (el.h || 60) }}
+                          />
+                          {el.type === 'arrow' && (
+                            <DragHandle
+                              id={`${el.id}__end`}
+                              pos={{ x: el.x2 ?? 0.5, y: el.y2 ?? 0.3 }}
+                              onMove={(_, x, y) => updateStudioElement(el.id, { x2: x, y2: y })}
+                              visible={true}
+                              isSelected={isSel}
+                              onSelect={() => setSelectedStudioElId(el.id)}
+                              size={{ w: 14, h: 14 }}
+                            />
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </>);
                 })()}
               </div>

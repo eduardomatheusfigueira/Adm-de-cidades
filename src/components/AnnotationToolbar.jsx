@@ -1,11 +1,14 @@
 import React, { useContext } from 'react';
 import '../styles/AnnotationToolbar.css';
 import { AnnotationContext } from '../contexts/AnnotationContext';
+import { getLineLengthMeters, getPolygonAreaSqMeters, formatDistance, formatArea } from '../utils/geoUtils';
 
 const TOOLS = [
   { type: 'point', icon: '📍', label: 'Ponto' },
-  { type: 'line', icon: '📏', label: 'Linha' },
-  { type: 'polygon', icon: '⬡', label: 'Polígono' },
+  { type: 'line', icon: '✏️', label: 'Linha Livre' },
+  { type: 'polygon', icon: '⬡', label: 'Polígono Livre' },
+  { type: 'measure_line', icon: '📐', label: 'Medir Distância' },
+  { type: 'measure_polygon', icon: '📐', label: 'Medir Área' },
 ];
 
 const AnnotationToolbar = () => {
@@ -14,15 +17,22 @@ const AnnotationToolbar = () => {
     isDrawing,
     cancelDrawing,
     tempCoordinates,
+    cursorPosition,
     currentColor,
     setCurrentColor,
     isViewMode,
   } = useContext(AnnotationContext);
 
-  // Only show when actively drawing — the main button is now in FilterMenu
   if (!drawingMode || isViewMode) return null;
 
   const activeTool = TOOLS.find(t => t.type === drawingMode);
+
+  // Compute live measurement during drawing
+  const isPolyType = drawingMode === 'polygon' || drawingMode === 'measure_polygon';
+  const liveCoords = cursorPosition ? [...tempCoordinates, [cursorPosition.lng, cursorPosition.lat]] : tempCoordinates;
+  const liveDistance = isDrawing ? formatDistance(getLineLengthMeters(liveCoords)) : '';
+  const liveArea = isDrawing && isPolyType && liveCoords.length >= 3 ? formatArea(getPolygonAreaSqMeters(liveCoords)) : '';
+  const livePerimeter = isDrawing && isPolyType && liveCoords.length >= 3 ? formatDistance(getLineLengthMeters([...liveCoords, liveCoords[0]])) : '';
 
   return (
     <div className="annotation-toolbar">
@@ -48,6 +58,16 @@ const AnnotationToolbar = () => {
             isDrawing
               ? `Desenhando polígono (${tempCoordinates.length} vértices) — duplo-clique para fechar`
               : 'Clique no mapa para iniciar o polígono'
+          )}
+          {drawingMode === 'measure_line' && (
+            isDrawing
+              ? `Medindo distância (${tempCoordinates.length} vértices) — Comprimento: ${liveDistance} — duplo-clique para finalizar`
+              : 'Clique no mapa para iniciar a medição de distância'
+          )}
+          {drawingMode === 'measure_polygon' && (
+            isDrawing
+              ? `Medindo área (${tempCoordinates.length} vértices) ${liveArea ? `— Área: ${liveArea} (Perímetro: ${livePerimeter})` : `— Comprimento: ${liveDistance}`} — duplo-clique para fechar`
+              : 'Clique no mapa para iniciar a medição de área'
           )}
         </span>
         <button

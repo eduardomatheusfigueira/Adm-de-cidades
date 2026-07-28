@@ -35,6 +35,7 @@ export const UIProvider = ({ children }) => {
     showBg: true,
     color: '#1e293b',
   });
+  const [showMeasurements, setShowMeasurements] = useState(true); // Alternar exibição de medidas no mapa
   const [showImageStudio, setShowImageStudio] = useState(false);
   const [exportPages, setExportPages] = useState([]);
 
@@ -136,6 +137,8 @@ export const UIProvider = ({ children }) => {
     setGraticuleStyle,
     northArrowStyle,
     setNorthArrowStyle,
+    showMeasurements,
+    setShowMeasurements,
     showImageStudio,
     setShowImageStudio,
     exportPages,

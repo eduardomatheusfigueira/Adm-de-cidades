@@ -66,6 +66,8 @@ const FilterMenu = ({ onImportGeometry }) => {
     updateLegendConfig,
     exportPages,
     setExportPages,
+    showMeasurements,
+    setShowMeasurements,
   } = useContext(UIContext);
 
   const activeViz = visualizations.find(v => v.id === activeVisualizationId);
@@ -377,9 +379,25 @@ const FilterMenu = ({ onImportGeometry }) => {
                       <input type="color" value={currentColor} onChange={(e) => setCurrentColor(e.target.value)} className="draw-color-input" />
                     </label>
                   </div>
+                  <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 4, marginBottom: 2 }}>Formas</div>
                   <button className="draw-tool-btn" onClick={() => handleStartAnnotation('point')}>📍 Ponto</button>
-                  <button className="draw-tool-btn" onClick={() => handleStartAnnotation('line')}>📏 Linha</button>
-                  <button className="draw-tool-btn" onClick={() => handleStartAnnotation('polygon')}>⬡ Polígono</button>
+                  <button className="draw-tool-btn" onClick={() => handleStartAnnotation('line')}>✏️ Linha Livre</button>
+                  <button className="draw-tool-btn" onClick={() => handleStartAnnotation('polygon')}>⬡ Polígono Livre</button>
+                  
+                  <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 8, marginBottom: 2 }}>Medição</div>
+                  <button className="draw-tool-btn" onClick={() => handleStartAnnotation('measure_line')}>📐 Medir Distância</button>
+                  <button className="draw-tool-btn" onClick={() => handleStartAnnotation('measure_polygon')}>📐 Medir Área Poligonal</button>
+
+                  <div style={{ borderTop: '1px solid #334155', marginTop: 8, paddingTop: 6 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: '#cbd5e1', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={showMeasurements}
+                        onChange={(e) => setShowMeasurements(e.target.checked)}
+                      />
+                      <span>Exibir Medidas no Mapa</span>
+                    </label>
+                  </div>
                 </div>
               )}
             </div>

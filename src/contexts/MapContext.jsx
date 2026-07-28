@@ -4,6 +4,7 @@ import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';
 import { getColorScale, getLegendKey } from '../utils/colorUtils';
+import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
 
 export const MapContext = createContext();
 
@@ -20,7 +21,7 @@ export const MapProvider = ({ children }) => {
 
   const { geojsonData, indicadoresData, filteredCsvData } = useContext(DataContext);
   // Consumindo diretamente do UIContext, sem valores padrão aqui
-  const { colorAttribute, visualizationConfig, activeEnvironment, setSelectedCityInfo, legendConfigByKey, showGraticule, graticuleStyle } = useContext(UIContext);
+  const { colorAttribute, visualizationConfig, activeEnvironment, setSelectedCityInfo, legendConfigByKey, showGraticule, graticuleStyle, showMeasurements } = useContext(UIContext);
 
   // Annotation context
   const {
@@ -504,6 +505,8 @@ export const MapProvider = ({ children }) => {
         var renderFillOpacity = ann.fillOpacity ?? 0.15;
       }
 
+      const measurement = ann.measurement || getAnnotationMeasurement(ann);
+
       if (geometry) {
         features.push({
           type: 'Feature',
@@ -519,28 +522,100 @@ export const MapProvider = ({ children }) => {
             lineStyle: renderLineStyle,
             fillOpacity: typeof renderFillOpacity !== 'undefined' ? renderFillOpacity : 0.15,
             description: ann.description,
+            measurementText: measurement,
           },
           geometry,
         });
+
+        // Add callout label feature for lines (segment distances + total) and polygons
+        if (showMeasurements) {
+          if (ann.type === 'line' && ann.coordinates && ann.coordinates.length >= 2) {
+            const details = getLineSegmentDetails(ann.coordinates);
+
+            // 1. Point feature at seg.midPoint for EXACTLY ONE label per segment
+            details.segments.forEach(seg => {
+              features.push({
+                type: 'Feature',
+                properties: {
+                  id: `${ann.id}-seg-${seg.index}`,
+                  annType: 'segment-label',
+                  measurementText: `${seg.distanceStr}`,
+                  textAngle: seg.textAngle,
+                },
+                geometry: { type: 'Point', coordinates: seg.midPoint },
+              });
+
+              // Inward arrows at start and end of segment (pointing toward segment midpoint)
+              features.push({
+                type: 'Feature',
+                properties: { id: `${ann.id}-arrow-start-${seg.index}`, annType: 'meas-arrow', bearing: seg.bearing },
+                geometry: { type: 'Point', coordinates: seg.p1 },
+              });
+
+              features.push({
+                type: 'Feature',
+                properties: { id: `${ann.id}-arrow-end-${seg.index}`, annType: 'meas-arrow', bearing: (seg.bearing + 180) % 360 },
+                geometry: { type: 'Point', coordinates: seg.p2 },
+              });
+            });
+
+            // Total distance callout label at line end if multiple segments
+            if (details.segments.length > 1) {
+              const lastCoord = ann.coordinates[ann.coordinates.length - 1];
+              features.push({
+                type: 'Feature',
+                properties: {
+                  id: `${ann.id}-total`,
+                  annType: 'total-label',
+                  measurementText: `Total: ${details.totalStr}`,
+                },
+                geometry: { type: 'Point', coordinates: lastCoord },
+              });
+            }
+          } else if (ann.type === 'polygon' && measurement && centroid) {
+            features.push({
+              type: 'Feature',
+              properties: {
+                id: `${ann.id}-area`,
+                annType: 'area-label',
+                measurementText: `⬡ Área: ${measurement}`,
+              },
+              geometry: { type: 'Point', coordinates: centroid },
+            });
+          }
+        }
       }
-
-
     });
 
     // Add temp drawing preview
     if (drawingMode && tempCoordinates.length > 0 && cursorPosition) {
       const previewCoords = [...tempCoordinates, cursorPosition];
-      if (drawingMode === 'line' && previewCoords.length >= 2) {
+      if ((drawingMode === 'line' || drawingMode === 'measure_line') && previewCoords.length >= 2) {
         features.push({
           type: 'Feature',
-          properties: { id: 'preview', annType: 'preview', color: '#94A3B8', borderColor: '#64748B' },
+          properties: { id: 'preview', annType: 'preview', color: '#2563eb', borderColor: '#2563eb', lineStyle: 'dashed' },
           geometry: { type: 'LineString', coordinates: previewCoords },
         });
-      } else if (drawingMode === 'polygon' && previewCoords.length >= 3) {
+
+        const details = getLineSegmentDetails(previewCoords);
+        details.segments.forEach(s => {
+          features.push({
+            type: 'Feature',
+            properties: { id: `prev-seg-${s.index}`, annType: 'segment-label', measurementText: `${s.distanceStr}` },
+            geometry: { type: 'LineString', coordinates: [s.p1, s.p2] },
+          });
+        });
+
+        features.push({
+          type: 'Feature',
+          properties: { id: 'prev-total', annType: 'total-label', measurementText: `Total: ${details.totalStr}` },
+          geometry: { type: 'Point', coordinates: previewCoords[previewCoords.length - 1] },
+        });
+      } else if ((drawingMode === 'polygon' || drawingMode === 'measure_polygon') && previewCoords.length >= 3) {
         const closedPreview = [...previewCoords, previewCoords[0]];
         features.push({
           type: 'Feature',
-          properties: { id: 'preview', annType: 'preview', color: '#94A3B8', borderColor: '#64748B' },
+          properties: { id: 'preview', annType: 'preview', color: '#10b981', borderColor: '#059669', lineStyle: 'dashed' },
           geometry: { type: 'Polygon', coordinates: [closedPreview] },
         });
       }
@@ -631,12 +706,12 @@ export const MapProvider = ({ children }) => {
         },
       });
 
-      // Points — larger circle to hold number inside
+      // Points — larger circle to hold number inside (only for actual point annotations)
       map.current.addLayer({
         id: 'annotations-point-layer',
         type: 'circle',
         source: 'annotations-source',
-        filter: ['all', ['==', ['geometry-type'], 'Point'], ['!=', ['get', 'annType'], 'vertex']],
+        filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'annType'], 'point']],
         paint: {
           'circle-radius': 14,
           'circle-color': ['get', 'color'],
@@ -650,7 +725,7 @@ export const MapProvider = ({ children }) => {
         id: 'annotations-point-labels',
         type: 'symbol',
         source: 'annotations-source',
-        filter: ['all', ['==', ['geometry-type'], 'Point'], ['!=', ['get', 'annType'], 'vertex'], ['has', 'numberStr']],
+        filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'annType'], 'point'], ['has', 'numberStr']],
         layout: {
           'text-field': ['get', 'numberStr'],
           'text-size': 11,
@@ -659,6 +734,121 @@ export const MapProvider = ({ children }) => {
         },
         paint: {
           'text-color': '#000000',
+        },
+      });
+
+      // --- Inward Arrow markers for segment ends (open side towards segment center) ---
+      map.current.addLayer({
+        id: 'annotations-meas-arrows',
+        type: 'symbol',
+        source: 'annotations-source',
+        filter: ['==', ['get', 'annType'], 'meas-arrow'],
+        layout: {
+          'text-field': '▶',
+          'text-size': 10,
+          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-rotate': ['get', 'bearing'],
+          'text-rotation-alignment': 'map',
+          'text-allow-overlap': true,
+          'text-keep-upright': false,
+        },
+        paint: {
+          'text-color': '#2563eb',
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 1.5,
+        },
+      });
+
+      map.current.addLayer({
+        id: 'annotations-meas-mid-node',
+        type: 'circle',
+        source: 'annotations-source',
+        filter: ['==', ['get', 'annType'], 'meas-mid-node'],
+        paint: {
+          'circle-radius': 3.5,
+          'circle-color': '#2563eb',
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#ffffff',
+        },
+      });
+
+      map.current.addLayer({
+        id: 'annotations-meas-end-node',
+        type: 'circle',
+        source: 'annotations-source',
+        filter: ['==', ['get', 'annType'], 'meas-end-node'],
+        paint: {
+          'circle-radius': 5.5,
+          'circle-color': '#ef4444',
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+        },
+      });
+
+      // --- Segment distance labels (Centered ONCE per segment at midpoint) ---
+      map.current.addLayer({
+        id: 'annotations-segment-labels',
+        type: 'symbol',
+        source: 'annotations-source',
+        filter: ['==', ['get', 'annType'], 'segment-label'],
+        layout: {
+          'symbol-placement': 'point',
+          'text-field': ['get', 'measurementText'],
+          'text-size': 12,
+          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-rotate': ['get', 'textAngle'],
+          'text-rotation-alignment': 'map',
+          'text-offset': [0, -0.75],
+          'text-allow-overlap': true,
+          'text-keep-upright': true,
+        },
+        paint: {
+          'text-color': '#1e293b',
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 3.5,
+        },
+      });
+
+      // --- Total distance callout label at line end ---
+      map.current.addLayer({
+        id: 'annotations-total-label',
+        type: 'symbol',
+        source: 'annotations-source',
+        filter: ['==', ['get', 'annType'], 'total-label'],
+        layout: {
+          'symbol-placement': 'point',
+          'text-field': ['get', 'measurementText'],
+          'text-size': 12,
+          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-variable-anchor': ['top-left', 'bottom-left', 'top-right', 'bottom-right', 'top', 'bottom'],
+          'text-radial-offset': 0.8,
+          'text-allow-overlap': true,
+        },
+        paint: {
+          'text-color': '#0f172a',
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 3.5,
+        },
+      });
+
+      // --- Polygon Area label ---
+      map.current.addLayer({
+        id: 'annotations-area-label',
+        type: 'symbol',
+        source: 'annotations-source',
+        filter: ['==', ['get', 'annType'], 'area-label'],
+        layout: {
+          'symbol-placement': 'point',
+          'text-field': ['get', 'measurementText'],
+          'text-size': 12,
+          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-anchor': 'center',
+          'text-allow-overlap': true,
+        },
+        paint: {
+          'text-color': '#0f172a',
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 3.5,
         },
       });
 
@@ -678,7 +868,7 @@ export const MapProvider = ({ children }) => {
     }
 
 
-  }, [mapLoaded, allAnnotations, activeVisualizationId, drawingMode, tempCoordinates, cursorPosition, getActiveAnnotations]);
+  }, [mapLoaded, allAnnotations, activeVisualizationId, drawingMode, tempCoordinates, cursorPosition, getActiveAnnotations, showMeasurements]);
 
 
   // =============================================

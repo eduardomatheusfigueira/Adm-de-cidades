@@ -1,4 +1,5 @@
 import React, { createContext, useState, useCallback, useEffect } from 'react';
+import { getAnnotationMeasurement } from '../utils/geoUtils';
 
 export const AnnotationContext = createContext();
 
@@ -82,7 +83,7 @@ export const AnnotationProvider = ({ children }) => {
       return true;
     }
 
-    if (drawingMode === 'line' || drawingMode === 'polygon') {
+    if (drawingMode === 'line' || drawingMode === 'polygon' || drawingMode === 'measure_line' || drawingMode === 'measure_polygon') {
       const newCoords = [...tempCoordinates, coord];
       setTempCoordinates(newCoords);
       setIsDrawing(true);
@@ -90,55 +91,71 @@ export const AnnotationProvider = ({ children }) => {
     }
 
     return false;
-  }, [drawingMode, tempCoordinates, getNextNumber, activeVisualizationId]);
+  }, [drawingMode, tempCoordinates, getNextNumber, activeVisualizationId, currentColor]);
 
   // Called on double-click to finalize line/polygon
   const handleMapDoubleClick = useCallback((lngLat) => {
     if (!drawingMode || drawingMode === 'point') return false;
 
     const coord = [lngLat.lng, lngLat.lat];
-    let finalCoords = [...tempCoordinates, coord];
+    let rawCoords = [...tempCoordinates, coord];
+
+    // Filter out consecutive duplicate coordinates (e.g. from double clicks)
+    let finalCoords = rawCoords.filter((c, idx) => {
+      if (idx === 0) return true;
+      const prev = rawCoords[idx - 1];
+      return Math.abs(c[0] - prev[0]) > 0.000001 || Math.abs(c[1] - prev[1]) > 0.000001;
+    });
 
     if (finalCoords.length < 2) {
       cancelDrawing();
       return true;
     }
 
-    const num = getNextNumber(drawingMode);
+    const effectiveType = (drawingMode === 'measure_line' ? 'line' : drawingMode === 'measure_polygon' ? 'polygon' : drawingMode);
+    const num = getNextNumber(effectiveType);
 
-    if (drawingMode === 'line') {
+    if (drawingMode === 'line' || drawingMode === 'measure_line') {
+      const isMeas = drawingMode === 'measure_line';
+      const measurement = getAnnotationMeasurement({ type: 'line', coordinates: finalCoords });
       const annotation = {
         id: `ann-${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${num}`,
         number: num,
         type: 'line',
+        isMeasurement: isMeas,
         coordinates: finalCoords,
-        color: currentColor,
-        lineColor: currentColor,
-        lineWidth: 2.5,
-        lineStyle: 'solid',
-        description: '',
+        color: isMeas ? '#3b82f6' : currentColor,
+        lineColor: isMeas ? '#3b82f6' : currentColor,
+        lineWidth: isMeas ? 3 : 2.5,
+        lineStyle: isMeas ? 'dashed' : 'solid',
+        description: isMeas ? `Medição de Distância ${num}` : '',
+        measurement,
         visualizationId: activeVisualizationId,
       };
       setAnnotations(prev => [...prev, annotation]);
-    } else if (drawingMode === 'polygon') {
+    } else if (drawingMode === 'polygon' || drawingMode === 'measure_polygon') {
+      const isMeas = drawingMode === 'measure_polygon';
       if (finalCoords.length < 3) {
         cancelDrawing();
         return true;
       }
       // Close the polygon
       finalCoords = [...finalCoords, finalCoords[0]];
+      const measurement = getAnnotationMeasurement({ type: 'polygon', coordinates: finalCoords });
       const annotation = {
         id: `ann-${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${num}`,
         number: num,
         type: 'polygon',
+        isMeasurement: isMeas,
         coordinates: finalCoords,
-        color: currentColor,
-        fillColor: currentColor,
-        fillOpacity: 0.15,
-        strokeColor: '#000000',
-        strokeWidth: 2.5,
-        strokeStyle: 'solid',
-        description: '',
+        color: isMeas ? '#10b981' : currentColor,
+        fillColor: isMeas ? '#10b981' : currentColor,
+        fillOpacity: isMeas ? 0.2 : 0.15,
+        strokeColor: isMeas ? '#059669' : '#000000',
+        strokeWidth: isMeas ? 3 : 2.5,
+        strokeStyle: isMeas ? 'dashed' : 'solid',
+        description: isMeas ? `Medição de Área ${num}` : '',
+        measurement,
         visualizationId: activeVisualizationId,
       };
       setAnnotations(prev => [...prev, annotation]);

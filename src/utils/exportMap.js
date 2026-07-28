@@ -1,3 +1,5 @@
+import { getAnnotationMeasurement, getLineSegmentDetails } from './geoUtils';
+
 /**
  * Generates a standalone HTML file containing a Mapbox GL map
  * with municipality geometries, color legend, annotations,
@@ -29,14 +31,25 @@ export function generateExportHtml({
     const annColor = ann.color || DEFAULT_FILL;
     const borderColor = (annColor === '#FFFFFF' || annColor === '#ffffff') ? DEFAULT_BORDER : '#000000';
     let geometry = null;
+    let centroid = null;
 
     if (ann.type === 'point') {
       geometry = { type: 'Point', coordinates: ann.coordinates };
     } else if (ann.type === 'line') {
       geometry = { type: 'LineString', coordinates: ann.coordinates };
+      const mid = Math.floor(ann.coordinates.length / 2);
+      centroid = ann.coordinates[mid] || ann.coordinates[0];
     } else if (ann.type === 'polygon') {
       geometry = { type: 'Polygon', coordinates: [ann.coordinates] };
+      const coords = ann.coordinates.slice(0, -1);
+      if (coords.length > 0) {
+        const avgLng = coords.reduce((s, c) => s + c[0], 0) / coords.length;
+        const avgLat = coords.reduce((s, c) => s + c[1], 0) / coords.length;
+        centroid = [avgLng, avgLat];
+      }
     }
+
+    const measurement = ann.measurement || getAnnotationMeasurement(ann);
 
     if (geometry) {
       features.push({
@@ -44,6 +57,33 @@ export function generateExportHtml({
         properties: { id: ann.id, numberStr: String(ann.number), annType: ann.type, color: annColor, borderColor, description: ann.description },
         geometry,
       });
+
+      if (ann.type === 'line' && ann.coordinates && ann.coordinates.length >= 2) {
+        const details = getLineSegmentDetails(ann.coordinates);
+        details.segments.forEach(s => {
+          features.push({
+            type: 'Feature',
+            properties: { id: `${ann.id}-seg-${s.index}`, annType: 'segment-label', measurementText: `${s.distanceStr}`, textAngle: s.textAngle },
+            geometry: { type: 'Point', coordinates: s.midPoint },
+          });
+          features.push({ type: 'Feature', properties: { id: `${ann.id}-arrow-start-${s.index}`, annType: 'meas-arrow', bearing: s.bearing }, geometry: { type: 'Point', coordinates: s.p1 } });
+          features.push({ type: 'Feature', properties: { id: `${ann.id}-arrow-end-${s.index}`, annType: 'meas-arrow', bearing: (s.bearing + 180) % 360 }, geometry: { type: 'Point', coordinates: s.p2 } });
+        });
+        if (details.segments.length > 1) {
+          const lastCoord = ann.coordinates[ann.coordinates.length - 1];
+          features.push({
+            type: 'Feature',
+            properties: { id: `${ann.id}-total`, annType: 'total-label', measurementText: `Total: ${details.totalStr}` },
+            geometry: { type: 'Point', coordinates: lastCoord },
+          });
+        }
+      } else if (ann.type === 'polygon' && measurement && centroid) {
+        features.push({
+          type: 'Feature',
+          properties: { id: `${ann.id}-area`, annType: 'area-label', measurementText: `⬡ Área: ${measurement}` },
+          geometry: { type: 'Point', coordinates: centroid },
+        });
+      }
     }
   });
 
@@ -55,7 +95,9 @@ export function generateExportHtml({
   const annotationLegendItems = (annotations || []).map(ann => {
     const color = ann.color || DEFAULT_FILL;
     const border = (color === '#FFFFFF' || color === '#ffffff') ? DEFAULT_BORDER : color;
-    const desc = ann.description || `${ann.type === 'point' ? 'Ponto' : ann.type === 'line' ? 'Linha' : 'Polígono'} ${ann.number}`;
+    const meas = ann.measurement || getAnnotationMeasurement(ann);
+    const measStr = meas ? ` (${meas})` : '';
+    const desc = (ann.description || `${ann.type === 'point' ? 'Ponto' : ann.type === 'line' ? 'Linha' : 'Polígono'} ${ann.number}`) + measStr;
     if (ann.type === 'point') {
       return `<div class="legend-item">
         <span class="legend-num" style="background:${color};border-color:${border}">${ann.number}</span>
@@ -498,8 +540,12 @@ map.on('load', function() {
   map.addSource('labels', { type: 'geojson', data: labelData });
   map.addLayer({ id: 'ann-fill', type: 'fill', source: 'annotations', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.15 } });
   map.addLayer({ id: 'ann-line', type: 'line', source: 'annotations', filter: ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'Polygon']], paint: { 'line-color': ['get', 'borderColor'], 'line-width': 2.5 } });
-  map.addLayer({ id: 'ann-point', type: 'circle', source: 'annotations', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 14, 'circle-color': ['get', 'color'], 'circle-stroke-width': 2, 'circle-stroke-color': ['get', 'borderColor'] } });
-  map.addLayer({ id: 'ann-text', type: 'symbol', source: 'annotations', filter: ['all', ['==', ['geometry-type'], 'Point'], ['has', 'numberStr']], layout: { 'text-field': ['get', 'numberStr'], 'text-size': 11, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-allow-overlap': true }, paint: { 'text-color': '#000' } });
+  map.addLayer({ id: 'ann-point', type: 'circle', source: 'annotations', filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'annType'], 'point']], paint: { 'circle-radius': 14, 'circle-color': ['get', 'color'], 'circle-stroke-width': 2, 'circle-stroke-color': ['get', 'borderColor'] } });
+  map.addLayer({ id: 'ann-text', type: 'symbol', source: 'annotations', filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'annType'], 'point'], ['has', 'numberStr']], layout: { 'text-field': ['get', 'numberStr'], 'text-size': 11, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-allow-overlap': true }, paint: { 'text-color': '#000' } });
+  map.addLayer({ id: 'ann-meas-arrows', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'meas-arrow'], layout: { 'text-field': '▶', 'text-size': 10, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-rotate': ['get', 'bearing'], 'text-rotation-alignment': 'map', 'text-allow-overlap': true, 'text-keep-upright': false }, paint: { 'text-color': '#2563eb', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
+  map.addLayer({ id: 'ann-seg-labels', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'segment-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-rotate': ['get', 'textAngle'], 'text-rotation-alignment': 'map', 'text-offset': [0, -0.75], 'text-allow-overlap': true, 'text-keep-upright': true }, paint: { 'text-color': '#1e293b', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
+  map.addLayer({ id: 'ann-total-label', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'total-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-variable-anchor': ['top-left', 'bottom-left', 'top-right', 'bottom-right', 'top', 'bottom'], 'text-radial-offset': 0.8, 'text-allow-overlap': true }, paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
+  map.addLayer({ id: 'ann-area-label', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'area-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-anchor': 'center', 'text-allow-overlap': true }, paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
   ` : ''}
 });
 ${sc}
