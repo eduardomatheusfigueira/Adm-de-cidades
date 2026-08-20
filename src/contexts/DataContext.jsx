@@ -19,6 +19,8 @@ const REQUIRED_MUNICIPIOS_COLUMNS = [
   'Latitude_Municipio'
 ];
 
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // Limite de 50MB para uploads locais no navegador
+
 const mergeHeaders = (currentHeaders = [], incomingHeaders = []) => {
   const normalizedIncoming = incomingHeaders
     .map((header) => header?.trim())
@@ -100,6 +102,12 @@ export const DataProvider = ({ children }) => {
       const files = event.target.files;
       if (!files || files.length === 0) return;
 
+      const oversizedFiles = Array.from(files).filter(f => f.size > MAX_FILE_SIZE);
+      if (oversizedFiles.length > 0) {
+        alert(`O(s) seguinte(s) arquivo(s) excedem o limite de 50MB: ${oversizedFiles.map(f => f.name).join(', ')}`);
+        return;
+      }
+
       let allNewIndicators = [];
       let filesProcessed = 0;
       let errors = [];
@@ -155,6 +163,10 @@ export const DataProvider = ({ children }) => {
     input.onchange = (event) => {
       const file = event.target.files[0];
       if (file) {
+        if (file.size > MAX_FILE_SIZE) {
+          alert(`O arquivo ${file.name} excede o limite máximo permitido de 50MB.`);
+          return;
+        }
         Papa.parse(file, {
           header: true,
           delimiter: ';',
@@ -298,6 +310,10 @@ ${newCount} novos adicionados.`);
     input.onchange = (event) => {
       const file = event.target.files[0];
       if (file) {
+        if (file.size > MAX_FILE_SIZE) {
+          alert(`O arquivo ${file.name} excede o limite máximo permitido de 50MB.`);
+          return;
+        }
         const reader = new FileReader();
         reader.onload = (e) => {
           try {

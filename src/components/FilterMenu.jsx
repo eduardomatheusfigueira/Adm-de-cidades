@@ -311,7 +311,7 @@ const FilterMenu = ({ onImportGeometry }) => {
       mapZoom: currentZoom,
       mapBearing: mapInstance ? mapInstance.getBearing() : 0,
       mapStyle,
-      mapboxToken: 'pk.eyJ1IjoiZWR1YXJkb21hdGhldXNmaWd1ZWlyYSIsImEiOiJjbTgwd2tqbzYwemRrMmpwdGVka2FrMG5nIn0.NfOWy2a0J-YHP4mdKs_TAQ',
+      mapboxToken: import.meta.env.VITE_MAPBOX_TOKEN || '',
       municipalityGeoJson: munGeoJson,
       municipalityColorExpression: colorExpr,
       colorLegend: buildColorLegend(),

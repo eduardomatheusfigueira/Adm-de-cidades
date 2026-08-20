@@ -71,6 +71,10 @@ function AppContent() {
     input.onchange = async (event) => {
       const file = event.target.files[0];
       if (!file) return;
+      if (file.size > 50 * 1024 * 1024) {
+        alert(`O arquivo ${file.name} excede o limite máximo permitido de 50MB.`);
+        return;
+      }
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {

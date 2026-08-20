@@ -87,9 +87,9 @@ export function generateExportHtml({
     }
   });
 
-  const annotationsGeoJson = JSON.stringify({ type: 'FeatureCollection', features });
-  const munGeoJson = municipalityGeoJson ? JSON.stringify(municipalityGeoJson) : 'null';
-  const colorExpr = municipalityColorExpression ? JSON.stringify(municipalityColorExpression) : '"#cccccc"';
+  const annotationsGeoJson = safeJsonStringify({ type: 'FeatureCollection', features });
+  const munGeoJson = municipalityGeoJson ? safeJsonStringify(municipalityGeoJson) : 'null';
+  const colorExpr = municipalityColorExpression ? safeJsonStringify(municipalityColorExpression) : '"#cccccc"';
 
   // Build annotation legend items HTML
   const annotationLegendItems = (annotations || []).map(ann => {
@@ -562,3 +562,18 @@ function esc(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+/**
+ * Serializa objetos de forma segura para inclusão em tags <script> HTML,
+ * neutralizando caracteres que poderiam permitir quebra de contexto / XSS.
+ */
+function safeJsonStringify(obj, fallback = 'null') {
+  if (obj === undefined || obj === null) return fallback;
+  return JSON.stringify(obj)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+

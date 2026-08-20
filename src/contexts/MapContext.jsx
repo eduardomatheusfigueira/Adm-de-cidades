@@ -38,7 +38,12 @@ export const MapProvider = ({ children }) => {
   } = useContext(AnnotationContext);
 
   useEffect(() => {
-    mapboxgl.accessToken = 'pk.eyJ1IjoiZWR1YXJkb21hdGhldXNmaWd1ZWlyYSIsImEiOiJjbTgwd2tqbzYwemRrMmpwdGVka2FrMG5nIn0.NfOWy2a0J-YHP4mdKs_TAQ';
+    const token = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (token) {
+      mapboxgl.accessToken = token;
+    } else {
+      console.warn("[MapContext] VITE_MAPBOX_TOKEN não configurado nas variáveis de ambiente (.env).");
+    }
   }, []);
 
   const currentStyleUrl = useRef(mapStyle);
