@@ -571,7 +571,7 @@ Achados relevantes que têm contorno. Os que passaram por verificação estão m
 | M78 | CSVs embutidos no JS via `?raw` com parser ingênuo | `DataContext.jsx:5-6,33-54` | `/public` + fetch + Worker | P |
 | M79 | Gratícula gera cerca de 127 mil vértices do mundo a cada `zoomend` | `MapContext.jsx:884-916,1010-1025` | Só o bbox visível | P |
 | M80 | `preserveDrawingBuffer` permanente e cópias profundas do estilo com GeoJSON | `MapContext.jsx:61`; `ImageExportStudio.jsx:1579,1587` | Só no mapa de exportação | P |
-| M81 | Vite 4 sem suporte, 16 vulnerabilidades (9 altas, de build) e `server.fs.allow ['..']` | `vite.config.js:9-12`; `package.json` | Vite atual; não servir a turma pelo `dev` | P |
+| M81 | ✅ Resolvido (Vite 5.4, sem `fs.allow`). Vite 4 sem suporte, 16 vulnerabilidades (9 altas, de build) e `server.fs.allow ['..']` | `vite.config.js:9-12`; `package.json` | Vite atual; não servir a turma pelo `dev` | P |
 | M82 | Sem testes, lint ou CI | `package.json:10` | Vitest + Playwright + Actions | M |
 | M83 | Nada preparado para deploy (README sem token, caminhos absolutos, `public/etl.html` quebrado, `public/index.html` antigo) | `README.md:62-84`; `Header.jsx:15`; `ETLProcessor.jsx:28` | Vercel/Netlify; `BASE_URL` | P |
 | M84 | Acessibilidade básica (lang="en", poucos aria, divs clicáveis) | `index.html:2`; `App.jsx:199-304` | lang pt-BR; `<button>`; `<dialog>` | M |
@@ -935,7 +935,7 @@ Objetivo: o aluno faz um mapa temático **correto** e o entrega pelo computador 
 
 ### 10.1 Mapbox GL 2.15 × MapLibre GL + mapa base gratuito
 
-> **Status (implementado):** o app foi migrado para **MapLibre GL 5.24** com mapas base do OpenFreeMap/Esri e fundos 100% locais (`src/utils/basemaps.js`). Não há mais token nem conta. Se um mapa base remoto não carregar, o app troca sozinho para o fundo liso e mostra um aviso. A prévia e a exportação do Estúdio usam `pixelRatio: 1`, então o PNG sai exatamente no tamanho escolhido também no celular (resolve a parte de memória do B8/C5). O download adia a revogação do blob, e a escala do HTML exportado usa a constante de tiles de 512 px (A3). Isso resolve B1 e C1. A análise abaixo fica como registro da decisão.
+> **Status (implementado):** o app foi migrado para **MapLibre GL** (5.24; em setembro de 2026, 6.11 com Vite 5 — corrige o alerta crítico GHSA-jrc7-96c5-q579; o HTML exportado segue na 5.24, que tem build UMD) com mapas base do OpenFreeMap/Esri e fundos 100% locais (`src/utils/basemaps.js`). Não há mais token nem conta. Se um mapa base remoto não carregar, o app troca sozinho para o fundo liso e mostra um aviso. A prévia e a exportação do Estúdio usam `pixelRatio: 1`, então o PNG sai exatamente no tamanho escolhido também no celular (resolve a parte de memória do B8/C5). O download adia a revogação do blob, e a escala do HTML exportado usa a constante de tiles de 512 px (A3). Isso resolve B1 e C1. A análise abaixo fica como registro da decisão.
 
 | | Mapbox GL 2.15 (atual) | MapLibre GL 4/5 |
 |---|---|---|

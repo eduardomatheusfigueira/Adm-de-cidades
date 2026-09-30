@@ -1,7 +1,7 @@
 import React, { useState, useContext, useCallback, useRef, useEffect, useMemo } from 'react';
 import { X, Image as ImageIcon, ChevronRight, Eye, EyeOff, ArrowUp, ArrowDown, ZoomIn, ZoomOut, Type, Square, Circle, Copy, Trash2, Share2, Download, ArrowUpRight, Maximize, Undo2, Redo2, RotateCcw } from 'lucide-react';
 import { Simbolo } from './brand/Logo';
-import maplibregl from 'maplibre-gl';
+import maplibregl from '../utils/maplibre';
 import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, getFontStack, getGeoJSONSourceData, normalizeBasemap, resolveBasemapStyle, isStyleReady, isAppLayer } from '../utils/basemaps';
 import '../styles/ImageStudio.css';
 import { MapContext } from '../contexts/MapContext';

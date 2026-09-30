@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useRef, useContext, useCallback } from 'react';
-import maplibregl from 'maplibre-gl';
+import maplibregl from '../utils/maplibre';
 import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';

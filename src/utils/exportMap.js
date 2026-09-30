@@ -1,7 +1,9 @@
 import { getAnnotationMeasurement, getLineSegmentDetails } from './geoUtils';
 import { FONT_BOLD } from './basemaps';
 
-// MapLibre carregado via CDN no HTML exportado (mesma versão do app)
+// O HTML exportado usa a versão 5 (script clássico/UMD; a v6 só existe como módulo ES).
+// O alerta GHSA-jrc7-96c5-q579 depende de uma atribuição maliciosa no estilo, e o estilo
+// embutido aqui é sempre um dos mapas base confiáveis do app (ver normalizeBasemap).
 const MAPLIBRE_CDN = 'https://unpkg.com/maplibre-gl@5.24.0/dist';
 
 /**
