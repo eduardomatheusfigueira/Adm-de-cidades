@@ -1022,3 +1022,21 @@
 .studio-export-result-actions button {
   min-height: 44px;
 }
+
+.studio-credits-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 2px 0 8px 26px;
+}
+
+.studio-credits-fields .studio-text-input {
+  width: 100%;
+  font-size: 16px; /* evita zoom automático do iOS */
+}
+
+.studio-credits-note {
+  color: #94a3b8;
+  font-size: 0.7rem;
+  line-height: 1.3;
+}

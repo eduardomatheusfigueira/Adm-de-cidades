@@ -210,14 +210,20 @@ function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
 }
 
 // Escala gráfica: o comprimento da barra é calculado pela distância real (utils/scale.js).
+function scaleDivisions(meters) {
+  const lead = Math.round(meters / Math.pow(10, Math.floor(Math.log10(meters))));
+  return lead === 2 ? 4 : 5;
+}
+
 function formatScaleNumber(v) {
   return v.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 }
 
 function drawScale(ctx, x, y, w, h, zoom, lat) {
-  const NS = 4;
   const pad = w * 0.075;
   const { meters, barPx } = pickScaleDistance(w - pad * 2, zoom, lat);
+  // Divisões com números redondos: 5 → 5×1, 2 → 4×0,5, 1 → 5×0,2
+  const NS = scaleDivisions(meters);
   const unit = meters >= 1000 ? 'km' : 'm';
   const div = unit === 'km' ? 1000 : 1;
   const sW = barPx / NS, bH = h * 0.2;
@@ -604,12 +610,68 @@ function drawCustomStudioElement(ctx, W, H, el) {
   ctx.restore();
 }
 
+// Texto de atribuição do mapa base (exigido pelas licenças do OpenStreetMap/OpenFreeMap e Esri)
+export function mapAttributionText(pm) {
+  try {
+    const sources = pm?.getStyle()?.sources || {};
+    const parts = new Set();
+    Object.values(sources).forEach(src => {
+      if (!src?.attribution) return;
+      const div = document.createElement('div');
+      div.innerHTML = src.attribution;
+      const text = (div.textContent || '').replace(/\s+/g, ' ').trim();
+      if (text) parts.add(text);
+    });
+    // Tile sources carregadas por URL (estilos remotos) expõem a atribuição só na instância
+    Object.keys(sources).forEach(id => {
+      const a = pm.getSource(id)?.attribution;
+      if (a) { const div = document.createElement('div'); div.innerHTML = a; const t = (div.textContent || '').replace(/\s+/g, ' ').trim(); if (t) parts.add(t); }
+    });
+    return [...parts].join(' · ');
+  } catch (e) { return ''; }
+}
+
+// Bloco de créditos (canto inferior direito): Fonte, Elaboração, Data + atribuição do mapa base
+function drawCredits(ctx, W, H, cfg, attribution, s = 1) {
+  const lines = [];
+  if (cfg?.show) {
+    if (cfg.fonte?.trim()) lines.push({ text: `Fonte dos dados: ${cfg.fonte.trim()}`, bold: false });
+    if (cfg.autor?.trim()) lines.push({ text: `Elaboração: ${cfg.autor.trim()}`, bold: false });
+    if (cfg.data?.trim()) lines.push({ text: `Data: ${cfg.data.trim()}`, bold: false });
+  }
+  if (attribution) lines.push({ text: `Mapa base: ${attribution}`, small: true });
+  if (!lines.length) return;
+  const fs = Math.max(11, Math.round(H * 0.014)) * s;
+  const smallFs = Math.round(fs * 0.8);
+  const pad = fs * 0.6;
+  const maxW = W * 0.45;
+  const wrapped = [];
+  lines.forEach(l => {
+    ctx.font = `${l.small ? smallFs : fs}px Inter,sans-serif`;
+    wrapText(ctx, l.text, maxW - pad * 2).forEach(t => wrapped.push({ ...l, text: t }));
+  });
+  const lineH = (l) => (l.small ? smallFs : fs) * 1.35;
+  const boxH = wrapped.reduce((a, l) => a + lineH(l), 0) + pad * 2;
+  const boxW = Math.min(maxW, Math.max(...wrapped.map(l => { ctx.font = `${l.small ? smallFs : fs}px Inter,sans-serif`; return ctx.measureText(l.text).width; })) + pad * 2);
+  const x = W - boxW - W * 0.01, y = H - boxH - H * 0.012;
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.beginPath(); ctx.roundRect(x, y, boxW, boxH, 4 * s); ctx.fill();
+  let cy = y + pad;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  wrapped.forEach(l => {
+    ctx.font = `${l.small ? smallFs : fs}px Inter,sans-serif`;
+    ctx.fillStyle = l.small ? '#475569' : '#1e293b';
+    ctx.fillText(l.text, x + pad, cy);
+    cy += lineH(l);
+  });
+}
+
 function drawOverlays(ctx, W, H, opts) {
   const {
     incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle,
     overlayPos, bearing, zoom, lat, legendData, annData, vizName, scale,
     titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle,
-    elementsStack, studioElements
+    elementsStack, studioElements, creditsCfg, attribution
   } = opts;
 
   const s = scale || 1;
@@ -631,6 +693,7 @@ function drawOverlays(ctx, W, H, opts) {
       if (el) drawCustomStudioElement(ctx, W, H, el);
     }
   });
+  drawCredits(ctx, W, H, creditsCfg, attribution, s);
 }
 
 // Draggable & Resizable overlay handle
@@ -803,6 +866,8 @@ const ImageExportStudio = () => {
   const [incLegend, setIncLegend] = useState(true);
   const [incAnnLegend, setIncAnnLegend] = useState(true);
   const [incTitle, setIncTitle] = useState(true);
+  // Créditos exigidos em mapas escolares/acadêmicos (IBGE/ABNT): fonte, autoria e data
+  const [creditsCfg, setCreditsCfg] = useState(() => ({ show: true, fonte: '', autor: '', data: new Date().toLocaleDateString('pt-BR') }));
   const [incMunPoints, setIncMunPoints] = useState(true);
   const [incGraticule, setIncGraticule] = useState(false);
   const [incMeasurements, setIncMeasurements] = useState(true);
@@ -991,6 +1056,7 @@ const ImageExportStudio = () => {
     incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule,
     legendCustomTitle, annLegendCustomTitle,
     titleCfg: { ...titleCfg },
+    creditsCfg: { ...creditsCfg },
     overlayPos: JSON.parse(JSON.stringify(overlayPos)),
     mapCamera: (() => {
       const pm = previewMapRef.current;
@@ -1004,7 +1070,7 @@ const ImageExportStudio = () => {
   }), [preset, customW, customH, useCustom, orientation, format, jpegQuality,
     previewStyle, layerVis, prvRenderMode, prvFillOpacity, prvBorderWidth,
     incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule,
-    legendCustomTitle, annLegendCustomTitle, titleCfg, overlayPos,
+    legendCustomTitle, annLegendCustomTitle, titleCfg, creditsCfg, overlayPos,
     prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType, studioElements, elementsStack]);
 
@@ -1038,6 +1104,7 @@ const ImageExportStudio = () => {
     setLegendCustomTitle(pg.legendCustomTitle ?? '');
     setAnnLegendCustomTitle(pg.annLegendCustomTitle ?? '');
     if (pg.titleCfg) setTitleCfg({ ...pg.titleCfg });
+    if (pg.creditsCfg) setCreditsCfg(prev => ({ ...prev, ...pg.creditsCfg }));
     if (pg.overlayPos) setOverlayPos(JSON.parse(JSON.stringify(pg.overlayPos)));
     setStudioElements(pg.studioElements ? JSON.parse(JSON.stringify(pg.studioElements)) : []);
     setElementsStack(pg.elementsStack ? [...pg.elementsStack] : ['title', 'north', 'scale', 'legend', 'annLegend']);
@@ -1748,9 +1815,9 @@ const ImageExportStudio = () => {
       bearing: pm.getBearing(), zoom: pm.getZoom(), lat: center.lat,
       legendData, annData, vizName, scale: 1, titleCfg,
       legendCustomTitle, annLegendCustomTitle, northArrowStyle,
-      elementsStack, studioElements,
+      elementsStack, studioElements, creditsCfg, attribution: mapAttributionText(pm),
     });
-  }, [incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
+  }, [creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
 
   // Keep ref always pointing to the latest redraw function — map event listeners
   // use this ref to avoid stale closures that cause overlay/handle desync.
@@ -1798,7 +1865,7 @@ const ImageExportStudio = () => {
         bearing, zoom: exportZoom, lat: center.lat,
         legendData, annData, vizName, scale: 1, titleCfg,
         legendCustomTitle, annLegendCustomTitle, northArrowStyle,
-        elementsStack, studioElements,
+        elementsStack, studioElements, creditsCfg, attribution: mapAttributionText(pm),
       });
 
       setProgress('Gerando arquivo...');
@@ -1829,7 +1896,7 @@ const ImageExportStudio = () => {
       if (hiddenDiv?.parentNode) hiddenDiv.parentNode.removeChild(hiddenDiv);
       setExporting(false);
     }
-  }, [targetW, targetH, format, jpegQuality, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
+  }, [targetW, targetH, format, jpegQuality, creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
 
   // Save current page state before closing
   const handleClose = useCallback(() => {
@@ -1976,6 +2043,15 @@ const ImageExportStudio = () => {
                 </div>
               )}
               <label className="studio-check-row"><input type="checkbox" checked={incTitle} onChange={e => setIncTitle(e.target.checked)} /><span className="studio-check-label">🏷️ Título</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={creditsCfg.show} onChange={e => setCreditsCfg(c => ({ ...c, show: e.target.checked }))} /><span className="studio-check-label">📝 Fonte, elaboração e data</span></label>
+              {creditsCfg.show && (
+                <div className="studio-credits-fields">
+                  <input className="studio-text-input" type="text" placeholder="Fonte dos dados (ex.: IBGE, Censo 2022)" value={creditsCfg.fonte} onChange={e => setCreditsCfg(c => ({ ...c, fonte: e.target.value }))} />
+                  <input className="studio-text-input" type="text" placeholder="Elaboração (seu nome, turma)" value={creditsCfg.autor} onChange={e => setCreditsCfg(c => ({ ...c, autor: e.target.value }))} />
+                  <input className="studio-text-input" type="text" placeholder="Data" value={creditsCfg.data} onChange={e => setCreditsCfg(c => ({ ...c, data: e.target.value }))} />
+                  <small className="studio-credits-note">A atribuição do mapa base (ex.: © OpenStreetMap) é incluída automaticamente, como exige a licença.</small>
+                </div>
+              )}
               <label className="studio-check-row"><input type="checkbox" checked={incMunPoints} onChange={e => setIncMunPoints(e.target.checked)} /><span className="studio-check-label">📍 Pontos dos Municípios</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incMeasurements} onChange={e => setIncMeasurements(e.target.checked)} /><span className="studio-check-label">📐 Exibir Medidas nas Anotações</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incGraticule} onChange={e => setIncGraticule(e.target.checked)} /><span className="studio-check-label">🌐 Paralelos e Meridianos</span></label>

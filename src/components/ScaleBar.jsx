@@ -105,7 +105,8 @@ const ScaleBar = () => {
 
   // Build segment data
   // Menos divisões em barras curtas (celular), para os rótulos não se sobreporem
-  const NUM_SEGMENTS = scaleInfo.width < 170 ? 2 : scaleInfo.width < 240 ? 4 : 5;
+  const lead = Math.round(scaleInfo.totalDistance / Math.pow(10, Math.floor(Math.log10(scaleInfo.totalDistance || 1))));
+  const NUM_SEGMENTS = scaleInfo.width < 170 ? (lead === 5 ? 1 : 2) : (lead === 2 ? 4 : 5);
   const segmentWidth = scaleInfo.width / NUM_SEGMENTS;
   const distPerSegment = scaleInfo.totalDistance / NUM_SEGMENTS;
 
