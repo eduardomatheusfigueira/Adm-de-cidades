@@ -6,6 +6,7 @@ import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { generateExportHtml } from '../utils/exportMap';
 import { getColorScale, getLegendKey } from '../utils/colorUtils';
+import { getGeoJSONSourceData, resolveBasemapStyle } from '../utils/basemaps';
 
 const isValidColor = (value) => /^#([0-9A-F]{3}){1,2}$/i.test(value);
 const normalizeToHex = (color) => {
@@ -299,7 +300,7 @@ const FilterMenu = ({ onImportGeometry }) => {
     let munGeoJson = null;
     let colorExpr = null;
     if (mapInstance && mapInstance.getSource('sectors')) {
-      const srcData = mapInstance.getSource('sectors')._data;
+      const srcData = getGeoJSONSourceData(mapInstance.getSource('sectors'));
       if (srcData && srcData.features && srcData.features.length > 0) munGeoJson = srcData;
       if (mapInstance.getLayer('sectors-fill-layer')) colorExpr = mapInstance.getPaintProperty('sectors-fill-layer', 'fill-color');
     }
@@ -310,8 +311,7 @@ const FilterMenu = ({ onImportGeometry }) => {
       mapCenter: center,
       mapZoom: currentZoom,
       mapBearing: mapInstance ? mapInstance.getBearing() : 0,
-      mapStyle,
-      mapboxToken: import.meta.env.VITE_MAPBOX_TOKEN || '',
+      mapStyle: resolveBasemapStyle(mapStyle),
       municipalityGeoJson: munGeoJson,
       municipalityColorExpression: colorExpr,
       colorLegend: buildColorLegend(),

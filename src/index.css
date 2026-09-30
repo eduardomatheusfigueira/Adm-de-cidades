@@ -195,6 +195,37 @@ body {
   gap: var(--spacing-sm);
 }
 
+.map-notice {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 32px));
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff8e1;
+  border: 1px solid #f0c36d;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: #5d4200;
+  font-size: 13px;
+  line-height: 1.4;
+  z-index: 25;
+}
+
+.map-notice button {
+  flex: none;
+  min-width: 32px;
+  min-height: 32px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
 .map-loading {
   position: absolute;
   top: 0;

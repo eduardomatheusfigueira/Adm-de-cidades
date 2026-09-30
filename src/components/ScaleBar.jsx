@@ -76,7 +76,7 @@ const ScaleBar = () => {
       const center = m.getCenter();
       const zoom = m.getZoom();
 
-      // Mapbox GL JS uses 512px tiles; the correct constant is 40075016.686 / 512 = 78271.5168
+      // MapLibre GL JS uses 512px tiles; the correct constant is 40075016.686 / 512 = 78271.5168
       const metersPerPixel = 78271.5168 * Math.cos(center.lat * Math.PI / 180) / Math.pow(2, zoom);
 
       // Target total bar width: 200-300 pixels (wide enough to avoid label overlap)

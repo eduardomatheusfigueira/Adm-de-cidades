@@ -1,10 +1,11 @@
 import React, { createContext, useState, useEffect, useRef, useContext, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';
 import { getColorScale, getLegendKey } from '../utils/colorUtils';
 import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
+import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
 
 export const MapContext = createContext();
 
@@ -17,7 +18,13 @@ export const MapProvider = ({ children }) => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isMapLoading, setIsMapLoading] = useState(true);
   // mapStyle é gerenciado localmente aqui, mas pode ser movido para UIContext se necessário globalmente
-  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/outdoors-v12');
+  const [mapStyle, setMapStyle] = useState(DEFAULT_BASEMAP);
+  // Aviso exibido sobre o mapa (ex.: mapa base remoto indisponível e troca automática para o fundo liso)
+  const [mapNotice, setMapNotice] = useState(null);
+  // Incrementa a cada 'style.load'. Um estilo local carrega tão rápido que mapLoaded
+  // false→true cai no mesmo render do React; este contador garante que as camadas do app
+  // (municípios, anotações, gratícula) sejam recriadas após toda troca de mapa base.
+  const [styleVersion, setStyleVersion] = useState(0);
 
   const { geojsonData, indicadoresData, filteredCsvData } = useContext(DataContext);
   // Consumindo diretamente do UIContext, sem valores padrão aqui
@@ -37,30 +44,47 @@ export const MapProvider = ({ children }) => {
     annotations: allAnnotations,
   } = useContext(AnnotationContext);
 
-  useEffect(() => {
-    const token = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (token) {
-      mapboxgl.accessToken = token;
-    } else {
-      console.warn("[MapContext] VITE_MAPBOX_TOKEN não configurado nas variáveis de ambiente (.env).");
-    }
+  const currentStyleUrl = useRef(mapStyle);
+  const styleLoadedRef = useRef(false);
+  const styleWatchdogRef = useRef(null);
+
+  // Se um mapa base remoto não carregar (sem internet, rede da escola bloqueando o servidor),
+  // troca para um fundo 100% local em vez de deixar o spinner girando para sempre.
+  const fallbackToLocalStyle = useCallback(() => {
+    clearTimeout(styleWatchdogRef.current);
+    if (isLocalBasemap(currentStyleUrl.current)) return;
+    const failed = BASEMAPS.find(b => b.id === normalizeBasemap(currentStyleUrl.current));
+    setMapNotice(`Não foi possível carregar o mapa base "${failed ? failed.label : 'personalizado'}" (sem internet ou bloqueado pela rede). Usando o fundo liso.`);
+    setMapStyle(FALLBACK_BASEMAP);
   }, []);
 
-  const currentStyleUrl = useRef(mapStyle);
+  const armStyleWatchdog = useCallback((styleValue) => {
+    styleLoadedRef.current = false;
+    clearTimeout(styleWatchdogRef.current);
+    if (isLocalBasemap(styleValue)) return;
+    styleWatchdogRef.current = setTimeout(() => {
+      if (!styleLoadedRef.current) fallbackToLocalStyle();
+    }, 12000);
+  }, [fallbackToLocalStyle]);
+
+  useEffect(() => () => clearTimeout(styleWatchdogRef.current), []);
 
   useEffect(() => {
     // Initialize map if container is present and map doesn't exist
     if (mapContainer.current && !map.current) {
-      console.log("[MapContext] Initializing Mapbox map...");
+      console.log("[MapContext] Initializing MapLibre map...");
       setIsMapLoading(true);
-      map.current = new mapboxgl.Map({
+      map.current = new maplibregl.Map({
         container: mapContainer.current,
-        style: mapStyle, // Usa o estado local mapStyle
+        style: resolveBasemapStyle(mapStyle),
         center: [lng, lat],
         zoom: zoom,
-        preserveDrawingBuffer: true, // Necessário para exportação de imagens (canvas.toDataURL)
+        // Necessário para exportação de imagens (canvas.toDataURL)
+        canvasContextAttributes: { preserveDrawingBuffer: true },
+        attributionControl: { compact: true },
       });
       currentStyleUrl.current = mapStyle; // Sync ref
+      armStyleWatchdog(mapStyle);
 
       map.current.on('move', () => {
         setLng(map.current.getCenter().lng);
@@ -69,10 +93,18 @@ export const MapProvider = ({ children }) => {
       });
       map.current.on('style.load', () => {
         console.log("[MapContext] Map style loaded.");
+        styleLoadedRef.current = true;
+        setStyleVersion(v => v + 1);
+        clearTimeout(styleWatchdogRef.current);
         setMapLoaded(true);
         setIsMapLoading(false);
       });
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      map.current.on('error', (e) => {
+        console.warn('[MapContext] Erro no mapa:', e?.error?.message || e);
+        // Erro antes do estilo carregar = o mapa base não pôde ser obtido.
+        if (!styleLoadedRef.current) fallbackToLocalStyle();
+      });
+      map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
       // --- Annotation drawing: click handler ---
       map.current.on('click', (e) => {
@@ -113,8 +145,10 @@ export const MapProvider = ({ children }) => {
     if (map.current && mapStyle !== currentStyleUrl.current) {
       console.log(`[MapContext] Changing map style to: ${mapStyle}`);
       setMapLoaded(false);
-      map.current.setStyle(mapStyle);
       currentStyleUrl.current = mapStyle;
+      armStyleWatchdog(mapStyle);
+      // diff: false força a recarga completa e o evento 'style.load', que recria as camadas do app
+      map.current.setStyle(resolveBasemapStyle(mapStyle), { diff: false });
     }
   }, [mapStyle]);
 
@@ -122,7 +156,7 @@ export const MapProvider = ({ children }) => {
   const loadMapData = useCallback(() => {
     console.log("[MapContext] loadMapData called", { filteredCsvDataLength: filteredCsvData?.length, colorAttribute, visualizationConfig });
 
-    if (!map.current || !mapLoaded || !map.current.isStyleLoaded()) {
+    if (!map.current || !mapLoaded || !isStyleReady(map.current)) {
       console.log("[MapContext] Map not ready for data loading (style not loaded).");
       return;
     }
@@ -153,7 +187,7 @@ export const MapProvider = ({ children }) => {
       return parseFloat(val.replace(',', '.'));
     };
 
-    const bounds = new mapboxgl.LngLatBounds();
+    const bounds = new maplibregl.LngLatBounds();
     let hasValidBounds = false;
 
     if (geojsonData && geojsonData.features) {
@@ -355,14 +389,14 @@ export const MapProvider = ({ children }) => {
         map.current.setPaintProperty('sectors-point-layer', 'circle-color', colorRenderScaleExpression);
       }
     }
-  }, [mapLoaded, filteredCsvData, geojsonData, indicadoresData, colorAttribute, visualizationConfig, map, setSelectedCityInfo, legendConfigByKey]);
+  }, [mapLoaded, styleVersion, filteredCsvData, geojsonData, indicadoresData, colorAttribute, visualizationConfig, map, setSelectedCityInfo, legendConfigByKey]);
 
 
   useEffect(() => {
     if (mapLoaded && activeEnvironment === 'map') {
       loadMapData();
     }
-  }, [mapLoaded, loadMapData, activeEnvironment]);
+  }, [mapLoaded, styleVersion, loadMapData, activeEnvironment]);
 
 
   // =============================================
@@ -417,7 +451,7 @@ export const MapProvider = ({ children }) => {
         map.current.off('mousemove', onMouseMove);
       }
     };
-  }, [mapLoaded]);
+  }, [mapLoaded, styleVersion]);
 
   // Change cursor style when in drawing mode
   useEffect(() => {
@@ -456,11 +490,11 @@ export const MapProvider = ({ children }) => {
         });
       }
     };
-  }, [mapLoaded]);
+  }, [mapLoaded, styleVersion]);
 
   // Render annotation features on map
   useEffect(() => {
-    if (!map.current || !mapLoaded || !map.current.isStyleLoaded()) return;
+    if (!map.current || !mapLoaded || !isStyleReady(map.current)) return;
 
     const DEFAULT_FILL = '#FFFFFF';
     const DEFAULT_BORDER = '#000000';
@@ -734,7 +768,7 @@ export const MapProvider = ({ children }) => {
         layout: {
           'text-field': ['get', 'numberStr'],
           'text-size': 11,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-font': [FONT_BOLD],
           'text-allow-overlap': true,
         },
         paint: {
@@ -751,7 +785,7 @@ export const MapProvider = ({ children }) => {
         layout: {
           'text-field': '▶',
           'text-size': 10,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-font': [FONT_BOLD],
           'text-rotate': ['get', 'bearing'],
           'text-rotation-alignment': 'map',
           'text-allow-overlap': true,
@@ -800,7 +834,7 @@ export const MapProvider = ({ children }) => {
           'symbol-placement': 'point',
           'text-field': ['get', 'measurementText'],
           'text-size': 12,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-font': [FONT_BOLD],
           'text-rotate': ['get', 'textAngle'],
           'text-rotation-alignment': 'map',
           'text-offset': [0, -0.75],
@@ -824,7 +858,7 @@ export const MapProvider = ({ children }) => {
           'symbol-placement': 'point',
           'text-field': ['get', 'measurementText'],
           'text-size': 12,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-font': [FONT_BOLD],
           'text-variable-anchor': ['top-left', 'bottom-left', 'top-right', 'bottom-right', 'top', 'bottom'],
           'text-radial-offset': 0.8,
           'text-allow-overlap': true,
@@ -846,7 +880,7 @@ export const MapProvider = ({ children }) => {
           'symbol-placement': 'point',
           'text-field': ['get', 'measurementText'],
           'text-size': 12,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-font': [FONT_BOLD],
           'text-anchor': 'center',
           'text-allow-overlap': true,
         },
@@ -873,7 +907,7 @@ export const MapProvider = ({ children }) => {
     }
 
 
-  }, [mapLoaded, allAnnotations, activeVisualizationId, drawingMode, tempCoordinates, cursorPosition, getActiveAnnotations, showMeasurements]);
+  }, [mapLoaded, styleVersion, allAnnotations, activeVisualizationId, drawingMode, tempCoordinates, cursorPosition, getActiveAnnotations, showMeasurements]);
 
 
   // =============================================
@@ -918,20 +952,12 @@ export const MapProvider = ({ children }) => {
     return { type: 'FeatureCollection', features };
   }, []);
 
-  // Resolve Mapbox font name from style options
-  const getGraticuleFonts = useCallback((style) => {
-    const weight = style.bold ? 'Bold' : 'Regular';
-    const variant = style.italic ? 'Italic' : '';
-    // Mapbox GL has limited font combos; DIN Pro supports Regular, Medium, Bold, Italic
-    // Build best available name
-    const mainFont = `DIN Pro ${weight}${variant ? ' ' + variant : ''}`;
-    const fallback = `Arial Unicode MS ${weight}`;
-    return [mainFont, fallback];
-  }, []);
+  // Fonte da gratícula a partir das opções de estilo (Noto Sans: Regular, Bold ou Italic)
+  const getGraticuleFonts = useCallback((style) => getFontStack(style.bold ? 'Bold' : 'Regular', !!style.italic), []);
 
   // Effect 1: Create / Remove graticule layers when toggled
   useEffect(() => {
-    if (!map.current || !mapLoaded || !map.current.isStyleLoaded()) return;
+    if (!map.current || !mapLoaded || !isStyleReady(map.current)) return;
 
     const GRATICULE_SOURCE = 'graticule-source';
     const GRATICULE_LINE_LAYER = 'graticule-lines';
@@ -985,7 +1011,7 @@ export const MapProvider = ({ children }) => {
     } else {
       map.current.getSource(GRATICULE_SOURCE).setData(geoJson);
     }
-  }, [mapLoaded, showGraticule, buildGraticuleGeoJson, getGraticuleFonts]); // eslint-disable-line
+  }, [mapLoaded, styleVersion, showGraticule, buildGraticuleGeoJson, getGraticuleFonts]); // eslint-disable-line
 
   // Effect 2: Live-update paint & layout properties when graticuleStyle changes
   useEffect(() => {
@@ -1004,7 +1030,7 @@ export const MapProvider = ({ children }) => {
     map.current.setPaintProperty('graticule-labels', 'text-color', graticuleStyle.textColor);
     map.current.setPaintProperty('graticule-labels', 'text-halo-color', graticuleStyle.showHalo ? graticuleStyle.haloColor : 'transparent');
     map.current.setPaintProperty('graticule-labels', 'text-halo-width', graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0);
-  }, [mapLoaded, showGraticule, graticuleStyle, getGraticuleFonts]);
+  }, [mapLoaded, styleVersion, showGraticule, graticuleStyle, getGraticuleFonts]);
 
   // Effect 3: Regenerate GeoJSON data when zoom changes (interval adapts)
   useEffect(() => {
@@ -1022,11 +1048,12 @@ export const MapProvider = ({ children }) => {
         map.current.off('zoomend', updateGraticuleData);
       }
     };
-  }, [mapLoaded, showGraticule, buildGraticuleGeoJson]);
+  }, [mapLoaded, styleVersion, showGraticule, buildGraticuleGeoJson]);
 
 
   const handleMapStyleChange = useCallback((newStyle) => {
-    setMapStyle(newStyle); // Atualiza o estado local do estilo do mapa
+    setMapNotice(null);
+    setMapStyle(normalizeBasemap(newStyle)); // Aceita ids, URLs personalizadas e URLs mapbox:// de perfis antigos
   }, []);
 
   const flyToCity = useCallback((city) => {
@@ -1044,6 +1071,7 @@ export const MapProvider = ({ children }) => {
     map, mapContainer, mapLoaded, isMapLoading, lng, lat, zoom,
     mapStyle, // Exporta o estado local do estilo
     handleMapStyleChange, // Exporta a função para mudar o estilo
+    mapNotice, setMapNotice,
     flyToCity,
     setLng, setLat, setZoom // Expor se AppContent ou outros precisarem
   };

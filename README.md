@@ -6,20 +6,20 @@
 
 O **Adm-de-Cidades** (também conhecido internamente como SisInfo) é uma plataforma web interativa desenvolvida em React para visualização, análise e gestão de dados de municípios brasileiros. A aplicação integra um extenso catálogo de dados brutos provenientes de fontes oficiais (IBGE, FINBRA, DATASUS, SNIS, etc.) e os transforma em visualizações acessíveis, permitindo que gestores, pesquisadores e cidadãos explorem indicadores socioeconômicos e geográficos de maneira imersiva.
 
-A plataforma combina mapas interativos (Mapbox GL JS) com ferramentas robustas de visualização de dados (Recharts, D3.js) e módulos de processamento (ETL), oferecendo um raio-X completo da administração pública em escala municipal.
+A plataforma combina mapas interativos (MapLibre GL JS, sem token nem cobrança) com ferramentas robustas de visualização de dados (Recharts, D3.js) e módulos de processamento (ETL), oferecendo um raio-X completo da administração pública em escala municipal.
 
 ## Arquitetura do Sistema
 
 O projeto adota uma arquitetura baseada em componentes funcionais do React, gerenciando o estado global através de múltiplos Contexts:
 
 *   **`DataContext`**: Coração da aplicação para dados. Gerencia o carregamento, parsing (usando `Papaparse`) e armazenamento de arquivos CSV (indicadores e informações dos municípios) e GeoJSON (geometrias). Ele também lida com o estado dos filtros ativos e o processamento de importação de novas geometrias.
-*   **`MapContext`**: Controla o ciclo de vida e o estado do mapa do Mapbox GL JS. É responsável por renderizar os *layers* de municípios (polígonos e pontos), sincronizar as coordenadas da *viewport* e calcular as cores dinamicamente com base nos dados e nas configurações de visualização utilizando escalas D3.
+*   **`MapContext`**: Controla o ciclo de vida e o estado do mapa do MapLibre GL JS. É responsável por renderizar os *layers* de municípios (polígonos e pontos), sincronizar as coordenadas da *viewport* e calcular as cores dinamicamente com base nos dados e nas configurações de visualização utilizando escalas D3.
 *   **`UIContext`**: Gerencia o estado da interface de usuário, incluindo o "ambiente" ativo (Catálogo, Mapa, Visualização de Dados, ETL), as cores selecionadas, os perfis de cidades abertos, e a configuração da legenda.
 
 ## Funcionalidades Principais (Implementadas)
 
 ### 1. Mapa Interativo e Exploração Geoespacial (`MapContext`, `DataVisualizationEnvironment`)
-*   **Renderização Dinâmica**: Utiliza Mapbox GL JS para renderizar o mapa do Brasil e sobrepor *layers* vetoriais gerados dinamicamente a partir dos dados em CSV e GeoJSON.
+*   **Renderização Dinâmica**: Utiliza MapLibre GL JS para renderizar o mapa do Brasil e sobrepor *layers* vetoriais gerados dinamicamente a partir dos dados em CSV e GeoJSON.
 *   **Coloração por Atributo ou Indicador**: O mapa atualiza suas cores (Choropleth map) com base na seleção do usuário (ex: PIB, População, IDH). A escala de cores é calculada *on-the-fly* via D3.js.
 *   **City Search (`CitySearch.jsx`)**: Barra de pesquisa para localizar municípios rapidamente com recurso de "fly-to" (movimentação de câmera no mapa).
 
@@ -52,7 +52,7 @@ Durante a evolução do projeto, algumas funcionalidades foram planejadas ou par
 As principais tecnologias declaradas no `package.json` são:
 
 *   **React & Vite**: Frontend framework base para construção de UI e o bundler/dev-server de alta performance.
-*   **Mapbox GL JS (`mapbox-gl`)**: Biblioteca principal para renderização WebGL do mapa interativo.
+*   **MapLibre GL JS (`maplibre-gl`)**: Biblioteca open source (BSD-3) de renderização WebGL do mapa interativo. Os mapas base vêm do [OpenFreeMap](https://openfreemap.org) (gratuito, sem conta) e do Esri World Imagery (satélite); há também fundos 100% locais que funcionam sem internet. A lista fica em `src/utils/basemaps.js`.
 *   **D3.js (`d3`)**: Utilizado especificamente pelas suas funções de escala (ex: `scaleLinear`, `scaleQuantile`) e formatação de cores (`colorUtils.js`) para geração dos mapas de calor.
 *   **Recharts (`recharts`)**: Biblioteca de componentes React baseada em D3 para a construção dos gráficos interativos nos painéis de análise.
 *   **Turf.js (`@turf/turf`)**: Biblioteca de análise geoespacial avançada em JavaScript (disponível no projeto para uso futuro/análise de geometrias).
@@ -129,10 +129,10 @@ Este documento descreve uma visão técnica e estratégica detalhada para levar 
 
 ---
 
-### 3. Engine de Mapas e Geoespacial (Mapbox e Turf.js)
+### 3. Engine de Mapas e Geoespacial (MapLibre e Turf.js)
 
 **Situação Atual:**
-*   Uso competente do Mapbox GL JS, porém as geometrias completas do Brasil (milhares de polígonos complexos) são carregadas frequentemente do cliente para o motor do Mapbox via `addSource`.
+*   Uso competente do MapLibre GL JS, porém as geometrias completas do Brasil (milhares de polígonos complexos) são carregadas frequentemente do cliente para o motor do MapLibre via `addSource`.
 *   Problemas de performance em dispositivos móveis ou com hardware inferior quando muitos *layers* são ligados.
 
 **Situação Ideal (Evolução & Correções):**

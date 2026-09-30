@@ -38,7 +38,8 @@ function AppContent() {
     mapLoaded,
     isMapLoading,
     lng, lat, zoom,
-    flyToCity
+    flyToCity,
+    mapNotice, setMapNotice,
   } = useContext(MapContext);
 
   const {
@@ -187,6 +188,12 @@ function AppContent() {
               <div className="loading-spinner"></div><p>Carregando mapa...</p>
             </div>
           )}
+          {mapNotice && (
+            <div className="map-notice" role="status">
+              <span>{mapNotice}</span>
+              <button type="button" onClick={() => setMapNotice(null)} aria-label="Fechar aviso">✕</button>
+            </div>
+          )}
           {mapLoaded && <AnnotationToolbar />}
           {mapLoaded && <Legend />}
           {mapLoaded && <AnnotationLegend />}
@@ -195,7 +202,7 @@ function AppContent() {
           {mapLoaded && <Graticule />}
           {mapLoaded && <ImageExportStudio />}
 
-          {/* Small discrete toggle buttons - bottom-right, above mapbox controls */}
+          {/* Small discrete toggle buttons - bottom-right, above map controls */}
           {mapLoaded && (!showAttributeLegend || !showAnnotationLegend || !showNorthArrow || !showScaleBar || !showGraticule) && (
             <div style={{ position: 'absolute', bottom: '120px', right: '10px', display: 'flex', flexDirection: 'column', gap: '6px', zIndex: 10 }}>
               {!showAttributeLegend && (

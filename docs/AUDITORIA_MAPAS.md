@@ -883,6 +883,8 @@ Objetivo: o aluno faz um mapa temático **correto** e o entrega pelo computador 
 
 ### 10.1 Mapbox GL 2.15 × MapLibre GL + mapa base gratuito
 
+> **Status (implementado):** o app foi migrado para **MapLibre GL 5.24** com mapas base do OpenFreeMap/Esri e fundos 100% locais (`src/utils/basemaps.js`). Não há mais token nem conta. Se um mapa base remoto não carregar, o app troca sozinho para o fundo liso e mostra um aviso. A prévia e a exportação do Estúdio usam `pixelRatio: 1`, então o PNG sai exatamente no tamanho escolhido também no celular (resolve a parte de memória do B8/C5). O download adia a revogação do blob, e a escala do HTML exportado usa a constante de tiles de 512 px (A3). Isso resolve B1 e C1. A análise abaixo fica como registro da decisão.
+
 | | Mapbox GL 2.15 (atual) | MapLibre GL 4/5 |
 |---|---|---|
 | Licença | Proprietária; só com produtos Mapbox (`node_modules/mapbox-gl/LICENSE.txt`) | BSD-3 |

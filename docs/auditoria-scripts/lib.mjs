@@ -12,7 +12,7 @@ const STUB_STYLE = JSON.stringify({
   layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#dfe7ef' } }],
   glyphs: 'http://localhost:5199/__glyphs/{fontstack}/{range}.pbf',
 });
-const MAPBOX_CSS = fs.readFileSync('/home/user/Adm-de-cidades/node_modules/mapbox-gl/dist/mapbox-gl.css');
+const MAPBOX_CSS = fs.readFileSync('/home/user/Adm-de-cidades/node_modules/maplibre-gl/dist/maplibre-gl.css');
 
 export async function launch() {
   return chromium.launch({

@@ -1,5 +1,6 @@
 import React, { useState, useContext, useCallback, useRef, useEffect, useMemo } from 'react';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
+import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, getFontStack, getGeoJSONSourceData, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
 import '../styles/ImageStudio.css';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
@@ -658,22 +659,10 @@ const DragHandle = ({ id, pos, onMove, visible, size, isSelected, onSelect, onRe
   );
 };
 
-const MAP_STYLES = [
-  { value: 'mapbox://styles/mapbox/light-v11', label: 'Claro' },
-  { value: 'mapbox://styles/mapbox/dark-v11', label: 'Escuro' },
-  { value: 'mapbox://styles/mapbox/streets-v12', label: 'Ruas' },
-  { value: 'mapbox://styles/mapbox/outdoors-v12', label: 'Exterior' },
-  { value: 'mapbox://styles/mapbox/satellite-streets-v12', label: 'Satélite' },
-];
-
-const LAYER_CATEGORIES = [
-  { key: 'labels', label: 'Rótulos', emoji: '🏷️', match: (id) => id.includes('label') },
-  { key: 'roads', label: 'Ruas', emoji: '🛣️', match: (id) => (id.startsWith('road') || id.startsWith('bridge') || id.startsWith('tunnel')) && !id.includes('label') },
-  { key: 'buildings', label: 'Construções', emoji: '🏢', match: (id) => id.includes('building') },
-  { key: 'admin', label: 'Limites', emoji: '🗺️', match: (id) => id.includes('admin') || id.includes('boundary') },
-  { key: 'water', label: 'Água', emoji: '💧', match: (id) => (id.includes('water') || id.includes('river')) && !id.includes('label') },
-  { key: 'landuse', label: 'Vegetação', emoji: '🌿', match: (id) => id.includes('landuse') || id.includes('landcover') || id.includes('national-park') },
-];
+// Mesmas categorias do menu de Visualização, exceto Pontos de Interesse
+const LAYER_CATEGORIES = BASEMAP_LAYER_CATEGORIES
+  .filter(c => c.key !== 'pois')
+  .map(c => ({ ...c, label: { labels: 'Rótulos', roads: 'Ruas', admin: 'Limites', landuse: 'Vegetação' }[c.key] || c.label }));
 
 const OWN_LAYERS = new Set(['sectors-fill-layer','sectors-line-layer','sectors-point-layer','annotations-fill-layer','annotations-line-solid','annotations-line-dashed','annotations-line-dotted','annotations-point-layer','annotations-point-labels','annotations-vertex-layer','graticule-lines','graticule-labels']);
 
@@ -941,7 +930,7 @@ const ImageExportStudio = () => {
     setPreset(pg.preset ?? 0); setCustomW(pg.customW ?? 3840); setCustomH(pg.customH ?? 2160);
     setUseCustom(pg.useCustom ?? false); setOrientation(pg.orientation ?? 'landscape');
     setFormat(pg.format ?? 'png'); setJpegQuality(pg.jpegQuality ?? 0.92);
-    const newStyle = pg.previewStyle || '';
+    const newStyle = pg.previewStyle ? normalizeBasemap(pg.previewStyle) : '';
     setPreviewStyle(newStyle);
     const newLayerVis = pg.layerVis ? { ...pg.layerVis } : { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true };
     setLayerVis(newLayerVis);
@@ -992,7 +981,7 @@ const ImageExportStudio = () => {
       LAYER_CATEGORIES.forEach(cat => {
         const vis = newLayerVis[cat.key] ? 'visible' : 'none';
         allLayers.forEach(l => {
-          if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
+          if (!OWN_LAYERS.has(l.id) && cat.match(l)) {
             try { pm.setLayoutProperty(l.id, 'visibility', vis); } catch(e) {}
           }
         });
@@ -1031,7 +1020,7 @@ const ImageExportStudio = () => {
               pm.addSource('graticule-source', { type: 'geojson', data: { type: 'FeatureCollection', features: gFeatures } });
               pm.addLayer({ id: 'graticule-lines', type: 'line', source: 'graticule-source', paint: { 'line-color': 'rgba(120,140,170,0.45)', 'line-width': 0.8, 'line-dasharray': [4, 4] } });
               pm.addLayer({ id: 'graticule-labels', type: 'symbol', source: 'graticule-source',
-                layout: { 'symbol-placement': 'line', 'text-field': ['get', 'label'], 'text-size': 9, 'text-font': ['DIN Pro Regular', 'Arial Unicode MS Regular'], 'text-max-angle': 30, 'text-allow-overlap': false, 'symbol-spacing': 300, 'text-keep-upright': true, 'text-letter-spacing': 0.05 },
+                layout: { 'symbol-placement': 'line', 'text-field': ['get', 'label'], 'text-size': 9, 'text-font': getFontStack('Regular'), 'text-max-angle': 30, 'text-allow-overlap': false, 'symbol-spacing': 300, 'text-keep-upright': true, 'text-letter-spacing': 0.05 },
                 paint: { 'text-color': '#ffffff', 'text-halo-color': '#000000', 'text-halo-width': 0.5, 'text-halo-blur': 0.2 } });
             } catch(e) {}
           }
@@ -1053,7 +1042,7 @@ const ImageExportStudio = () => {
     const pm = previewMapRef.current;
     const cam = pg.mapCamera;
 
-    if (pm && newStyle && pm._currentStyleUrl !== newStyle) {
+    if (pm && newStyle && normalizeBasemap(pm._currentStyleUrl) !== normalizeBasemap(newStyle)) {
       // Style is changing — save custom layers, switch style, re-add
       const center = cam ? cam.center : pm.getCenter();
       const z = cam ? cam.zoom : pm.getZoom();
@@ -1073,11 +1062,12 @@ const ImageExportStudio = () => {
         if (curStyle.sources?.[sid]) {
           savedSources[sid] = JSON.parse(JSON.stringify(curStyle.sources[sid]));
           const live = pm.getSource(sid);
-          if (live && live._data) savedSources[sid].data = live._data;
+          const liveData = getGeoJSONSourceData(live);
+          if (liveData) savedSources[sid].data = liveData;
         }
       });
       pm._currentStyleUrl = newStyle;
-      pm.setStyle(newStyle, {diff: false});
+      pm.setStyle(resolveBasemapStyle(newStyle), {diff: false});
       pm.once('style.load', () => {
         // Another loadPage may have already started — bail if stale
         if (styleLoadGenRef.current !== myGen) return;
@@ -1095,7 +1085,7 @@ const ImageExportStudio = () => {
           commitViz();
         });
       });
-    } else if (pm && pm.isStyleLoaded()) {
+    } else if (pm && isStyleReady(pm)) {
       // Same style — update camera, layers, render mode, viz directly
       if (cam) pm.jumpTo({ center: cam.center, zoom: cam.zoom, bearing: cam.bearing, pitch: cam.pitch });
       commitViz();
@@ -1191,7 +1181,7 @@ const ImageExportStudio = () => {
     const pm = previewMapRef.current;
     // When called with explicit cfg (from commitViz/page-load), trust that the map is idle.
     // When called from the viz-reapply effect (no cfg), enforce the style-loaded guard.
-    const styleReady = cfg ? !!pm : (!!pm && pm.isStyleLoaded());
+    const styleReady = cfg ? !!pm : (!!pm && isStyleReady(pm));
     if (!styleReady || !csvData) return;
     const vizType = cfg?.prvVizType ?? prvVizType;
     const vizAttr = cfg?.prvVizAttribute ?? prvVizAttribute;
@@ -1385,14 +1375,13 @@ const ImageExportStudio = () => {
           savedSources[sid] = JSON.parse(JSON.stringify(src));
           // For geojson sources, get live data
           const liveSource = pm.getSource(sid);
-          if (liveSource && liveSource._data) {
-            savedSources[sid].data = liveSource._data;
-          }
+          const liveData = getGeoJSONSourceData(liveSource);
+          if (liveData) savedSources[sid].data = liveData;
         }
       });
 
       pm._currentStyleUrl = newStyle;
-      pm.setStyle(newStyle, {diff: false});
+      pm.setStyle(resolveBasemapStyle(newStyle), {diff: false});
       pm.once('style.load', () => {
         pm.jumpTo({ center, zoom, bearing, pitch });
         // Re-add custom sources
@@ -1413,7 +1402,7 @@ const ImageExportStudio = () => {
           LAYER_CATEGORIES.forEach(cat => {
             if (!layerVis[cat.key]) {
               allLayers.forEach(l => {
-                if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
+                if (!OWN_LAYERS.has(l.id) && cat.match(l)) {
                   try { pm.setLayoutProperty(l.id, 'visibility', 'none'); } catch(e) {}
                 }
               });
@@ -1433,14 +1422,14 @@ const ImageExportStudio = () => {
   // Toggle layer visibility in preview map
   const togglePreviewLayer = useCallback((catKey) => {
     const pm = previewMapRef.current;
-    if (!pm || !pm.isStyleLoaded()) return;
+    if (!pm || !isStyleReady(pm)) return;
     const cat = LAYER_CATEGORIES.find(c => c.key === catKey);
     if (!cat) return;
     const newVis = !layerVis[catKey];
     const visibility = newVis ? 'visible' : 'none';
     const allLayers = pm.getStyle().layers || [];
     allLayers.forEach(l => {
-      if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
+      if (!OWN_LAYERS.has(l.id) && cat.match(l)) {
         try { pm.setLayoutProperty(l.id, 'visibility', visibility); } catch(e) {}
       }
     });
@@ -1450,7 +1439,7 @@ const ImageExportStudio = () => {
   // Apply render mode / opacity / border to preview map
   const applyPreviewRender = useCallback(() => {
     const pm = previewMapRef.current;
-    if (!pm || !pm.isStyleLoaded()) return;
+    if (!pm || !isStyleReady(pm)) return;
     try {
       if (pm.getLayer('sectors-fill-layer')) {
         pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', prvRenderMode === 'filled' ? prvFillOpacity : 0);
@@ -1488,11 +1477,9 @@ const ImageExportStudio = () => {
             features.push({ type: 'Feature', properties: { label: `${Math.abs(lng)}° ${lng >= 0 ? 'L' : 'O'}`, axis: 'lng' }, geometry: { type: 'LineString', coordinates: coords } });
           }
           pm.addSource('graticule-source', { type: 'geojson', data: { type: 'FeatureCollection', features } });
-          const gWeight = graticuleStyle.bold ? 'Bold' : 'Regular';
-          const gVariant = graticuleStyle.italic ? ' Italic' : '';
           pm.addLayer({ id: 'graticule-lines', type: 'line', source: 'graticule-source', paint: { 'line-color': graticuleStyle.lineColor, 'line-width': graticuleStyle.lineWidth, 'line-dasharray': [4, 4] } });
           pm.addLayer({ id: 'graticule-labels', type: 'symbol', source: 'graticule-source',
-            layout: { 'symbol-placement': 'line', 'text-field': ['get', 'label'], 'text-size': graticuleStyle.fontSize, 'text-font': [`DIN Pro ${gWeight}${gVariant}`, `Arial Unicode MS ${gWeight}`], 'text-max-angle': 30, 'text-allow-overlap': false, 'symbol-spacing': 300, 'text-keep-upright': true, 'text-letter-spacing': 0.05 },
+            layout: { 'symbol-placement': 'line', 'text-field': ['get', 'label'], 'text-size': graticuleStyle.fontSize, 'text-font': getFontStack(graticuleStyle.bold ? 'Bold' : 'Regular', !!graticuleStyle.italic), 'text-max-angle': 30, 'text-allow-overlap': false, 'symbol-spacing': 300, 'text-keep-upright': true, 'text-letter-spacing': 0.05 },
             paint: { 'text-color': graticuleStyle.textColor, 'text-halo-color': graticuleStyle.showHalo ? graticuleStyle.haloColor : 'transparent', 'text-halo-width': graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0, 'text-halo-blur': 0.2 } });
         }
         if (pm.getLayer('graticule-lines')) {
@@ -1503,9 +1490,7 @@ const ImageExportStudio = () => {
         if (pm.getLayer('graticule-labels')) {
           pm.setLayoutProperty('graticule-labels', 'visibility', 'visible');
           pm.setLayoutProperty('graticule-labels', 'text-size', graticuleStyle.fontSize);
-          const gWeight = graticuleStyle.bold ? 'Bold' : 'Regular';
-          const gVariant = graticuleStyle.italic ? ' Italic' : '';
-          pm.setLayoutProperty('graticule-labels', 'text-font', [`DIN Pro ${gWeight}${gVariant}`, `Arial Unicode MS ${gWeight}`]);
+          pm.setLayoutProperty('graticule-labels', 'text-font', getFontStack(graticuleStyle.bold ? 'Bold' : 'Regular', !!graticuleStyle.italic));
           pm.setPaintProperty('graticule-labels', 'text-color', graticuleStyle.textColor);
           pm.setPaintProperty('graticule-labels', 'text-halo-color', graticuleStyle.showHalo ? graticuleStyle.haloColor : 'transparent');
           pm.setPaintProperty('graticule-labels', 'text-halo-width', graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0);
@@ -1534,10 +1519,10 @@ const ImageExportStudio = () => {
     } else {
       setIncNorth(showNorthArrow); setIncScale(showScaleBar);
       setIncLegend(showAttributeLegend); setIncAnnLegend(showAnnotationLegend);
-      setPreviewStyle(mapStyle || 'mapbox://styles/mapbox/light-v11');
+      setPreviewStyle(normalizeBasemap(mapStyle));
       setLayerVis({ labels: true, roads: true, buildings: true, admin: true, water: true, landuse: true });
       setExportPages([{ name: 'Página 1', preset: 0, customW: 3840, customH: 2160, useCustom: false,
-        orientation: 'landscape', format: 'png', jpegQuality: 0.92, previewStyle: mapStyle || '',
+        orientation: 'landscape', format: 'png', jpegQuality: 0.92, previewStyle: normalizeBasemap(mapStyle),
         layerVis: { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true },
         prvRenderMode: 'filled', prvFillOpacity: 0.6, prvBorderWidth: 2,
         prvVizType: 'attribute', prvVizAttribute: colorAttribute || 'Sigla_Regiao', prvVizIndicator: '', prvVizYear: '', prvVizValueType: 'value',
@@ -1577,17 +1562,20 @@ const ImageExportStudio = () => {
       if (!previewContainerRef.current) return;
       // Always start with deep-cloned main map style (guarantees all geometries)
       const styleCopy = JSON.parse(JSON.stringify(mainMap.getStyle()));
-      const pm = new mapboxgl.Map({
+      const pm = new maplibregl.Map({
         container: previewContainerRef.current,
         style: styleCopy,
         center: savedCam ? savedCam.center : mainMap.getCenter(),
         zoom: savedCam ? savedCam.zoom : mainMap.getZoom(),
         bearing: savedCam ? savedCam.bearing : mainMap.getBearing(),
         pitch: savedCam ? savedCam.pitch : mainMap.getPitch(),
-        preserveDrawingBuffer: true, attributionControl: false,
+        // A moldura da prévia já tem o tamanho real da saída; pixelRatio 1 evita um canvas
+        // (tamanho da saída × devicePixelRatio) acima do limite de memória dos celulares.
+        pixelRatio: 1,
+        canvasContextAttributes: { preserveDrawingBuffer: true }, attributionControl: false,
       });
-      pm.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
-      pm._currentStyleUrl = savedStyle || 'mapbox://styles/mapbox/satellite-v9';
+      pm.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+      pm._currentStyleUrl = normalizeBasemap(mapStyle); // a prévia começa com uma cópia do estilo do mapa principal
       previewMapRef.current = pm;
       // Use ref-based callback to avoid stale closures — ensures overlays
       // always redraw with the latest positions/state after map events.
@@ -1614,7 +1602,7 @@ const ImageExportStudio = () => {
         } : null;
         // If the saved page has a different style, switch to it
         // handlePreviewStyleChange handles saving/re-adding custom layers
-        if (savedStyle && savedStyle !== mainMap.getStyle()?.name && savedStyle.startsWith('mapbox://')) {
+        if (savedStyle && normalizeBasemap(savedStyle) !== normalizeBasemap(mapStyle)) {
           // Wait for map to fully settle before switching style
           pm.once('idle', () => {
             handlePreviewStyleChange(savedStyle);
@@ -1689,7 +1677,8 @@ const ImageExportStudio = () => {
       document.body.appendChild(hiddenDiv);
       setProgress('Renderizando mapa em alta resolução...');
 
-      const hm = new mapboxgl.Map({ container: hiddenDiv, style, center: [center.lng, center.lat], zoom: exportZoom, bearing, pitch, preserveDrawingBuffer: true, interactive: false, fadeDuration: 0, attributionControl: false });
+      // pixelRatio 1: o canvas sai exatamente com targetW × targetH pixels, em qualquer aparelho
+      const hm = new maplibregl.Map({ container: hiddenDiv, style, center: [center.lng, center.lat], zoom: exportZoom, bearing, pitch, pixelRatio: 1, canvasContextAttributes: { preserveDrawingBuffer: true }, interactive: false, fadeDuration: 0, attributionControl: false });
       await new Promise((res, rej) => { const t = setTimeout(() => rej(new Error('Timeout')), 30000); hm.once('idle', () => { clearTimeout(t); setTimeout(res, 2000); }); });
 
       setProgress('Capturando imagem...');
@@ -1711,8 +1700,11 @@ const ImageExportStudio = () => {
       out.toBlob((blob) => {
         if (!blob) { setProgress('Erro.'); setExporting(false); return; }
         const url = URL.createObjectURL(blob), a = document.createElement('a');
-        a.href = url; a.download = `mapa_export_${targetW}x${targetH}.${format}`; a.click();
-        URL.revokeObjectURL(url); hm.remove(); document.body.removeChild(hiddenDiv);
+        a.href = url; a.download = `mapa_export_${targetW}x${targetH}.${format}`;
+        document.body.appendChild(a); a.click(); a.remove();
+        // Revogar só depois: no iOS/Android o download ainda está lendo o blob neste momento
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        hm.remove(); document.body.removeChild(hiddenDiv);
         setExporting(false); setProgress('✅ Imagem exportada com sucesso!');
         setTimeout(() => setProgress(''), 3000);
       }, mime, format==='jpeg'?jpegQuality:undefined);
@@ -2151,7 +2143,7 @@ const ImageExportStudio = () => {
                 <div className="studio-input-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4 }}>
                   <label>Estilo Personalizado</label>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    <input className="studio-text-input" type="text" placeholder="mapbox://styles/user/id"
+                    <input className="studio-text-input" type="text" placeholder="https://.../style.json"
                       onKeyDown={e => { if (e.key === 'Enter' && e.target.value.trim()) handlePreviewStyleChange(e.target.value.trim()); }}
                       id="studio-custom-style-input" />
                     <button className="studio-toolbar-btn" style={{ padding: '4px 8px', fontSize: '0.65rem' }}
@@ -2162,8 +2154,9 @@ const ImageExportStudio = () => {
                 </div>
                 <div className="studio-input-row">
                   <label>Estilo</label>
-                  <select className="studio-select" value={previewStyle} onChange={e => handlePreviewStyleChange(e.target.value)}>
-                    {MAP_STYLES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  <select className="studio-select" value={previewStyle || normalizeBasemap(mapStyle)} onChange={e => handlePreviewStyleChange(e.target.value)}>
+                    {BASEMAPS.map(b => <option key={b.id} value={b.id}>{b.label}</option>)}
+                    {previewStyle && !BASEMAPS.some(b => b.id === previewStyle) && <option value={previewStyle}>Personalizado</option>}
                   </select>
                 </div>
                 <div style={{ marginTop: 6 }}>
