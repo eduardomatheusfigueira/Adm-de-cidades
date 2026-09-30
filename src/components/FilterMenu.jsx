@@ -184,7 +184,7 @@ const FilterMenu = ({ onImportGeometry }) => {
     if (visualizationConfig?.type !== 'indicator') {
       values = toNumericIfPossible(values, (csvData || []).map(row => row[attribute]).filter(v => !isNoDataMarker(v)));
     }
-    const scaleExpression = getColorScale(attribute, values);
+    const scaleExpression = getColorScale(attribute, values, visualizationConfig?.symbology);
     const expressionType = scaleExpression?.[0];
     const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
     let items = [];

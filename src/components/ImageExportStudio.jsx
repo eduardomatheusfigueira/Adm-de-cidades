@@ -1381,7 +1381,8 @@ const ImageExportStudio = () => {
       vizAttr,
     );
     const customLegend = legendKey ? legendConfigByKey?.[legendKey] : null;
-    const baseExpr = getColorScale(attribute, values);
+    // Mesma classificação e paleta escolhidas no mapa principal
+    const baseExpr = getColorScale(attribute, values, visualizationConfig?.symbology);
     const colorExpr = withNoDataColor(attribute, applyCustomLegendColors(baseExpr, customLegend));
 
     // 4. Grava o valor e a pertença ao filtro em cada feição da prévia
@@ -1428,7 +1429,7 @@ const ImageExportStudio = () => {
       : autoItems;
     const defaultTitle = useIndicator ? `Indicador: ${vizInd} (${vizYr})` : `Atributo: ${vizAttr}`;
     setLegendData({ title: customLegend?.title || defaultTitle, items });
-  }, [csvData, indicadoresData, legendConfigByKey, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
+  }, [csvData, indicadoresData, legendConfigByKey, visualizationConfig, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType]);
 
   // Always keep ref pointing to latest version so loadPage (with [] deps) can call it

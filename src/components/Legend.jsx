@@ -59,7 +59,7 @@ const Legend = () => {
     if (visualizationConfig?.type !== 'indicator') {
       values = toNumericIfPossible(values, (csvData || []).map((row) => row[attribute]).filter((v) => !isNoDataMarker(v)));
     }
-    const scaleExpression = getColorScale(attribute, values);
+    const scaleExpression = getColorScale(attribute, values, visualizationConfig?.symbology);
     // Indicadores sem linha para o município também são "sem dados", mas a contagem
     // aqui considera só os registros existentes do atributo/indicador.
     const missing = visualizationConfig?.type === 'indicator'

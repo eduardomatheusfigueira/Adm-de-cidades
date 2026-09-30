@@ -305,7 +305,7 @@ export const MapProvider = ({ children }) => {
       });
     }
     const attributeValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => v !== undefined && v !== null);
-    const baseScaleExpression = getColorScale(currentAttributeForColoring, attributeValues);
+    const baseScaleExpression = getColorScale(currentAttributeForColoring, attributeValues, visualizationConfig?.symbology);
     let colorRenderScaleExpression = baseScaleExpression;
 
     const legendKey = getLegendKey(visualizationConfig, colorAttribute);
