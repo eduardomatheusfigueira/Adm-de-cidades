@@ -59,3 +59,38 @@
     width: 20px;
     text-align: center;
 }
+/* Celular/tablet em retrato: o menu lateral vira uma faixa de abas roláveis no topo,
+   e o conteúdo ocupa a largura toda (antes o menu fixo de 260 px esmagava o texto). */
+@media (max-width: 768px) {
+    .data-source-info-container,
+    .etl-environment-container,
+    .data-visualization-container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .sidebar-header {
+        display: none;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: var(--spacing-xs) var(--spacing-sm);
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sidebar-item {
+        width: auto;
+        flex: 0 0 auto;
+        min-height: 44px;
+        white-space: nowrap;
+    }
+}

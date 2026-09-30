@@ -5,6 +5,16 @@ import { AnnotationContext } from '../contexts/AnnotationContext';
 import { UIContext } from '../contexts/UIContext';
 import { getAnnotationMeasurement } from '../utils/geoUtils';
 
+// Botões e campos dentro da barra de arraste precisam receber o toque: sem isso o
+// react-draggable cancela o touchstart e os botões do cabeçalho não funcionam no celular.
+const DRAG_CANCEL = '.annotation-legend-header-actions, button, input, select, textarea';
+
+// Posição inicial que cabe na tela também em celulares (painel de 280 px).
+const defaultPanelPos = () => {
+  const w = typeof window !== 'undefined' ? window.innerWidth : 1024;
+  return { x: Math.max(8, Math.min(280, w - 288)), y: w < 600 ? 120 : 300 };
+};
+
 const TYPE_ICONS = { point: '📍', line: '📏', polygon: '⬡' };
 const TYPE_LABELS = { point: 'Ponto', line: 'Linha', polygon: 'Polígono' };
 const STYLE_OPTIONS = [
@@ -85,10 +95,11 @@ const AnnotationLegend = () => {
   if (isViewMode) {
     return (
       <Rnd
-        default={{ x: 280, y: 300, width: 280, height: 'auto' }}
+        default={{ ...defaultPanelPos(), width: 280, height: 'auto' }}
         minWidth={180}
         bounds="parent"
         dragHandleClassName="annotation-legend-drag-handle"
+        cancel={DRAG_CANCEL}
         style={{ zIndex: 5, position: 'absolute' }}
       >
         <div className="annotation-legend annotation-legend-view" style={{ position: 'relative', width: '100%', height: '100%', bottom: 'auto', right: 'auto', margin: 0 }}>
@@ -165,10 +176,11 @@ const AnnotationLegend = () => {
   // EDIT MODE
   return (
     <Rnd
-      default={{ x: 280, y: 300, width: 280, height: 'auto' }}
+      default={{ ...defaultPanelPos(), width: 280, height: 'auto' }}
       minWidth={180}
       bounds="parent"
       dragHandleClassName="annotation-legend-drag-handle"
+      cancel={DRAG_CANCEL}
       style={{ zIndex: 5, position: 'absolute' }}
     >
       <div className="annotation-legend" style={{ position: 'relative', width: '100%', height: '100%', bottom: 'auto', right: 'auto', margin: 0 }}>

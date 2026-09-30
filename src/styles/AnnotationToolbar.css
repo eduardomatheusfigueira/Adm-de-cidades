@@ -231,3 +231,59 @@
   transform: scale(1.15);
   border-color: white;
 }
+
+/* Texto de status quebra linha em vez de empurrar os botões para fora da tela */
+.annotation-toolbar {
+  width: max-content;
+  max-width: calc(100% - 24px);
+}
+
+.annotation-toolbar-status {
+  white-space: normal;
+  border-radius: 16px;
+  max-width: 100%;
+}
+
+/* Ações do desenho (funcionam no toque, onde não há duplo clique) */
+.annotation-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.draw-action-btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 22px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+
+.draw-action-btn.primary {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+}
+
+.draw-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .annotation-toolbar {
+    top: 64px;
+  }
+
+  .annotation-toolbar-status {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+  }
+}

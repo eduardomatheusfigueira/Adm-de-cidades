@@ -10,10 +10,102 @@ export const getLegendKey = (visualizationConfig, colorAttribute) => {
   return colorAttribute ? `attribute:${colorAttribute}` : null;
 };
 
-// Function to generate a simplified color scale
+// Cor dos municípios sem dado (célula vazia, "-", "...", texto inválido).
+export const NO_DATA_COLOR = '#d9d9d9';
+export const NO_DATA_LABEL = 'Sem dados';
+
+// Marcadores comuns de "sem informação" em planilhas do IBGE/DATASUS.
+const NO_DATA_MARKERS = new Set(['', '-', '--', '...', '..', 'x', 'X', 'NA', 'N/A', 'n/a', 'n/d', 'N/D', 'nd', 'ND', 'null', 'NULL', 'NaN', 'sem dados', 'Sem dados']);
+
+export const isNoDataMarker = (value) =>
+  value === undefined || value === null || (typeof value === 'string' && NO_DATA_MARKERS.has(value.trim()));
+
+// Lê números no formato brasileiro e internacional:
+// "1.234,56" → 1234.56 · "590,3" → 590.3 · "1234.5" → 1234.5 · "1.234.567" → 1234567.
+// Com `decimalComma` (coluna no formato brasileiro), "22.516" → 22516.
+// Devolve NaN para vazio, marcadores de "sem dado" e texto que não é número.
+export const parseNumberBR = (value, decimalComma = false) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : NaN;
+  if (typeof value !== 'string' || isNoDataMarker(value)) return NaN;
+  let t = value.trim().replace(/\s|\u00a0/g, '').replace(/^R\$/, '').replace(/%$/, '');
+  if (!/^[-+]?[\d.,]+$/.test(t)) return NaN;
+  const hasComma = t.includes(',');
+  const dots = (t.match(/\./g) || []).length;
+  if (hasComma) {
+    t = t.replace(/\./g, '').replace(',', '.');         // vírgula decimal, pontos de milhar
+    if (t.includes(',')) return NaN;                    // mais de uma vírgula
+  } else if (dots > 1 || (decimalComma && dots === 1)) {
+    t = t.replace(/\./g, '');                          // só pontos de milhar
+  }
+  const n = Number(t);
+  return Number.isFinite(n) ? n : NaN;
+};
+
+// Na coluna, o ponto é separador de milhar (formato brasileiro)? Sim quando algum valor usa
+// vírgula decimal ("1.000,5"), tem mais de um ponto ("1.234.567") ou quando todos os valores
+// com ponto têm exatamente 3 dígitos depois dele e não começam com 0 ("22.516", "845.300").
+export const usesDecimalComma = (values) => {
+  const strs = (values || []).filter(v => typeof v === 'string').map(v => v.trim());
+  if (strs.some(v => /^[-+]?[\d.]*,\d+$/.test(v))) return true;
+  if (strs.some(v => /^[-+]?\d{1,3}(\.\d{3}){2,}$/.test(v))) return true;
+  const dotted = strs.filter(v => /^[-+]?\d+\.\d+$/.test(v));
+  return dotted.length > 0 && dotted.every(v => /^[-+]?[1-9]\d{0,2}\.\d{3}$/.test(v));
+};
+
+// Parser de números para uma coluna inteira, com o formato decidido pelo conjunto de valores.
+// Passe a coluna completa (não só os municípios filtrados) para decidir com mais evidência.
+export const makeNumberParser = (values) => {
+  const decimalComma = usesDecimalComma(values);
+  return (v) => parseNumberBR(v, decimalComma);
+};
+
+// Converte uma coluna em números quando ela é numérica (formato decidido pela coluna completa
+// `allValues`); caso contrário devolve os valores como estão.
+export const toNumericIfPossible = (values, allValues = values) => {
+  if (!isNumericValues(allValues)) return values;
+  const parse = makeNumberParser(allValues);
+  return values.map(v => { const n = parse(v); return Number.isNaN(n) ? null : n; }).filter(v => v !== null);
+};
+
+// Um conjunto de valores é numérico quando todos os valores preenchidos
+// (ignorando marcadores de "sem dado") podem ser lidos como número.
+export const isNumericValues = (values) => {
+  const filled = (values || []).filter(v => !isNoDataMarker(v));
+  return filled.length > 0 && filled.every(v => !Number.isNaN(parseNumberBR(v)));
+};
+
+// Envolve a expressão de cor para pintar municípios sem valor numérico com a cor "Sem dados"
+// (sem isso, to-number(null) = 0 e a falta de dado apareceria como "menor classe";
+// e um texto não numérico faria o polígono sair preto).
+const NOT_A_NUMBER = -1e300;
+export const withNoDataColor = (attribute, expression) => {
+  if (!Array.isArray(expression) || expression[0] !== 'step') return expression;
+  const value = ['get', attribute];
+  return ['case',
+    ['any',
+      ['!', ['has', attribute]],
+      ['==', value, null],
+      ['==', value, ''],
+      ['==', ['to-number', value, NOT_A_NUMBER], NOT_A_NUMBER]],
+    NO_DATA_COLOR,
+    expression];
+};
+
+// Paleta sequencial com exatamente n cores (1 a 9).
+const sequentialColors = (n, scheme) => {
+  if (Array.isArray(scheme) && scheme.length === n) return scheme;
+  if (n >= 3) return d3.schemeReds[Math.min(n, 9)];
+  const base = d3.schemeReds[3];
+  return n === 2 ? [base[0], base[2]] : [base[1]];
+};
+
 // Default schemes
 const defaultNumericScheme = d3.schemeReds[5]; // Default to 5 categories for Reds
 const defaultCategoricalScheme = d3.schemeCategory10;
+
+// Número usado como limiar "inalcançável" quando só há um valor distinto
+// (a expressão 'step' exige pelo menos um par limiar/cor).
+export const STEP_SENTINEL = 1e300;
 
 export const getColorScale = (
   attribute,
@@ -22,40 +114,38 @@ export const getColorScale = (
   numericScheme = defaultNumericScheme, // Default numeric color scheme
   categoricalScheme = defaultCategoricalScheme // Default categorical color scheme
 ) => {
-  if (!values || values.length === 0) {
-    return ['case', ['==', ['get', attribute], null], '#ccc', '#ccc'];
+  const filled = (values || []).filter(v => !isNoDataMarker(v));
+  if (filled.length === 0) {
+    return ['case', ['==', ['get', attribute], null], NO_DATA_COLOR, NO_DATA_COLOR];
   }
 
-  const isNumeric = values.every(value => !isNaN(parseFloat(value)));
+  if (attribute !== 'Nome_Municipio' && isNumericValues(filled)) {
+    const numericValues = filled.map(makeNumberParser(filled)).sort(d3.ascending);
+    const min = numericValues[0];
 
-  if (isNumeric && attribute !== 'Nome_Municipio') {
-    const numericValues = values.map(v => parseFloat(v)).sort(d3.ascending);
-    // Ensure the provided scheme has enough colors, fallback if not
-    const effectiveNumericScheme = (Array.isArray(numericScheme) && numericScheme.length >= numericCategories)
-      ? numericScheme.slice(0, numericCategories) // Use the provided scheme subset
-      : d3.schemeReds[numericCategories] || d3.schemeReds[d3.schemeReds.length -1]; // Fallback to Reds or its max
-
-    const colorRange = effectiveNumericScheme;
+    // Limiares por quantis, sem repetição e sempre acima do mínimo: com poucos municípios
+    // ou muitos empates o número de classes diminui, em vez de gerar uma expressão inválida.
     const thresholds = [];
-
-    // Calculate thresholds based on the actual number of categories requested
     for (let i = 1; i < numericCategories; i++) {
-      thresholds.push(numericValues[Math.floor(numericValues.length / numericCategories * i)]);
+      const t = numericValues[Math.floor(numericValues.length / numericCategories * i)];
+      if (t > min && (thresholds.length === 0 || t > thresholds[thresholds.length - 1])) thresholds.push(t);
     }
 
-    const colorScale = d3.scaleThreshold()
-      .domain(thresholds)
-      .range(colorRange);
-
+    const colorRange = sequentialColors(thresholds.length + 1, numericScheme);
+    const input = ['to-number', ['get', attribute]];
+    if (thresholds.length === 0) {
+      // Um único valor distinto: uma classe só.
+      return ['step', input, colorRange[0], STEP_SENTINEL, colorRange[0]];
+    }
     return [
       'step',
-      ['to-number', ['get', attribute]],
+      input,
       colorRange[0], // default color
       ...thresholds.flatMap((threshold, index) => [threshold, colorRange[index + 1]])
     ];
   } else {
     // Categorical Data Handling
-    const uniqueValues = [...new Set(values)].sort(); // Sort for consistent color assignment
+    const uniqueValues = [...new Set(filled.map(v => `${v}`))].sort(); // Sort for consistent color assignment
     let colorRange;
 
     // Use a more diverse scheme if the number of categories exceeds the default scheme's length
@@ -73,11 +163,87 @@ export const getColorScale = (
       .range(colorRange); // Use the determined color range
 
     // Build the Mapbox match expression
-    const matchExpression = ['match', ['get', attribute]];
+    const matchExpression = ['match', ['to-string', ['get', attribute]]];
     uniqueValues.forEach(value => {
       matchExpression.push(value, colorScale(value));
     });
-    matchExpression.push('#ccc'); // Default color for unmatched values
+    matchExpression.push(NO_DATA_COLOR); // Sem dados / valores não listados
     return matchExpression;
   }
+};
+
+const toHex = (color) => {
+  const c = d3.color(color);
+  return c ? c.formatHex() : color;
+};
+
+// Itens da legenda correspondentes exatamente à expressão gerada por getColorScale.
+// `missingCount` = quantidade de municípios sem dado (gera o item "Sem dados (n)").
+export const buildLegendItems = (scaleExpression, values, missingCount = 0) => {
+  const type = scaleExpression?.[0];
+  const items = [];
+  if (type === 'match') {
+    for (let i = 2; i < scaleExpression.length - 1; i += 2) {
+      items.push({ value: `${scaleExpression[i]}`, color: toHex(scaleExpression[i + 1]) });
+    }
+  } else if (type === 'step') {
+    const numericValues = (values || []).map(makeNumberParser(values)).filter((v) => !Number.isNaN(v)).sort((a, b) => a - b);
+    if (!numericValues.length) return { type: 'dynamic', items: [] };
+    const fmt = (v) => v.toLocaleString('pt-BR');
+    const minValue = numericValues[0];
+    const maxValue = numericValues[numericValues.length - 1];
+    const bounds = [minValue];
+    const colors = [scaleExpression[2]];
+    for (let i = 3; i < scaleExpression.length; i += 2) {
+      const threshold = Number(scaleExpression[i]);
+      if (Number.isNaN(threshold) || threshold >= STEP_SENTINEL || !scaleExpression[i + 1]) continue;
+      bounds.push(threshold);
+      colors.push(scaleExpression[i + 1]);
+    }
+    // Faixas: [mín, t1), [t1, t2), ..., [tn, máx]
+    bounds.forEach((lower, i) => {
+      const isLast = i === bounds.length - 1;
+      const label = isLast
+        ? (lower === maxValue ? fmt(lower) : `${fmt(lower)} a ${fmt(maxValue)}`)
+        : `${fmt(lower)} a menos de ${fmt(bounds[i + 1])}`;
+      items.push({ value: label, color: toHex(colors[i]) });
+    });
+  } else {
+    return { type: 'dynamic', items: [] };
+  }
+  if (missingCount > 0) items.push({ value: `${NO_DATA_LABEL} (${missingCount})`, color: NO_DATA_COLOR, noData: true });
+  return { type: type === 'match' ? 'categorical' : 'numeric', items };
+};
+
+// Quantos registros não têm valor utilizável para o atributo.
+export const countMissing = (rows, attribute, numeric) =>
+  (rows || []).filter((row) => {
+    const v = row?.[attribute];
+    if (isNoDataMarker(v)) return true;
+    return numeric && Number.isNaN(parseNumberBR(v));
+  }).length;
+
+// Aplica as cores de uma legenda editada pelo usuário à expressão gerada por getColorScale.
+// A ordem dos itens corresponde à ordem das classes; o item "Sem dados" (último) é ignorado.
+export const applyCustomLegendColors = (expression, customLegend) => {
+  const items = customLegend?.items;
+  if (!Array.isArray(expression) || !items?.length) return expression;
+  const out = [...expression];
+  if (out[0] === 'match') {
+    // cores nos índices 3, 5, 7... (o último elemento é a cor padrão)
+    items.forEach((item, i) => {
+      const idx = 3 + i * 2;
+      if (idx < out.length - 1 && !item.noData) out[idx] = item.color;
+    });
+  } else if (out[0] === 'step') {
+    // cor inicial no índice 2, depois 4, 6, 8...
+    items.forEach((item, i) => {
+      if (item.noData) return;
+      const idx = i === 0 ? 2 : 4 + (i - 1) * 2;
+      if (idx < out.length) out[idx] = item.color;
+    });
+    // classe única: o limiar sentinela repete a cor da classe
+    if (out.length === 5 && out[3] === STEP_SENTINEL) out[4] = out[2];
+  }
+  return out;
 };

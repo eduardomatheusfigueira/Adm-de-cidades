@@ -1,0 +1,13 @@
+# Configuração de deploy na Netlify (app estático gerado pelo Vite)
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Malhas e tabela base mudam raramente: cache de 1 dia no navegador
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"

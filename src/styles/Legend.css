@@ -141,3 +141,12 @@
   font-size: 0.75rem;
   color: var(--error-color);
 }
+
+/* Celular: legenda mais compacta, com rolagem própria, sem cobrir o mapa inteiro */
+@media (max-width: 600px) {
+  .legend {
+    padding: var(--spacing-sm);
+    font-size: 0.8rem;
+    max-height: 35dvh;
+  }
+}

@@ -8,7 +8,7 @@ const MainLayout = ({ children }) => {
     const { activeEnvironment, setActiveEnvironment } = useContext(UIContext);
 
     return (
-        <div className="main-layout">
+        <div className={`main-layout env-${activeEnvironment}`}>
             <Header
                 activeEnvironment={activeEnvironment}
                 onNavigate={setActiveEnvironment}

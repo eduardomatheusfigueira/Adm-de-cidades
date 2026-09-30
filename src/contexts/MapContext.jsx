@@ -1,10 +1,11 @@
 import React, { createContext, useState, useEffect, useRef, useContext, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';
-import { getColorScale, getLegendKey } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, makeNumberParser, withNoDataColor, applyCustomLegendColors, isNoDataMarker, isNumericValues } from '../utils/colorUtils';
 import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
+import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
 
 export const MapContext = createContext();
 
@@ -17,9 +18,15 @@ export const MapProvider = ({ children }) => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isMapLoading, setIsMapLoading] = useState(true);
   // mapStyle é gerenciado localmente aqui, mas pode ser movido para UIContext se necessário globalmente
-  const [mapStyle, setMapStyle] = useState('mapbox://styles/mapbox/outdoors-v12');
+  const [mapStyle, setMapStyle] = useState(DEFAULT_BASEMAP);
+  // Aviso exibido sobre o mapa (ex.: mapa base remoto indisponível e troca automática para o fundo liso)
+  const [mapNotice, setMapNotice] = useState(null);
+  // Incrementa a cada 'style.load'. Um estilo local carrega tão rápido que mapLoaded
+  // false→true cai no mesmo render do React; este contador garante que as camadas do app
+  // (municípios, anotações, gratícula) sejam recriadas após toda troca de mapa base.
+  const [styleVersion, setStyleVersion] = useState(0);
 
-  const { geojsonData, indicadoresData, filteredCsvData } = useContext(DataContext);
+  const { geojsonData, indicadoresData, filteredCsvData, csvData } = useContext(DataContext);
   // Consumindo diretamente do UIContext, sem valores padrão aqui
   const { colorAttribute, visualizationConfig, activeEnvironment, setSelectedCityInfo, legendConfigByKey, showGraticule, graticuleStyle, showMeasurements } = useContext(UIContext);
 
@@ -31,36 +38,57 @@ export const MapProvider = ({ children }) => {
     cursorPosition,
     handleMapClick: annotationHandleMapClick,
     handleMapDoubleClick: annotationHandleDoubleClick,
+    finishDrawing: annotationFinishDrawing,
     setCursorPosition,
     getActiveAnnotations,
     activeVisualizationId,
     annotations: allAnnotations,
   } = useContext(AnnotationContext);
 
-  useEffect(() => {
-    const token = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (token) {
-      mapboxgl.accessToken = token;
-    } else {
-      console.warn("[MapContext] VITE_MAPBOX_TOKEN não configurado nas variáveis de ambiente (.env).");
-    }
+  const currentStyleUrl = useRef(mapStyle);
+  const sectorHandlersBoundRef = useRef(false);
+  const lastFittedDataRef = useRef({ csv: null, geo: null });
+  const drawingModeRef = useRef(drawingMode);
+  const styleLoadedRef = useRef(false);
+  const styleWatchdogRef = useRef(null);
+
+  // Se um mapa base remoto não carregar (sem internet, rede da escola bloqueando o servidor),
+  // troca para um fundo 100% local em vez de deixar o spinner girando para sempre.
+  const fallbackToLocalStyle = useCallback(() => {
+    clearTimeout(styleWatchdogRef.current);
+    if (isLocalBasemap(currentStyleUrl.current)) return;
+    const failed = BASEMAPS.find(b => b.id === normalizeBasemap(currentStyleUrl.current));
+    setMapNotice(`Não foi possível carregar o mapa base "${failed ? failed.label : 'personalizado'}" (sem internet ou bloqueado pela rede). Usando o fundo liso.`);
+    setMapStyle(FALLBACK_BASEMAP);
   }, []);
 
-  const currentStyleUrl = useRef(mapStyle);
+  const armStyleWatchdog = useCallback((styleValue) => {
+    styleLoadedRef.current = false;
+    clearTimeout(styleWatchdogRef.current);
+    if (isLocalBasemap(styleValue)) return;
+    styleWatchdogRef.current = setTimeout(() => {
+      if (!styleLoadedRef.current) fallbackToLocalStyle();
+    }, 12000);
+  }, [fallbackToLocalStyle]);
+
+  useEffect(() => () => clearTimeout(styleWatchdogRef.current), []);
 
   useEffect(() => {
     // Initialize map if container is present and map doesn't exist
     if (mapContainer.current && !map.current) {
-      console.log("[MapContext] Initializing Mapbox map...");
+      console.log("[MapContext] Initializing MapLibre map...");
       setIsMapLoading(true);
-      map.current = new mapboxgl.Map({
+      map.current = new maplibregl.Map({
         container: mapContainer.current,
-        style: mapStyle, // Usa o estado local mapStyle
+        style: resolveBasemapStyle(mapStyle),
         center: [lng, lat],
         zoom: zoom,
-        preserveDrawingBuffer: true, // Necessário para exportação de imagens (canvas.toDataURL)
+        // Necessário para exportação de imagens (canvas.toDataURL)
+        canvasContextAttributes: { preserveDrawingBuffer: true },
+        attributionControl: { compact: true },
       });
       currentStyleUrl.current = mapStyle; // Sync ref
+      armStyleWatchdog(mapStyle);
 
       map.current.on('move', () => {
         setLng(map.current.getCenter().lng);
@@ -69,10 +97,18 @@ export const MapProvider = ({ children }) => {
       });
       map.current.on('style.load', () => {
         console.log("[MapContext] Map style loaded.");
+        styleLoadedRef.current = true;
+        setStyleVersion(v => v + 1);
+        clearTimeout(styleWatchdogRef.current);
         setMapLoaded(true);
         setIsMapLoading(false);
       });
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      map.current.on('error', (e) => {
+        console.warn('[MapContext] Erro no mapa:', e?.error?.message || e);
+        // Erro antes do estilo carregar = o mapa base não pôde ser obtido.
+        if (!styleLoadedRef.current) fallbackToLocalStyle();
+      });
+      map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
       // --- Annotation drawing: click handler ---
       map.current.on('click', (e) => {
@@ -113,8 +149,10 @@ export const MapProvider = ({ children }) => {
     if (map.current && mapStyle !== currentStyleUrl.current) {
       console.log(`[MapContext] Changing map style to: ${mapStyle}`);
       setMapLoaded(false);
-      map.current.setStyle(mapStyle);
       currentStyleUrl.current = mapStyle;
+      armStyleWatchdog(mapStyle);
+      // diff: false força a recarga completa e o evento 'style.load', que recria as camadas do app
+      map.current.setStyle(resolveBasemapStyle(mapStyle), { diff: false });
     }
   }, [mapStyle]);
 
@@ -122,7 +160,7 @@ export const MapProvider = ({ children }) => {
   const loadMapData = useCallback(() => {
     console.log("[MapContext] loadMapData called", { filteredCsvDataLength: filteredCsvData?.length, colorAttribute, visualizationConfig });
 
-    if (!map.current || !mapLoaded || !map.current.isStyleLoaded()) {
+    if (!map.current || !mapLoaded || !isStyleReady(map.current)) {
       console.log("[MapContext] Map not ready for data loading (style not loaded).");
       return;
     }
@@ -142,7 +180,16 @@ export const MapProvider = ({ children }) => {
     }
 
     const csvDataMap = new Map(currentMapData.map(city => [String(city.Codigo_Municipio), city]));
+
+    // Formato numérico (vírgula ou ponto decimal) decidido pela coluna inteira do indicador
+    const indicatorRows = visualizationConfig?.type === 'indicator'
+      ? (indicadoresData || []).filter(r => r.Nome_Indicador === visualizationConfig.indicator && r.Ano_Observacao === visualizationConfig.year)
+      : [];
+    const toNullable = (parse) => (v) => { const n = parse(v); return Number.isNaN(n) ? null : n; };
+    const parseIndicatorValue = toNullable(makeNumberParser(indicatorRows.map(r => r.Valor)));
+    const parseIndicatorPosition = toNullable(makeNumberParser(indicatorRows.map(r => r.Indice_Posicional)));
     const finalFeatures = [];
+    const polygonCodes = new Set();
 
     console.log(`[MapContext] Processing ${currentMapData.length} cities from CSV.`);
 
@@ -153,7 +200,7 @@ export const MapProvider = ({ children }) => {
       return parseFloat(val.replace(',', '.'));
     };
 
-    const bounds = new mapboxgl.LngLatBounds();
+    const bounds = new maplibregl.LngLatBounds();
     let hasValidBounds = false;
 
     if (geojsonData && geojsonData.features) {
@@ -168,7 +215,7 @@ export const MapProvider = ({ children }) => {
           const properties = {
             ...feature.properties, ...cityData, CD_MUN: cdMun, NAME: cityData.Nome_Municipio,
             LEVEL: 'Municípios', AREA: parseFloat(cityData.Area_Municipio),
-            CAPITAL: cityData.Capital === 'true', ESTADO: cityData.Sigla_Estado,
+            CAPITAL: String(cityData.Capital).trim().toLowerCase() === 'true', ESTADO: cityData.Sigla_Estado,
             ALTITUDE: parseFloat(cityData.Altitude_Municipio), LONGITUDE: lon, LATITUDE: lat,
             REGIAO: cityData.Sigla_Regiao,
             custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`
@@ -179,14 +226,15 @@ export const MapProvider = ({ children }) => {
             const cityIndicator = indicadoresData.find(ind =>
               String(ind.Codigo_Municipio) === cdMun && ind.Ano_Observacao === year && ind.Nome_Indicador === indicator);
             if (cityIndicator) {
-              properties.indicator_value = parseFloat(cityIndicator.Valor);
-              properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
+              properties.indicator_value = parseIndicatorValue(cityIndicator.Valor);
+              properties.indicator_position = parseIndicatorPosition(cityIndicator.Indice_Posicional);
               properties.indicator_name = indicator; properties.indicator_year = year;
               properties.visualization_value = valueType === 'value' ? properties.indicator_value : properties.indicator_position;
             } else properties.visualization_value = null;
           } else if (currentAttributeForColoring !== 'visualization_value') delete properties.visualization_value;
 
           finalFeatures.push({ ...feature, properties });
+          polygonCodes.add(cdMun);
           // csvDataMap.delete(cdMun); // Keep to generate point
         }
       });
@@ -204,10 +252,13 @@ export const MapProvider = ({ children }) => {
 
       bounds.extend([lon, lat]);
       hasValidBounds = true;
+      // Municípios com polígono não ganham um ponto por cima (poluía o mapa temático);
+      // o ponto só aparece para quem não tem limite carregado
+      if (polygonCodes.has(String(cityData.Codigo_Municipio))) return;
 
       const properties = {
         CD_MUN: String(cityData.Codigo_Municipio), NAME: cityData.Nome_Municipio, LEVEL: 'Municípios',
-        AREA: parseFloat(cityData.Area_Municipio), CAPITAL: cityData.Capital === 'true',
+        AREA: parseFloat(cityData.Area_Municipio), CAPITAL: String(cityData.Capital).trim().toLowerCase() === 'true',
         ESTADO: cityData.Sigla_Estado, ALTITUDE: parseFloat(cityData.Altitude_Municipio),
         LONGITUDE: lon, LATITUDE: lat, REGIAO: cityData.Sigla_Regiao, ...cityData,
         custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`
@@ -218,8 +269,8 @@ export const MapProvider = ({ children }) => {
         const cityIndicator = indicadoresData.find(ind =>
           String(ind.Codigo_Municipio) === properties.CD_MUN && ind.Ano_Observacao === year && ind.Nome_Indicador === indicator);
         if (cityIndicator) {
-          properties.indicator_value = parseFloat(cityIndicator.Valor);
-          properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
+          properties.indicator_value = parseIndicatorValue(cityIndicator.Valor);
+          properties.indicator_position = parseIndicatorPosition(cityIndicator.Indice_Posicional);
           properties.indicator_name = indicator; properties.indicator_year = year;
           properties.visualization_value = valueType === 'value' ? properties.indicator_value : properties.indicator_position;
         } else properties.visualization_value = null;
@@ -231,13 +282,28 @@ export const MapProvider = ({ children }) => {
     console.log(`[MapContext] Generated ${finalFeatures.length} features (${pointsGenerated} points).`);
 
     // Fit bounds if we have valid data and it's the first load or explicit update
-    if (hasValidBounds && map.current) {
-      // Only fit bounds if we haven't manually moved significantly? 
-      // For now, let's fit bounds on data load to ensure visibility as requested.
+    // Reenquadrar só quando o conjunto de municípios/geometrias muda — não ao trocar cores,
+    // opacidade ou mapa base (o aluno perderia o enquadramento que escolheu).
+    const dataChanged = lastFittedDataRef.current.csv !== currentMapData || lastFittedDataRef.current.geo !== geojsonData;
+    if (hasValidBounds && map.current && dataChanged) {
       map.current.fitBounds(bounds, { padding: 50, maxZoom: 14 });
+      lastFittedDataRef.current = { csv: currentMapData, geo: geojsonData };
     }
 
     const combinedGeoJson = { type: 'FeatureCollection', features: finalFeatures };
+    // Coluna numérica: grava o valor como número ("590,3" → 590.3, "22.516" → 22516), com o
+    // formato decidido pela coluna completa; o que não é número vira null = "Sem dados"
+    const rawValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => !isNoDataMarker(v));
+    if (currentAttributeForColoring !== 'Nome_Municipio' && isNumericValues(rawValues)) {
+      const fullColumn = currentAttributeForColoring === 'visualization_value'
+        ? rawValues
+        : (csvData || []).map(r => r[currentAttributeForColoring]).filter(v => !isNoDataMarker(v));
+      const parseNumber = makeNumberParser(fullColumn);
+      finalFeatures.forEach(f => {
+        const n = parseNumber(f.properties[currentAttributeForColoring]);
+        f.properties[currentAttributeForColoring] = Number.isNaN(n) ? null : n;
+      });
+    }
     const attributeValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => v !== undefined && v !== null);
     const baseScaleExpression = getColorScale(currentAttributeForColoring, attributeValues);
     let colorRenderScaleExpression = baseScaleExpression;
@@ -245,31 +311,9 @@ export const MapProvider = ({ children }) => {
     const legendKey = getLegendKey(visualizationConfig, colorAttribute);
     const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
 
-    if (customLegend && customLegend.items && customLegend.items.length > 0) {
-      colorRenderScaleExpression = [...baseScaleExpression]; // shallow copy
-      const expressionType = colorRenderScaleExpression[0];
-      
-      if (expressionType === 'match') {
-        // items correspond to indices 3, 5, 7...
-        for (let i = 0; i < customLegend.items.length; i++) {
-          const colorIndex = 3 + i * 2;
-          if (colorIndex < colorRenderScaleExpression.length) {
-            colorRenderScaleExpression[colorIndex] = customLegend.items[i].color;
-          }
-        }
-      } else if (expressionType === 'step') {
-        // items correspond to index 2, then 4, 6, 8...
-        if (customLegend.items.length > 0) {
-          colorRenderScaleExpression[2] = customLegend.items[0].color;
-        }
-        for (let i = 1; i < customLegend.items.length; i++) {
-          const colorIndex = 4 + (i - 1) * 2;
-          if (colorIndex < colorRenderScaleExpression.length) {
-            colorRenderScaleExpression[colorIndex] = customLegend.items[i].color;
-          }
-        }
-      }
-    }
+    colorRenderScaleExpression = applyCustomLegendColors(baseScaleExpression, customLegend);
+
+    colorRenderScaleExpression = withNoDataColor(currentAttributeForColoring, colorRenderScaleExpression);
 
     if (map.current.getSource('sectors')) {
       map.current.getSource('sectors').setData(combinedGeoJson);
@@ -302,11 +346,16 @@ export const MapProvider = ({ children }) => {
         }
       });
 
+      // Os listeners por camada sobrevivem à troca de mapa base; registrar só uma vez
+      if (!sectorHandlersBoundRef.current) {
+      sectorHandlersBoundRef.current = true;
       const layers = ['sectors-fill-layer', 'sectors-point-layer', 'sectors-line-layer'];
       layers.forEach(layerId => {
         map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; });
         map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; });
         map.current.on('click', layerId, (e) => {
+          // Durante o desenho, o toque/clique adiciona vértices — não abrir o painel da cidade
+          if (drawingModeRef.current) return;
           e.preventDefault();
           const features = map.current.queryRenderedFeatures(e.point, { layers: [layerId] });
           if (!features.length) return;
@@ -316,6 +365,7 @@ export const MapProvider = ({ children }) => {
           }
         });
       });
+      }
     }
 
     // Determine render mode from visualizationConfig
@@ -355,24 +405,27 @@ export const MapProvider = ({ children }) => {
         map.current.setPaintProperty('sectors-point-layer', 'circle-color', colorRenderScaleExpression);
       }
     }
-  }, [mapLoaded, filteredCsvData, geojsonData, indicadoresData, colorAttribute, visualizationConfig, map, setSelectedCityInfo, legendConfigByKey]);
+  }, [mapLoaded, styleVersion, filteredCsvData, geojsonData, indicadoresData, colorAttribute, visualizationConfig, map, setSelectedCityInfo, legendConfigByKey]);
 
 
   useEffect(() => {
     if (mapLoaded && activeEnvironment === 'map') {
       loadMapData();
     }
-  }, [mapLoaded, loadMapData, activeEnvironment]);
+  }, [mapLoaded, styleVersion, loadMapData, activeEnvironment]);
 
 
   // =============================================
   // ANNOTATION RENDERING & DRAWING INTERACTION
   // =============================================
 
-  const drawingModeRef = useRef(drawingMode);
   const annotationClickRef = useRef(annotationHandleMapClick);
   const annotationDblClickRef = useRef(annotationHandleDoubleClick);
   const setCursorRef = useRef(setCursorPosition);
+  const tempCoordsRef = useRef(tempCoordinates);
+  const finishDrawingRef = useRef(annotationFinishDrawing);
+  useEffect(() => { tempCoordsRef.current = tempCoordinates; }, [tempCoordinates]);
+  useEffect(() => { finishDrawingRef.current = annotationFinishDrawing; }, [annotationFinishDrawing]);
 
   useEffect(() => { drawingModeRef.current = drawingMode; }, [drawingMode]);
   useEffect(() => { annotationClickRef.current = annotationHandleMapClick; }, [annotationHandleMapClick]);
@@ -387,6 +440,17 @@ export const MapProvider = ({ children }) => {
       if (drawingModeRef.current) {
         e.preventDefault();
         e.originalEvent?.stopPropagation?.();
+        // Tocar perto do 1º vértice fecha o polígono; perto do último, conclui a linha
+        // (no celular não há duplo clique confiável).
+        const mode = drawingModeRef.current;
+        const coords = tempCoordsRef.current || [];
+        const near = (c) => { const p = map.current.project(c); return Math.hypot(p.x - e.point.x, p.y - e.point.y) < 22; };
+        const isPoly = mode === 'polygon' || mode === 'measure_polygon';
+        const isLine = mode === 'line' || mode === 'measure_line';
+        if ((isPoly && coords.length >= 3 && near(coords[0])) || (isLine && coords.length >= 2 && near(coords[coords.length - 1]))) {
+          finishDrawingRef.current();
+          return;
+        }
         annotationClickRef.current(e.lngLat);
       }
     };
@@ -417,15 +481,17 @@ export const MapProvider = ({ children }) => {
         map.current.off('mousemove', onMouseMove);
       }
     };
-  }, [mapLoaded]);
+  }, [mapLoaded, styleVersion]);
 
-  // Change cursor style when in drawing mode
+  // Change cursor style when in drawing mode; o zoom por duplo clique/toque atrapalha o desenho
   useEffect(() => {
     if (!map.current) return;
     if (drawingMode) {
       map.current.getCanvas().style.cursor = 'crosshair';
+      map.current.doubleClickZoom.disable();
     } else {
       map.current.getCanvas().style.cursor = '';
+      map.current.doubleClickZoom.enable();
     }
   }, [drawingMode]);
 
@@ -456,11 +522,11 @@ export const MapProvider = ({ children }) => {
         });
       }
     };
-  }, [mapLoaded]);
+  }, [mapLoaded, styleVersion]);
 
   // Render annotation features on map
   useEffect(() => {
-    if (!map.current || !mapLoaded || !map.current.isStyleLoaded()) return;
+    if (!map.current || !mapLoaded || !isStyleReady(map.current)) return;
 
     const DEFAULT_FILL = '#FFFFFF';
     const DEFAULT_BORDER = '#000000';
@@ -734,7 +800,7 @@ export const MapProvider = ({ children }) => {
         layout: {
           'text-field': ['get', 'numberStr'],
           'text-size': 11,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-font': [FONT_BOLD],
           'text-allow-overlap': true,
         },
         paint: {
@@ -751,7 +817,7 @@ export const MapProvider = ({ children }) => {
         layout: {
           'text-field': '▶',
           'text-size': 10,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-font': [FONT_BOLD],
           'text-rotate': ['get', 'bearing'],
           'text-rotation-alignment': 'map',
           'text-allow-overlap': true,
@@ -800,7 +866,7 @@ export const MapProvider = ({ children }) => {
           'symbol-placement': 'point',
           'text-field': ['get', 'measurementText'],
           'text-size': 12,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-font': [FONT_BOLD],
           'text-rotate': ['get', 'textAngle'],
           'text-rotation-alignment': 'map',
           'text-offset': [0, -0.75],
@@ -824,7 +890,7 @@ export const MapProvider = ({ children }) => {
           'symbol-placement': 'point',
           'text-field': ['get', 'measurementText'],
           'text-size': 12,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-font': [FONT_BOLD],
           'text-variable-anchor': ['top-left', 'bottom-left', 'top-right', 'bottom-right', 'top', 'bottom'],
           'text-radial-offset': 0.8,
           'text-allow-overlap': true,
@@ -846,7 +912,7 @@ export const MapProvider = ({ children }) => {
           'symbol-placement': 'point',
           'text-field': ['get', 'measurementText'],
           'text-size': 12,
-          'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'],
+          'text-font': [FONT_BOLD],
           'text-anchor': 'center',
           'text-allow-overlap': true,
         },
@@ -873,7 +939,7 @@ export const MapProvider = ({ children }) => {
     }
 
 
-  }, [mapLoaded, allAnnotations, activeVisualizationId, drawingMode, tempCoordinates, cursorPosition, getActiveAnnotations, showMeasurements]);
+  }, [mapLoaded, styleVersion, allAnnotations, activeVisualizationId, drawingMode, tempCoordinates, cursorPosition, getActiveAnnotations, showMeasurements]);
 
 
   // =============================================
@@ -918,20 +984,12 @@ export const MapProvider = ({ children }) => {
     return { type: 'FeatureCollection', features };
   }, []);
 
-  // Resolve Mapbox font name from style options
-  const getGraticuleFonts = useCallback((style) => {
-    const weight = style.bold ? 'Bold' : 'Regular';
-    const variant = style.italic ? 'Italic' : '';
-    // Mapbox GL has limited font combos; DIN Pro supports Regular, Medium, Bold, Italic
-    // Build best available name
-    const mainFont = `DIN Pro ${weight}${variant ? ' ' + variant : ''}`;
-    const fallback = `Arial Unicode MS ${weight}`;
-    return [mainFont, fallback];
-  }, []);
+  // Fonte da gratícula a partir das opções de estilo (Noto Sans: Regular, Bold ou Italic)
+  const getGraticuleFonts = useCallback((style) => getFontStack(style.bold ? 'Bold' : 'Regular', !!style.italic), []);
 
   // Effect 1: Create / Remove graticule layers when toggled
   useEffect(() => {
-    if (!map.current || !mapLoaded || !map.current.isStyleLoaded()) return;
+    if (!map.current || !mapLoaded || !isStyleReady(map.current)) return;
 
     const GRATICULE_SOURCE = 'graticule-source';
     const GRATICULE_LINE_LAYER = 'graticule-lines';
@@ -985,7 +1043,7 @@ export const MapProvider = ({ children }) => {
     } else {
       map.current.getSource(GRATICULE_SOURCE).setData(geoJson);
     }
-  }, [mapLoaded, showGraticule, buildGraticuleGeoJson, getGraticuleFonts]); // eslint-disable-line
+  }, [mapLoaded, styleVersion, showGraticule, buildGraticuleGeoJson, getGraticuleFonts]); // eslint-disable-line
 
   // Effect 2: Live-update paint & layout properties when graticuleStyle changes
   useEffect(() => {
@@ -1004,7 +1062,7 @@ export const MapProvider = ({ children }) => {
     map.current.setPaintProperty('graticule-labels', 'text-color', graticuleStyle.textColor);
     map.current.setPaintProperty('graticule-labels', 'text-halo-color', graticuleStyle.showHalo ? graticuleStyle.haloColor : 'transparent');
     map.current.setPaintProperty('graticule-labels', 'text-halo-width', graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0);
-  }, [mapLoaded, showGraticule, graticuleStyle, getGraticuleFonts]);
+  }, [mapLoaded, styleVersion, showGraticule, graticuleStyle, getGraticuleFonts]);
 
   // Effect 3: Regenerate GeoJSON data when zoom changes (interval adapts)
   useEffect(() => {
@@ -1022,11 +1080,12 @@ export const MapProvider = ({ children }) => {
         map.current.off('zoomend', updateGraticuleData);
       }
     };
-  }, [mapLoaded, showGraticule, buildGraticuleGeoJson]);
+  }, [mapLoaded, styleVersion, showGraticule, buildGraticuleGeoJson]);
 
 
   const handleMapStyleChange = useCallback((newStyle) => {
-    setMapStyle(newStyle); // Atualiza o estado local do estilo do mapa
+    setMapNotice(null);
+    setMapStyle(normalizeBasemap(newStyle)); // Aceita ids, URLs personalizadas e URLs mapbox:// de perfis antigos
   }, []);
 
   const flyToCity = useCallback((city) => {
@@ -1044,6 +1103,7 @@ export const MapProvider = ({ children }) => {
     map, mapContainer, mapLoaded, isMapLoading, lng, lat, zoom,
     mapStyle, // Exporta o estado local do estilo
     handleMapStyleChange, // Exporta a função para mudar o estilo
+    mapNotice, setMapNotice,
     flyToCity,
     setLng, setLat, setZoom // Expor se AppContent ou outros precisarem
   };

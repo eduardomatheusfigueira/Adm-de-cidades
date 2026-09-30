@@ -1,7 +1,11 @@
 import { getAnnotationMeasurement, getLineSegmentDetails } from './geoUtils';
+import { FONT_BOLD } from './basemaps';
+
+// MapLibre carregado via CDN no HTML exportado (mesma versão do app)
+const MAPLIBRE_CDN = 'https://unpkg.com/maplibre-gl@5.24.0/dist';
 
 /**
- * Generates a standalone HTML file containing a Mapbox GL map
+ * Generates a standalone HTML file containing a MapLibre GL map (no token required)
  * with municipality geometries, color legend, annotations,
  * north arrow, and scale bar — all independently draggable, resizable and toggle-able.
  */
@@ -11,8 +15,7 @@ export function generateExportHtml({
   mapCenter,
   mapZoom,
   mapBearing,
-  mapStyle,
-  mapboxToken,
+  mapStyle, // objeto de estilo MapLibre ou URL de style.json
   municipalityGeoJson,
   municipalityColorExpression,
   colorLegend,
@@ -89,6 +92,7 @@ export function generateExportHtml({
 
   const annotationsGeoJson = safeJsonStringify({ type: 'FeatureCollection', features });
   const munGeoJson = municipalityGeoJson ? safeJsonStringify(municipalityGeoJson) : 'null';
+  const styleJson = safeJsonStringify(mapStyle || null);
   const colorExpr = municipalityColorExpression ? safeJsonStringify(municipalityColorExpression) : '"#cccccc"';
 
   // Build annotation legend items HTML
@@ -202,8 +206,8 @@ export function generateExportHtml({
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>${esc(title)}</title>
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet"/>
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js">${sc}
+<link href="${MAPLIBRE_CDN}/maplibre-gl.css" rel="stylesheet"/>
+<script src="${MAPLIBRE_CDN}/maplibre-gl.js">${sc}
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -424,15 +428,14 @@ ${hasAnnotations ? `<div class="widget legend-panel" id="annotLegend" style="bot
 </div>
 
 <script>
-mapboxgl.accessToken = '${mapboxToken}';
-var map = new mapboxgl.Map({
+var map = new maplibregl.Map({
   container: 'map',
-  style: '${mapStyle}',
+  style: ${styleJson},
   center: [${mapCenter[0]}, ${mapCenter[1]}],
   zoom: ${mapZoom},
   bearing: ${initialBearing}
 });
-map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
 var munData = ${munGeoJson};
 var colorExpr = ${colorExpr};
@@ -492,7 +495,7 @@ function formatDist(m) { return m >= 1000 ? ((m/1000) % 1 === 0 ? (m/1000)+' km'
 function updateScale() {
   var c = map.getCenter();
   var z = map.getZoom();
-  var mpp = 156543.03392 * Math.cos(c.lat * Math.PI / 180) / Math.pow(2, z);
+  var mpp = 78271.51696 * Math.cos(c.lat * Math.PI / 180) / Math.pow(2, z);
   var best = STEPS[0];
   for (var i = 0; i < STEPS.length; i++) {
     var px = STEPS[i] / mpp;
@@ -537,15 +540,14 @@ map.on('load', function() {
 
   ${hasAnnotations ? `
   map.addSource('annotations', { type: 'geojson', data: annData });
-  map.addSource('labels', { type: 'geojson', data: labelData });
   map.addLayer({ id: 'ann-fill', type: 'fill', source: 'annotations', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.15 } });
   map.addLayer({ id: 'ann-line', type: 'line', source: 'annotations', filter: ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'Polygon']], paint: { 'line-color': ['get', 'borderColor'], 'line-width': 2.5 } });
   map.addLayer({ id: 'ann-point', type: 'circle', source: 'annotations', filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'annType'], 'point']], paint: { 'circle-radius': 14, 'circle-color': ['get', 'color'], 'circle-stroke-width': 2, 'circle-stroke-color': ['get', 'borderColor'] } });
-  map.addLayer({ id: 'ann-text', type: 'symbol', source: 'annotations', filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'annType'], 'point'], ['has', 'numberStr']], layout: { 'text-field': ['get', 'numberStr'], 'text-size': 11, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-allow-overlap': true }, paint: { 'text-color': '#000' } });
-  map.addLayer({ id: 'ann-meas-arrows', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'meas-arrow'], layout: { 'text-field': '▶', 'text-size': 10, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-rotate': ['get', 'bearing'], 'text-rotation-alignment': 'map', 'text-allow-overlap': true, 'text-keep-upright': false }, paint: { 'text-color': '#2563eb', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
-  map.addLayer({ id: 'ann-seg-labels', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'segment-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-rotate': ['get', 'textAngle'], 'text-rotation-alignment': 'map', 'text-offset': [0, -0.75], 'text-allow-overlap': true, 'text-keep-upright': true }, paint: { 'text-color': '#1e293b', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
-  map.addLayer({ id: 'ann-total-label', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'total-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-variable-anchor': ['top-left', 'bottom-left', 'top-right', 'bottom-right', 'top', 'bottom'], 'text-radial-offset': 0.8, 'text-allow-overlap': true }, paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
-  map.addLayer({ id: 'ann-area-label', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'area-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['DIN Pro Bold', 'Arial Unicode MS Bold'], 'text-anchor': 'center', 'text-allow-overlap': true }, paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
+  map.addLayer({ id: 'ann-text', type: 'symbol', source: 'annotations', filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'annType'], 'point'], ['has', 'numberStr']], layout: { 'text-field': ['get', 'numberStr'], 'text-size': 11, 'text-font': ['${FONT_BOLD}'], 'text-allow-overlap': true }, paint: { 'text-color': '#000' } });
+  map.addLayer({ id: 'ann-meas-arrows', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'meas-arrow'], layout: { 'text-field': '▶', 'text-size': 10, 'text-font': ['${FONT_BOLD}'], 'text-rotate': ['get', 'bearing'], 'text-rotation-alignment': 'map', 'text-allow-overlap': true, 'text-keep-upright': false }, paint: { 'text-color': '#2563eb', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
+  map.addLayer({ id: 'ann-seg-labels', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'segment-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['${FONT_BOLD}'], 'text-rotate': ['get', 'textAngle'], 'text-rotation-alignment': 'map', 'text-offset': [0, -0.75], 'text-allow-overlap': true, 'text-keep-upright': true }, paint: { 'text-color': '#1e293b', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
+  map.addLayer({ id: 'ann-total-label', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'total-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['${FONT_BOLD}'], 'text-variable-anchor': ['top-left', 'bottom-left', 'top-right', 'bottom-right', 'top', 'bottom'], 'text-radial-offset': 0.8, 'text-allow-overlap': true }, paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
+  map.addLayer({ id: 'ann-area-label', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'area-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['${FONT_BOLD}'], 'text-anchor': 'center', 'text-allow-overlap': true }, paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
   ` : ''}
 });
 ${sc}

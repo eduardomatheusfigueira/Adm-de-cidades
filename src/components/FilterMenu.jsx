@@ -5,20 +5,17 @@ import { AnnotationContext } from '../contexts/AnnotationContext';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { generateExportHtml } from '../utils/exportMap';
-import { getColorScale, getLegendKey } from '../utils/colorUtils';
-
-const isValidColor = (value) => /^#([0-9A-F]{3}){1,2}$/i.test(value);
-const normalizeToHex = (color) => {
-  if (!color) return '#cccccc';
-  if (isValidColor(color)) return color;
-  try { const ctx = document.createElement('canvas').getContext('2d'); ctx.fillStyle = color; return ctx.fillStyle; }
-  catch { return '#cccccc'; }
-};
+import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing, toNumericIfPossible } from '../utils/colorUtils';
+import { getGeoJSONSourceData, resolveBasemapStyle } from '../utils/basemaps';
+import { useProjectState } from '../hooks/useProjectState';
+import DataWizard from './DataWizard';
 
 const FilterMenu = ({ onImportGeometry }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showDrawTools, setShowDrawTools] = useState(false);
   const menuRef = useRef(null);
+  // Assistente de dados aberto: 'malha' | 'tabela' | null
+  const [wizard, setWizard] = useState(null);
 
   // --- Data Context ---
   const {
@@ -41,7 +38,6 @@ const FilterMenu = ({ onImportGeometry }) => {
     startDrawing,
     drawingMode,
     activeVisualizationId,
-    createVisualization,
     getActiveAnnotations,
     visualizations,
     annotations,
@@ -53,6 +49,8 @@ const FilterMenu = ({ onImportGeometry }) => {
     setCurrentColor,
     setActiveVisualizationId,
   } = useContext(AnnotationContext);
+
+  const { buildProfile, applyProfile } = useProjectState();
 
   // --- Map Context ---
   const { map, mapStyle, lng, lat, zoom } = useContext(MapContext);
@@ -84,7 +82,8 @@ const FilterMenu = ({ onImportGeometry }) => {
   }, [menuRef]);
 
   const handleStartAnnotation = (type) => {
-    if (!activeVisualizationId) createVisualization();
+    // startDrawing já cria uma visualização quando não há nenhuma ativa
+    // (criar aqui também gerava uma visualização vazia duplicada).
     startDrawing(type);
     setIsOpen(false);
     setShowDrawTools(false);
@@ -94,23 +93,7 @@ const FilterMenu = ({ onImportGeometry }) => {
   // SAVE PROFILE (all state)
   // ============================
   const handleSaveProfile = async () => {
-    const profileData = {
-      version: 2,
-      // Data
-      municipios: csvData,
-      csvHeaders: csvHeaders,
-      indicadores: indicadoresData,
-      geometrias: geojsonData,
-      // UI / Visualization
-      colorAttribute: colorAttribute,
-      visualizationConfig: visualizationConfig,
-      legendConfigByKey: legendConfigByKey,
-      // Annotations
-      annotations: annotations,
-      visualizationsAnnot: visualizations,
-      // Export pages
-      exportPages: exportPages,
-    };
+    const profileData = buildProfile();
     const json = JSON.stringify(profileData);
     const defaultName = 'perfil_completo.json';
 
@@ -156,60 +139,7 @@ const FilterMenu = ({ onImportGeometry }) => {
       reader.onload = (e) => {
         try {
           const profile = JSON.parse(e.target.result);
-
-          // Data
-          if (profile.municipios) {
-            setCsvData(profile.municipios);
-            setFilteredCsvData(profile.municipios);
-            if (profile.csvHeaders) {
-              setCsvHeaders(profile.csvHeaders);
-            } else {
-              const profileHeaders = Object.keys(profile.municipios[0] || {});
-              setCsvHeaders(profileHeaders);
-            }
-          }
-          if (profile.indicadores) {
-            setIndicadoresData(profile.indicadores);
-          }
-          if (profile.geometrias) {
-            setGeojsonData(profile.geometrias);
-          }
-
-          // UI / Visualization (version 2+)
-          if (profile.version >= 2) {
-            if (profile.colorAttribute) {
-              setColorAttribute(profile.colorAttribute);
-            }
-            if (profile.visualizationConfig !== undefined) {
-              setVisualizationConfig(profile.visualizationConfig);
-            }
-            if (profile.legendConfigByKey) {
-              // Restore all legend configs
-              Object.entries(profile.legendConfigByKey).forEach(([key, config]) => {
-                updateLegendConfig(key, config);
-              });
-            }
-            // Annotations — REPLACE entirely (deduplicate by id)
-            if (profile.annotations) {
-              const uniqueAnns = [...new Map(profile.annotations.map(a => [a.id, a])).values()];
-              setAnnotations(uniqueAnns);
-            } else {
-              setAnnotations([]);
-            }
-            if (profile.visualizationsAnnot) {
-              const uniqueViz = [...new Map(profile.visualizationsAnnot.map(v => [v.id, v])).values()];
-              setVisualizations(uniqueViz);
-              if (uniqueViz.length > 0) {
-                setActiveVisualizationId(uniqueViz[0].id);
-              }
-            } else {
-              setVisualizations([]);
-            }
-            // Export pages
-            if (profile.exportPages && Array.isArray(profile.exportPages)) {
-              setExportPages(profile.exportPages);
-            }
-          }
+          applyProfile(profile);
 
           alert('Perfil carregado com sucesso!');
         } catch (error) {
@@ -245,36 +175,22 @@ const FilterMenu = ({ onImportGeometry }) => {
       const { indicator, year, valueType } = visualizationConfig;
       values = (indicadoresData || [])
         .filter(row => row.Nome_Indicador === indicator && row.Ano_Observacao === year)
-        .map(row => { const p = parseFloat(valueType === 'position' ? row.Indice_Posicional : row.Valor); return Number.isNaN(p) ? null : p; })
-        .filter(v => v !== null);
+        .map(row => (valueType === 'position' ? row.Indice_Posicional : row.Valor))
+        .filter(v => !isNoDataMarker(v));
     } else {
       values = (filteredCsvData || []).map(row => row[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
     }
 
+    if (visualizationConfig?.type !== 'indicator') {
+      values = toNumericIfPossible(values, (csvData || []).map(row => row[attribute]).filter(v => !isNoDataMarker(v)));
+    }
     const scaleExpression = getColorScale(attribute, values);
     const expressionType = scaleExpression?.[0];
     const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
     let items = [];
 
-    if (expressionType === 'match') {
-      for (let i = 2; i < scaleExpression.length - 1; i += 2) {
-        items.push({ value: `${scaleExpression[i]}`, color: normalizeToHex(scaleExpression[i + 1]) });
-      }
-    } else if (expressionType === 'step') {
-      const numericValues = values.map(v => parseFloat(v)).filter(v => !Number.isNaN(v)).sort((a, b) => a - b);
-      if (numericValues.length) {
-        const minVal = numericValues[0], maxVal = numericValues[numericValues.length - 1];
-        let prev = minVal;
-        items.push({ value: `${minVal.toLocaleString('pt-BR')} - ${maxVal.toLocaleString('pt-BR')}`, color: normalizeToHex(scaleExpression[2]) });
-        for (let i = 3; i < scaleExpression.length; i += 2) {
-          const th = Number(scaleExpression[i]), col = scaleExpression[i + 1];
-          if (Number.isNaN(th) || !col) continue;
-          items[items.length - 1].value = `${prev.toLocaleString('pt-BR')} - ${th.toLocaleString('pt-BR')}`;
-          items.push({ value: `${th.toLocaleString('pt-BR')} - ${maxVal.toLocaleString('pt-BR')}`, color: normalizeToHex(col) });
-          prev = th;
-        }
-      }
-    }
+    const missing = visualizationConfig?.type === 'indicator' ? 0 : countMissing(filteredCsvData, attribute, expressionType === 'step');
+    items = buildLegendItems(scaleExpression, values, missing).items;
 
     if (customLegend && customLegend.items && customLegend.items.length > 0) {
       title = customLegend.title || title;
@@ -299,7 +215,7 @@ const FilterMenu = ({ onImportGeometry }) => {
     let munGeoJson = null;
     let colorExpr = null;
     if (mapInstance && mapInstance.getSource('sectors')) {
-      const srcData = mapInstance.getSource('sectors')._data;
+      const srcData = getGeoJSONSourceData(mapInstance.getSource('sectors'));
       if (srcData && srcData.features && srcData.features.length > 0) munGeoJson = srcData;
       if (mapInstance.getLayer('sectors-fill-layer')) colorExpr = mapInstance.getPaintProperty('sectors-fill-layer', 'fill-color');
     }
@@ -310,8 +226,7 @@ const FilterMenu = ({ onImportGeometry }) => {
       mapCenter: center,
       mapZoom: currentZoom,
       mapBearing: mapInstance ? mapInstance.getBearing() : 0,
-      mapStyle,
-      mapboxToken: import.meta.env.VITE_MAPBOX_TOKEN || '',
+      mapStyle: resolveBasemapStyle(mapStyle),
       municipalityGeoJson: munGeoJson,
       municipalityColorExpression: colorExpr,
       colorLegend: buildColorLegend(),
@@ -355,9 +270,14 @@ const FilterMenu = ({ onImportGeometry }) => {
         <div className="filter-section">
           <h3>Dados</h3>
           <div className="filter-actions import-export-buttons">
-            <button className="control-button import-button" onClick={handleImportIndicators}>Importar Indicadores</button>
-            <button className="control-button import-button" onClick={handleImportMunicipios}>Importar Municípios</button>
-            <button className="control-button import-geometry-button" onClick={onImportGeometry}>Importar Geometria</button>
+            <button className="control-button import-button" onClick={() => { setWizard('malha'); setIsOpen(false); }}>🗺️ Mapa do Brasil (IBGE)</button>
+            <button className="control-button import-button" onClick={() => { setWizard('tabela'); setIsOpen(false); }}>📊 Juntar minha tabela (CSV)</button>
+            <details className="advanced-imports">
+              <summary>Formatos avançados</summary>
+              <button className="control-button import-button" onClick={handleImportIndicators}>Importar Indicadores</button>
+              <button className="control-button import-button" onClick={handleImportMunicipios}>Importar Municípios</button>
+              <button className="control-button import-geometry-button" onClick={onImportGeometry}>Importar Geometria</button>
+            </details>
           </div>
         </div>
 
@@ -413,6 +333,7 @@ const FilterMenu = ({ onImportGeometry }) => {
           </div>
         </div>
       </div>
+      {wizard && <DataWizard mode={wizard} onClose={() => setWizard(null)} />}
     </div>
   );
 };

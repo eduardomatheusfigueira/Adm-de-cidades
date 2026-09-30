@@ -90,3 +90,42 @@
     color: white;
     background-color: rgba(255, 255, 255, 0.1);
 }
+/* Celular: cabeçalho compacto; as abas rolam na horizontal em vez de transbordar */
+@media (max-width: 768px) {
+    .app-header {
+        height: 56px;
+        padding: 0 var(--spacing-sm);
+        gap: var(--spacing-sm);
+    }
+
+    .logo-text,
+    .header-actions {
+        display: none;
+    }
+
+    .logo-image {
+        height: 32px;
+    }
+
+    .header-nav {
+        flex: 1;
+        min-width: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 4px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .header-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-item {
+        flex: 0 0 auto;
+        min-height: 44px;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+}

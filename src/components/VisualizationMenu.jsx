@@ -3,6 +3,8 @@ import '../styles/VisualizationMenu.css';
 import { DataContext } from '../contexts/DataContext';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext'; // Importado UIContext
+import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, isStyleReady, isAppLayer } from '../utils/basemaps';
+import { isNumericValues } from '../utils/colorUtils';
 
 const VisualizationMenu = ({
   onFiltersApplied // Esta prop ainda é passada por AppContent para coordenar DataContext e UIContext
@@ -53,26 +55,12 @@ const VisualizationMenu = ({
     landuse: true,
   });
 
-  const MAP_LAYER_CATEGORIES = useMemo(() => ([
-    { key: 'labels',    label: 'Rótulos / Textos',       emoji: '🏷️', match: (id) => id.includes('label') },
-    { key: 'roads',     label: 'Ruas e Estradas',        emoji: '🛣️', match: (id) => (id.startsWith('road') || id.startsWith('bridge') || id.startsWith('tunnel')) && !id.includes('label') },
-    { key: 'buildings', label: 'Construções',             emoji: '🏢', match: (id) => id.includes('building') },
-    { key: 'admin',     label: 'Limites Administrativos', emoji: '🗺️', match: (id) => id.includes('admin') || id.includes('boundary') },
-    { key: 'pois',      label: 'Pontos de Interesse',     emoji: '📍', match: (id) => id.includes('poi') && !id.includes('label') },
-    { key: 'water',     label: 'Água',                    emoji: '💧', match: (id) => (id.includes('water') || id.includes('river') || id.includes('stream')) && !id.includes('label') },
-    { key: 'landuse',   label: 'Uso do Solo / Vegetação', emoji: '🌿', match: (id) => id.includes('landuse') || id.includes('landcover') || id.includes('land-structure') || id.includes('national-park') },
-  ]), []);
+  const MAP_LAYER_CATEGORIES = BASEMAP_LAYER_CATEGORIES;
 
-  // Our own layer IDs that should never be toggled
-  const OWN_LAYER_IDS = useMemo(() => new Set([
-    'sectors-fill-layer', 'sectors-line-layer', 'sectors-point-layer',
-    'annotations-fill-layer', 'annotations-line-solid', 'annotations-line-dashed',
-    'annotations-line-dotted', 'annotations-point-layer', 'annotations-point-labels',
-    'annotations-vertex-layer', 'graticule-lines', 'graticule-labels',
-  ]), []);
+
 
   const toggleMapLayerCategory = useCallback((categoryKey) => {
-    if (!map?.current || !mapLoaded || !map.current.isStyleLoaded()) return;
+    if (!map?.current || !mapLoaded || !isStyleReady(map.current)) return;
 
     const category = MAP_LAYER_CATEGORIES.find(c => c.key === categoryKey);
     if (!category) return;
@@ -82,8 +70,8 @@ const VisualizationMenu = ({
 
     const allLayers = map.current.getStyle().layers || [];
     allLayers.forEach(layer => {
-      if (OWN_LAYER_IDS.has(layer.id)) return;
-      if (category.match(layer.id)) {
+      if (isAppLayer(layer.id)) return;
+      if (category.match(layer)) {
         try {
           map.current.setLayoutProperty(layer.id, 'visibility', visibility);
         } catch (e) { /* some layers may not support it */ }
@@ -91,7 +79,7 @@ const VisualizationMenu = ({
     });
 
     setMapLayerVisibility(prev => ({ ...prev, [categoryKey]: newVisible }));
-  }, [map, mapLoaded, mapLayerVisibility, MAP_LAYER_CATEGORIES, OWN_LAYER_IDS]);
+  }, [map, mapLoaded, mapLayerVisibility, MAP_LAYER_CATEGORIES]);
 
   // Reset visibility state when map style changes (all layers reset to visible)
   useEffect(() => {
@@ -192,7 +180,7 @@ const VisualizationMenu = ({
 
       if (values.length === 0) return false;
 
-      return values.every((value) => !Number.isNaN(parseFloat(value)));
+      return isNumericValues(values);
     };
 
     const categorical = [];
@@ -459,11 +447,8 @@ const VisualizationMenu = ({
             <div className="visualization-group">
               <label>Estilo do Mapa:</label>
               <select className="visualization-dropdown" value={mapStyle} onChange={(e) => handleMapStyleChange(e.target.value)}>
-                <option value="mapbox://styles/mapbox/light-v11">Claro</option>
-                <option value="mapbox://styles/mapbox/dark-v11">Escuro</option>
-                <option value="mapbox://styles/mapbox/streets-v12">Ruas</option>
-                <option value="mapbox://styles/mapbox/outdoors-v12">Exterior</option>
-                <option value="mapbox://styles/mapbox/satellite-streets-v12">Satélite com Ruas</option>
+                {BASEMAPS.map(b => <option key={b.id} value={b.id}>{b.label}</option>)}
+                {!BASEMAPS.some(b => b.id === mapStyle) && <option value={mapStyle}>Personalizado</option>}
               </select>
             </div>
             <div className="visualization-group map-layers-section">

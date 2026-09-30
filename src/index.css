@@ -179,7 +179,7 @@ body {
   position: absolute;
   top: var(--spacing-md);
   left: var(--spacing-md);
-  z-index: 10;
+  z-index: 21; /* acima da busca (20): os menus abertos não ficam por baixo dela */
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
@@ -189,10 +189,41 @@ body {
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-md);
-  z-index: 10;
+  z-index: 21; /* acima da busca (20): os menus abertos não ficam por baixo dela */
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+}
+
+.map-notice {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 32px));
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff8e1;
+  border: 1px solid #f0c36d;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: #5d4200;
+  font-size: 13px;
+  line-height: 1.4;
+  z-index: 25;
+}
+
+.map-notice button {
+  flex: none;
+  min-width: 32px;
+  min-height: 32px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 .map-loading {
@@ -307,4 +338,104 @@ body {
 .cancel-button:hover {
   background-color: var(--surface-hover);
   color: var(--text-primary);
+}
+/* Salvamento automático */
+.autosave-resume {
+  position: fixed;
+  top: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 32px));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #14213d;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  z-index: 1000;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.autosave-resume-text {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  line-height: 1.4;
+}
+
+.autosave-resume-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.autosave-btn,
+.autosave-btn-primary {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.autosave-btn {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #1e293b;
+}
+
+.autosave-btn-primary {
+  border: none;
+  background: #14213d;
+  color: #ffffff;
+}
+
+.autosave-indicator {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #475569;
+  font-size: 12px;
+  z-index: 1001;
+  pointer-events: none;
+}
+
+/* Aviso de navegador embutido (Instagram, WhatsApp etc.) */
+.inapp-notice {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  background: #fff3cd;
+  border-bottom: 1px solid #f0c36d;
+  color: #5d4200;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.inapp-notice button {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: inherit;
 }

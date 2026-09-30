@@ -3,21 +3,9 @@ import { Rnd } from 'react-rnd';
 import '../styles/Legend.css';
 import { UIContext } from '../contexts/UIContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale, getLegendKey } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing, toNumericIfPossible } from '../utils/colorUtils';
 
 const isValidColor = (value) => /^#([0-9A-F]{3}){1,2}$/i.test(value);
-
-const normalizeToHex = (color) => {
-  if (!color) return '#cccccc';
-  if (isValidColor(color)) return color;
-  try {
-    const ctx = document.createElement('canvas').getContext('2d');
-    ctx.fillStyle = color;
-    return ctx.fillStyle;
-  } catch {
-    return '#cccccc';
-  }
-};
 
 const Legend = () => {
   const {
@@ -29,7 +17,7 @@ const Legend = () => {
     showAttributeLegend,
     setShowAttributeLegend
   } = useContext(UIContext);
-  const { filteredCsvData, indicadoresData } = useContext(DataContext);
+  const { filteredCsvData, csvData, indicadoresData } = useContext(DataContext);
 
   const legendKey = useMemo(
     () => getLegendKey(visualizationConfig, colorAttribute),
@@ -58,52 +46,28 @@ const Legend = () => {
       const { indicator, year, valueType } = visualizationConfig;
       values = (indicadoresData || [])
         .filter((row) => row.Nome_Indicador === indicator && row.Ano_Observacao === year)
-        .map((row) => {
-          const raw = valueType === 'position' ? row.Indice_Posicional : row.Valor;
-          const parsed = parseFloat(raw);
-          return Number.isNaN(parsed) ? null : parsed;
-        })
-        .filter((value) => value !== null);
+        // Valores brutos: getColorScale/buildLegendItems decidem o formato numérico da coluna inteira
+        .map((row) => (valueType === 'position' ? row.Indice_Posicional : row.Valor))
+        .filter((value) => !isNoDataMarker(value));
     } else {
       values = (filteredCsvData || [])
         .map((row) => row[attribute])
         .filter((value) => value !== undefined && value !== null && `${value}`.trim() !== '');
     }
 
+    // Números lidos com o formato decidido pela coluna completa (não só os filtrados)
+    if (visualizationConfig?.type !== 'indicator') {
+      values = toNumericIfPossible(values, (csvData || []).map((row) => row[attribute]).filter((v) => !isNoDataMarker(v)));
+    }
     const scaleExpression = getColorScale(attribute, values);
-    const expressionType = scaleExpression?.[0];
-
-    if (expressionType === 'match') {
-      const items = [];
-      for (let i = 2; i < scaleExpression.length - 1; i += 2) {
-        items.push({ value: `${scaleExpression[i]}`, color: normalizeToHex(scaleExpression[i + 1]) });
-      }
-      return { title, items, type: 'categorical' };
-    }
-
-    if (expressionType === 'step') {
-      const numericValues = values.map((v) => parseFloat(v)).filter((v) => !Number.isNaN(v)).sort((a, b) => a - b);
-      if (!numericValues.length) return { title, items: [], type: 'dynamic' };
-
-      const steps = [];
-      const minValue = numericValues[0];
-      const maxValue = numericValues[numericValues.length - 1];
-      let previousThreshold = minValue;
-      steps.push({ value: `${minValue.toLocaleString('pt-BR')} - ${maxValue.toLocaleString('pt-BR')}`, color: normalizeToHex(scaleExpression[2]) });
-
-      for (let i = 3; i < scaleExpression.length; i += 2) {
-        const threshold = Number(scaleExpression[i]);
-        const color = scaleExpression[i + 1];
-        if (Number.isNaN(threshold) || !color) continue;
-        steps[steps.length - 1].value = `${previousThreshold.toLocaleString('pt-BR')} - ${threshold.toLocaleString('pt-BR')}`;
-        steps.push({ value: `${threshold.toLocaleString('pt-BR')} - ${maxValue.toLocaleString('pt-BR')}`, color: normalizeToHex(color) });
-        previousThreshold = threshold;
-      }
-      return { title, items: steps, type: 'numeric' };
-    }
-
-    return { title, items: [], type: 'dynamic' };
-  }, [legendKey, colorAttribute, visualizationConfig, filteredCsvData, indicadoresData]);
+    // Indicadores sem linha para o município também são "sem dados", mas a contagem
+    // aqui considera só os registros existentes do atributo/indicador.
+    const missing = visualizationConfig?.type === 'indicator'
+      ? 0
+      : countMissing(filteredCsvData, attribute, scaleExpression?.[0] === 'step');
+    const { type, items } = buildLegendItems(scaleExpression, values, missing);
+    return { title, items, type };
+  }, [legendKey, colorAttribute, visualizationConfig, filteredCsvData, csvData, indicadoresData]);
 
   const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
 
@@ -143,12 +107,13 @@ const Legend = () => {
 
   return (
     <Rnd
-      default={{
-        x: 10,
-        y: 300,
-        width: 250,
-        height: 'auto',
-      }}
+      default={(() => {
+        // No celular a legenda começa menor e mais alta, sem cobrir a barra de escala
+        const w = typeof window !== 'undefined' ? window.innerWidth : 1024;
+        return w < 600
+          ? { x: 8, y: 150, width: Math.min(220, w - 72), height: 'auto' }
+          : { x: 10, y: 300, width: 250, height: 'auto' };
+      })()}
       minWidth={150}
       bounds="parent"
       dragHandleClassName="legend-drag-handle"

@@ -1,12 +1,28 @@
 import React, { useState, useContext, useCallback, useRef, useEffect, useMemo } from 'react';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
+import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, getFontStack, getGeoJSONSourceData, normalizeBasemap, resolveBasemapStyle, isStyleReady, isAppLayer } from '../utils/basemaps';
 import '../styles/ImageStudio.css';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { AnnotationContext } from '../contexts/AnnotationContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, isNumericValues, makeNumberParser, withNoDataColor, buildLegendItems, applyCustomLegendColors } from '../utils/colorUtils';
 import { getAnnotationMeasurement } from '../utils/geoUtils';
+import { pickScaleDistance } from '../utils/scale';
+
+// Safari < 16 não tem CanvasRenderingContext2D.roundRect; sem isso a exportação lança erro.
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function roundRect(x, y, w, h, r = 0) {
+    const rad = Math.min(typeof r === 'number' ? r : (Array.isArray(r) ? r[0] || 0 : 0), w / 2, h / 2);
+    this.moveTo(x + rad, y);
+    this.arcTo(x + w, y, x + w, y + h, rad);
+    this.arcTo(x + w, y + h, x, y + h, rad);
+    this.arcTo(x, y + h, x, y, rad);
+    this.arcTo(x, y, x + w, y, rad);
+    this.closePath();
+    return this;
+  };
+}
 
 const PRESETS = [
   { label: 'HD', w: 1920, h: 1080 },
@@ -193,7 +209,40 @@ function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
   ctx.restore();
 }
 
-function drawScale(ctx,x,y,w,h,zoom,lat){const STEPS=[1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000],NS=5;const mpp=78271.5168*Math.cos(lat*Math.PI/180)/Math.pow(2,zoom);let best=STEPS[0];for(const s of STEPS){const px=s/mpp;if(px>=200&&px<=300){best=s;break;}if(px>300){best=s;break;}best=s;}const bW=w*0.85,sW=bW/NS,bH=h*0.2,unit=best>=1000?'km':'m',pad=w*0.075;ctx.fillStyle='rgba(255,255,255,0.92)';ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,h,6);ctx.fill();ctx.stroke();const bX=x+pad,bY=y+h*0.5;ctx.font=`${Math.max(8,Math.round(h*0.16))}px Inter,sans-serif`;ctx.fillStyle='#1e293b';ctx.textAlign='center';ctx.textBaseline='bottom';for(let i=0;i<=NS;i++){const d=(best/NS)*i,v=unit==='km'?d/1000:d;ctx.fillText(i===NS?`${Number.isInteger(v)?v:v.toFixed(1)} ${unit}`:`${Number.isInteger(v)?v:v.toFixed(1)}`,bX+sW*i,bY-3);}for(let i=0;i<NS;i++){ctx.fillStyle=i%2===0?'#1e293b':'#fff';ctx.fillRect(bX+sW*i,bY,sW,bH);}ctx.strokeStyle='#1e293b';ctx.lineWidth=1;ctx.strokeRect(bX,bY,bW,bH);ctx.font=`italic ${Math.max(7,Math.round(h*0.13))}px Inter,sans-serif`;ctx.fillStyle='#64748b';ctx.textAlign='center';ctx.fillText('Projeção: Web Mercator (EPSG:3857)',x+w/2,bY+bH+h*0.2);}
+// Escala gráfica: o comprimento da barra é calculado pela distância real (utils/scale.js).
+function scaleDivisions(meters) {
+  const lead = Math.round(meters / Math.pow(10, Math.floor(Math.log10(meters))));
+  return lead === 2 ? 4 : 5;
+}
+
+function formatScaleNumber(v) {
+  return v.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+}
+
+function drawScale(ctx, x, y, w, h, zoom, lat) {
+  const pad = w * 0.075;
+  const { meters, barPx } = pickScaleDistance(w - pad * 2, zoom, lat);
+  // Divisões com números redondos: 5 → 5×1, 2 → 4×0,5, 1 → 5×0,2
+  const NS = scaleDivisions(meters);
+  const unit = meters >= 1000 ? 'km' : 'm';
+  const div = unit === 'km' ? 1000 : 1;
+  const sW = barPx / NS, bH = h * 0.2;
+  ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, 6); ctx.fill(); ctx.stroke();
+  const bX = x + pad, bY = y + h * 0.5;
+  ctx.font = `${Math.max(8, Math.round(h * 0.16))}px Inter,sans-serif`;
+  ctx.fillStyle = '#1e293b'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  for (let i = 0; i <= NS; i++) {
+    const v = (meters / NS) * i / div;
+    const label = i === NS ? `${formatScaleNumber(v)} ${unit}` : formatScaleNumber(v);
+    ctx.fillText(label, bX + sW * i, bY - 3);
+  }
+  for (let i = 0; i < NS; i++) { ctx.fillStyle = i % 2 === 0 ? '#1e293b' : '#fff'; ctx.fillRect(bX + sW * i, bY, sW, bH); }
+  ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1; ctx.strokeRect(bX, bY, barPx, bH);
+  ctx.font = `italic ${Math.max(7, Math.round(h * 0.13))}px Inter,sans-serif`;
+  ctx.fillStyle = '#64748b'; ctx.textAlign = 'center';
+  ctx.fillText('Projeção: Web Mercator (EPSG:3857)', x + w / 2, bY + bH + h * 0.2);
+}
 
 // Word-wrap helper: splits text into lines that fit within maxWidth pixels.
 // Returns an array of strings.
@@ -561,12 +610,68 @@ function drawCustomStudioElement(ctx, W, H, el) {
   ctx.restore();
 }
 
+// Texto de atribuição do mapa base (exigido pelas licenças do OpenStreetMap/OpenFreeMap e Esri)
+export function mapAttributionText(pm) {
+  try {
+    const sources = pm?.getStyle()?.sources || {};
+    const parts = new Set();
+    Object.values(sources).forEach(src => {
+      if (!src?.attribution) return;
+      const div = document.createElement('div');
+      div.innerHTML = src.attribution;
+      const text = (div.textContent || '').replace(/\s+/g, ' ').trim();
+      if (text) parts.add(text);
+    });
+    // Tile sources carregadas por URL (estilos remotos) expõem a atribuição só na instância
+    Object.keys(sources).forEach(id => {
+      const a = pm.getSource(id)?.attribution;
+      if (a) { const div = document.createElement('div'); div.innerHTML = a; const t = (div.textContent || '').replace(/\s+/g, ' ').trim(); if (t) parts.add(t); }
+    });
+    return [...parts].join(' · ');
+  } catch (e) { return ''; }
+}
+
+// Bloco de créditos (canto inferior direito): Fonte, Elaboração, Data + atribuição do mapa base
+function drawCredits(ctx, W, H, cfg, attribution, s = 1) {
+  const lines = [];
+  if (cfg?.show) {
+    if (cfg.fonte?.trim()) lines.push({ text: `Fonte dos dados: ${cfg.fonte.trim()}`, bold: false });
+    if (cfg.autor?.trim()) lines.push({ text: `Elaboração: ${cfg.autor.trim()}`, bold: false });
+    if (cfg.data?.trim()) lines.push({ text: `Data: ${cfg.data.trim()}`, bold: false });
+  }
+  if (attribution) lines.push({ text: `Mapa base: ${attribution}`, small: true });
+  if (!lines.length) return;
+  const fs = Math.max(11, Math.round(H * 0.014)) * s;
+  const smallFs = Math.round(fs * 0.8);
+  const pad = fs * 0.6;
+  const maxW = W * 0.45;
+  const wrapped = [];
+  lines.forEach(l => {
+    ctx.font = `${l.small ? smallFs : fs}px Inter,sans-serif`;
+    wrapText(ctx, l.text, maxW - pad * 2).forEach(t => wrapped.push({ ...l, text: t }));
+  });
+  const lineH = (l) => (l.small ? smallFs : fs) * 1.35;
+  const boxH = wrapped.reduce((a, l) => a + lineH(l), 0) + pad * 2;
+  const boxW = Math.min(maxW, Math.max(...wrapped.map(l => { ctx.font = `${l.small ? smallFs : fs}px Inter,sans-serif`; return ctx.measureText(l.text).width; })) + pad * 2);
+  const x = W - boxW - W * 0.01, y = H - boxH - H * 0.012;
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.beginPath(); ctx.roundRect(x, y, boxW, boxH, 4 * s); ctx.fill();
+  let cy = y + pad;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  wrapped.forEach(l => {
+    ctx.font = `${l.small ? smallFs : fs}px Inter,sans-serif`;
+    ctx.fillStyle = l.small ? '#475569' : '#1e293b';
+    ctx.fillText(l.text, x + pad, cy);
+    cy += lineH(l);
+  });
+}
+
 function drawOverlays(ctx, W, H, opts) {
   const {
     incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle,
     overlayPos, bearing, zoom, lat, legendData, annData, vizName, scale,
     titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle,
-    elementsStack, studioElements
+    elementsStack, studioElements, creditsCfg, attribution
   } = opts;
 
   const s = scale || 1;
@@ -588,94 +693,105 @@ function drawOverlays(ctx, W, H, opts) {
       if (el) drawCustomStudioElement(ctx, W, H, el);
     }
   });
+  drawCredits(ctx, W, H, creditsCfg, attribution, s);
 }
 
 // Draggable & Resizable overlay handle
+// Nome de arquivo a partir do título do mapa ("Densidade — SP 2022" → "densidade_sp_2022")
+const fileSlug = (text) => String(text || '')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60);
+
+const downloadUrl = (url, name) => {
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+};
+
+const isTouchDevice = () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
+
+// Alça de arraste dos elementos da prancha. Usa Pointer Events (mouse, dedo e caneta) e
+// setPointerCapture; os tamanhos de borda e da alça são em pixels de TELA (a prancha aparece
+// reduzida por --ui-scale = 1/zoom da visualização), para continuar fácil de tocar no celular.
 const DragHandle = ({ id, pos, onMove, visible, size, isSelected, onSelect, onResize, canResize }) => {
   const ref = useRef(null);
 
-  const onDownMove = useCallback((e) => {
-    if (!ref.current) return;
+  const startDrag = useCallback((e, onMv) => {
     e.preventDefault(); e.stopPropagation();
+    const target = e.currentTarget;
+    try { target.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    const move = (ev) => { if (ev.pointerId === e.pointerId) onMv(ev); };
+    const up = (ev) => {
+      if (ev.pointerId !== e.pointerId) return;
+      target.removeEventListener('pointermove', move);
+      target.removeEventListener('pointerup', up);
+      target.removeEventListener('pointercancel', up);
+    };
+    target.addEventListener('pointermove', move);
+    target.addEventListener('pointerup', up);
+    target.addEventListener('pointercancel', up);
+  }, []);
+
+  const onDownMove = useCallback((e) => {
+    if (!ref.current || e.button > 0) return;
     if (onSelect) onSelect();
     const rect = ref.current.getBoundingClientRect();
     const ox = e.clientX - rect.left, oy = e.clientY - rect.top;
-    const onMv = (ev) => {
-      const parent = ref.current.parentElement;
+    startDrag(e, (ev) => {
+      const parent = ref.current?.parentElement;
       if (!parent) return;
       const pr = parent.getBoundingClientRect();
       onMove(id, Math.max(0, Math.min((ev.clientX - pr.left - ox) / pr.width, 0.95)),
                   Math.max(0, Math.min((ev.clientY - pr.top - oy) / pr.height, 0.95)));
-    };
-    const onUp = () => { window.removeEventListener('mousemove', onMv); window.removeEventListener('mouseup', onUp); };
-    window.addEventListener('mousemove', onMv); window.addEventListener('mouseup', onUp);
-  }, [id, onMove, onSelect]);
+    });
+  }, [id, onMove, onSelect, startDrag]);
 
   const onDownResize = useCallback((e) => {
-    if (!ref.current) return;
-    e.preventDefault(); e.stopPropagation();
+    if (!ref.current || e.button > 0) return;
     if (onSelect) onSelect();
     const parent = ref.current.parentElement;
     if (!parent) return;
     const pr = parent.getBoundingClientRect();
     const scaleFactor = pr.width / (parent.offsetWidth || pr.width);
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startW = size?.w || 100;
-    const startH = size?.h || 60;
-
-    const onMv = (ev) => {
+    const startX = e.clientX, startY = e.clientY;
+    const startW = size?.w || 100, startH = size?.h || 60;
+    startDrag(e, (ev) => {
       const dx = (ev.clientX - startX) / (scaleFactor || 1);
       const dy = (ev.clientY - startY) / (scaleFactor || 1);
-      const newW = Math.max(20, Math.round(startW + dx));
-      const newH = Math.max(20, Math.round(startH + dy));
-      if (onResize) onResize(id, newW, newH);
-    };
-    const onUp = () => { window.removeEventListener('mousemove', onMv); window.removeEventListener('mouseup', onUp); };
-    window.addEventListener('mousemove', onMv); window.addEventListener('mouseup', onUp);
-  }, [id, size, onResize, onSelect]);
+      if (onResize) onResize(id, Math.max(20, Math.round(startW + dx)), Math.max(20, Math.round(startH + dy)));
+    });
+  }, [id, size, onResize, onSelect, startDrag]);
 
   if (!visible) return null;
 
+  const px = (n) => `calc(${n}px * var(--ui-scale, 1))`;
   return (
-    <div ref={ref} onMouseDown={onDownMove} style={{
+    <div ref={ref} onPointerDown={onDownMove} style={{
       position: 'absolute', left: `${pos.x*100}%`, top: `${pos.y*100}%`,
       width: size?.w || 40, height: size?.h || 40, cursor: 'move', zIndex: isSelected ? 25 : 20,
-      border: isSelected ? '2px solid #38bdf8' : '2px dashed rgba(0,150,255,0.4)',
+      touchAction: 'none',
+      border: isSelected ? `${px(2)} solid #38bdf8` : `${px(2)} dashed rgba(0,150,255,0.5)`,
       boxShadow: isSelected ? '0 0 8px rgba(56,189,248,0.5)' : 'none',
       borderRadius: 3, background: isSelected ? 'rgba(56,189,248,0.12)' : 'rgba(0,150,255,0.03)',
-    }} title="Clique para selecionar / Arraste para mover">
+    }} title="Toque/clique para selecionar · Arraste para mover">
       {canResize && (
-        <div onMouseDown={onDownResize} style={{
-          position: 'absolute', right: -6, bottom: -6,
-          width: 12, height: 12, borderRadius: 2,
-          background: '#38bdf8', border: '1px solid #ffffff',
+        <div onPointerDown={onDownResize} style={{
+          position: 'absolute', right: px(-11), bottom: px(-11),
+          width: px(22), height: px(22), borderRadius: '50%',
+          background: '#38bdf8', border: `${px(2)} solid #ffffff`,
           boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
-          cursor: 'nwse-resize', zIndex: 30,
+          cursor: 'nwse-resize', zIndex: 30, touchAction: 'none',
         }} title="Arraste para redimensionar" />
       )}
     </div>
   );
 };
 
-const MAP_STYLES = [
-  { value: 'mapbox://styles/mapbox/light-v11', label: 'Claro' },
-  { value: 'mapbox://styles/mapbox/dark-v11', label: 'Escuro' },
-  { value: 'mapbox://styles/mapbox/streets-v12', label: 'Ruas' },
-  { value: 'mapbox://styles/mapbox/outdoors-v12', label: 'Exterior' },
-  { value: 'mapbox://styles/mapbox/satellite-streets-v12', label: 'Satélite' },
-];
+// Mesmas categorias do menu de Visualização, exceto Pontos de Interesse
+const LAYER_CATEGORIES = BASEMAP_LAYER_CATEGORIES
+  .filter(c => c.key !== 'pois')
+  .map(c => ({ ...c, label: { labels: 'Rótulos', roads: 'Ruas', admin: 'Limites', landuse: 'Vegetação' }[c.key] || c.label }));
 
-const LAYER_CATEGORIES = [
-  { key: 'labels', label: 'Rótulos', emoji: '🏷️', match: (id) => id.includes('label') },
-  { key: 'roads', label: 'Ruas', emoji: '🛣️', match: (id) => (id.startsWith('road') || id.startsWith('bridge') || id.startsWith('tunnel')) && !id.includes('label') },
-  { key: 'buildings', label: 'Construções', emoji: '🏢', match: (id) => id.includes('building') },
-  { key: 'admin', label: 'Limites', emoji: '🗺️', match: (id) => id.includes('admin') || id.includes('boundary') },
-  { key: 'water', label: 'Água', emoji: '💧', match: (id) => (id.includes('water') || id.includes('river')) && !id.includes('label') },
-  { key: 'landuse', label: 'Vegetação', emoji: '🌿', match: (id) => id.includes('landuse') || id.includes('landcover') || id.includes('national-park') },
-];
-
-const OWN_LAYERS = new Set(['sectors-fill-layer','sectors-line-layer','sectors-point-layer','annotations-fill-layer','annotations-line-solid','annotations-line-dashed','annotations-line-dotted','annotations-point-layer','annotations-point-labels','annotations-vertex-layer','graticule-lines','graticule-labels']);
 
 // Helpers for graticule line color (rgba string ↔ hex)
 function studioRgbaToHex(rgba) {
@@ -692,7 +808,7 @@ function studioHexToRgba(hex, alpha) {
 
 const ImageExportStudio = () => {
   const { map, mapLoaded, mapStyle } = useContext(MapContext);
-  const { showImageStudio, setShowImageStudio, showAttributeLegend, showAnnotationLegend, showNorthArrow, showScaleBar, showGraticule, graticuleStyle, setGraticuleStyle, northArrowStyle, setNorthArrowStyle, exportPages, setExportPages, colorAttribute } = useContext(UIContext);
+  const { showImageStudio, setShowImageStudio, showAttributeLegend, showAnnotationLegend, showNorthArrow, showScaleBar, showGraticule, graticuleStyle, setGraticuleStyle, northArrowStyle, setNorthArrowStyle, exportPages, setExportPages, colorAttribute, visualizationConfig, legendConfigByKey } = useContext(UIContext);
   const { getActiveAnnotations, visualizations, activeVisualizationId } = useContext(AnnotationContext);
   const { csvData, csvHeaders, indicadoresData } = useContext(DataContext);
 
@@ -704,6 +820,12 @@ const ImageExportStudio = () => {
   const [format, setFormat] = useState('png');
   const [jpegQuality, setJpegQuality] = useState(0.92);
   const [exporting, setExporting] = useState(false);
+  // Resultado da última exportação no celular: { url, file, name } — mostrado com opções de
+  // compartilhar/salvar (o menu de compartilhamento exige um novo toque do usuário)
+  const [exportResult, setExportResult] = useState(null);
+  const closeExportResult = useCallback(() => {
+    setExportResult(prev => { if (prev?.url) setTimeout(() => URL.revokeObjectURL(prev.url), 1000); return null; });
+  }, []);
   const [progress, setProgress] = useState('');
   const [openSections, setOpenSections] = useState({ res: true, fmt: false, elem: true, title: false, mapCfg: false, vizFilter: false });
 
@@ -744,6 +866,8 @@ const ImageExportStudio = () => {
   const [incLegend, setIncLegend] = useState(true);
   const [incAnnLegend, setIncAnnLegend] = useState(true);
   const [incTitle, setIncTitle] = useState(true);
+  // Créditos exigidos em mapas escolares/acadêmicos (IBGE/ABNT): fonte, autoria e data
+  const [creditsCfg, setCreditsCfg] = useState(() => ({ show: true, fonte: '', autor: '', data: new Date().toLocaleDateString('pt-BR') }));
   const [incMunPoints, setIncMunPoints] = useState(true);
   const [incGraticule, setIncGraticule] = useState(false);
   const [incMeasurements, setIncMeasurements] = useState(true);
@@ -758,7 +882,7 @@ const ImageExportStudio = () => {
   });
 
   const [overlayPos, setOverlayPos] = useState({
-    north: { x: 0.02, y: 0.05 }, scale: { x: 0.02, y: 0.82 },
+    north: { x: 0.02, y: 0.14 }, scale: { x: 0.02, y: 0.82 },
     legend: { x: 0.82, y: 0.05 }, annLegend: { x: 0.80, y: 0.35 },
     title: { x: 0.02, y: 0.02 },
   });
@@ -886,6 +1010,23 @@ const ImageExportStudio = () => {
   const wrapperRef = useRef(null);
   const redrawOverlayCanvasRef = useRef(null);
   const rafIdRef = useRef(null);
+  // Visualização atual do mapa principal, no formato de página do Estúdio
+  const mainVizCfg = useCallback(() => {
+    const vc = visualizationConfig;
+    const isInd = vc?.type === 'indicator';
+    return {
+      prvVizType: isInd ? 'indicator' : 'attribute',
+      prvVizAttribute: (!isInd && vc?.attribute) || colorAttribute || 'Sigla_Regiao',
+      prvVizIndicator: isInd ? (vc.indicator || '') : '',
+      prvVizYear: isInd ? (vc.year || '') : '',
+      prvVizValueType: isInd ? (vc.valueType || 'value') : 'value',
+      prvRenderMode: vc?.renderMode || 'filled',
+      prvFillOpacity: vc?.fillOpacity ?? 0.6,
+      prvBorderWidth: vc?.borderWidth || 2,
+      prvFilterRegion: 'all', prvFilterState: 'all', prvFilterCityType: 'all',
+    };
+  }, [visualizationConfig, colorAttribute]);
+
   const [frameSize, setFrameSize] = useState({ w: 800, h: 450 });
 
   // Viewport zoom/pan (workspace navigation)
@@ -915,6 +1056,7 @@ const ImageExportStudio = () => {
     incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule,
     legendCustomTitle, annLegendCustomTitle,
     titleCfg: { ...titleCfg },
+    creditsCfg: { ...creditsCfg },
     overlayPos: JSON.parse(JSON.stringify(overlayPos)),
     mapCamera: (() => {
       const pm = previewMapRef.current;
@@ -928,7 +1070,7 @@ const ImageExportStudio = () => {
   }), [preset, customW, customH, useCustom, orientation, format, jpegQuality,
     previewStyle, layerVis, prvRenderMode, prvFillOpacity, prvBorderWidth,
     incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule,
-    legendCustomTitle, annLegendCustomTitle, titleCfg, overlayPos,
+    legendCustomTitle, annLegendCustomTitle, titleCfg, creditsCfg, overlayPos,
     prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType, studioElements, elementsStack]);
 
@@ -941,7 +1083,7 @@ const ImageExportStudio = () => {
     setPreset(pg.preset ?? 0); setCustomW(pg.customW ?? 3840); setCustomH(pg.customH ?? 2160);
     setUseCustom(pg.useCustom ?? false); setOrientation(pg.orientation ?? 'landscape');
     setFormat(pg.format ?? 'png'); setJpegQuality(pg.jpegQuality ?? 0.92);
-    const newStyle = pg.previewStyle || '';
+    const newStyle = pg.previewStyle ? normalizeBasemap(pg.previewStyle) : '';
     setPreviewStyle(newStyle);
     const newLayerVis = pg.layerVis ? { ...pg.layerVis } : { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true };
     setLayerVis(newLayerVis);
@@ -962,6 +1104,7 @@ const ImageExportStudio = () => {
     setLegendCustomTitle(pg.legendCustomTitle ?? '');
     setAnnLegendCustomTitle(pg.annLegendCustomTitle ?? '');
     if (pg.titleCfg) setTitleCfg({ ...pg.titleCfg });
+    if (pg.creditsCfg) setCreditsCfg(prev => ({ ...prev, ...pg.creditsCfg }));
     if (pg.overlayPos) setOverlayPos(JSON.parse(JSON.stringify(pg.overlayPos)));
     setStudioElements(pg.studioElements ? JSON.parse(JSON.stringify(pg.studioElements)) : []);
     setElementsStack(pg.elementsStack ? [...pg.elementsStack] : ['title', 'north', 'scale', 'legend', 'annLegend']);
@@ -992,7 +1135,7 @@ const ImageExportStudio = () => {
       LAYER_CATEGORIES.forEach(cat => {
         const vis = newLayerVis[cat.key] ? 'visible' : 'none';
         allLayers.forEach(l => {
-          if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
+          if (!isAppLayer(l.id) && cat.match(l)) {
             try { pm.setLayoutProperty(l.id, 'visibility', vis); } catch(e) {}
           }
         });
@@ -1031,7 +1174,7 @@ const ImageExportStudio = () => {
               pm.addSource('graticule-source', { type: 'geojson', data: { type: 'FeatureCollection', features: gFeatures } });
               pm.addLayer({ id: 'graticule-lines', type: 'line', source: 'graticule-source', paint: { 'line-color': 'rgba(120,140,170,0.45)', 'line-width': 0.8, 'line-dasharray': [4, 4] } });
               pm.addLayer({ id: 'graticule-labels', type: 'symbol', source: 'graticule-source',
-                layout: { 'symbol-placement': 'line', 'text-field': ['get', 'label'], 'text-size': 9, 'text-font': ['DIN Pro Regular', 'Arial Unicode MS Regular'], 'text-max-angle': 30, 'text-allow-overlap': false, 'symbol-spacing': 300, 'text-keep-upright': true, 'text-letter-spacing': 0.05 },
+                layout: { 'symbol-placement': 'line', 'text-field': ['get', 'label'], 'text-size': 9, 'text-font': getFontStack('Regular'), 'text-max-angle': 30, 'text-allow-overlap': false, 'symbol-spacing': 300, 'text-keep-upright': true, 'text-letter-spacing': 0.05 },
                 paint: { 'text-color': '#ffffff', 'text-halo-color': '#000000', 'text-halo-width': 0.5, 'text-halo-blur': 0.2 } });
             } catch(e) {}
           }
@@ -1053,7 +1196,7 @@ const ImageExportStudio = () => {
     const pm = previewMapRef.current;
     const cam = pg.mapCamera;
 
-    if (pm && newStyle && pm._currentStyleUrl !== newStyle) {
+    if (pm && newStyle && normalizeBasemap(pm._currentStyleUrl) !== normalizeBasemap(newStyle)) {
       // Style is changing — save custom layers, switch style, re-add
       const center = cam ? cam.center : pm.getCenter();
       const z = cam ? cam.zoom : pm.getZoom();
@@ -1064,7 +1207,7 @@ const ImageExportStudio = () => {
       const savedLayers = [];
       const ownSourceIds = new Set();
       (curStyle?.layers || []).forEach(l => {
-        if (OWN_LAYERS.has(l.id)) {
+        if (isAppLayer(l.id)) {
           savedLayers.push(JSON.parse(JSON.stringify(l)));
           if (l.source) ownSourceIds.add(l.source);
         }
@@ -1073,11 +1216,12 @@ const ImageExportStudio = () => {
         if (curStyle.sources?.[sid]) {
           savedSources[sid] = JSON.parse(JSON.stringify(curStyle.sources[sid]));
           const live = pm.getSource(sid);
-          if (live && live._data) savedSources[sid].data = live._data;
+          const liveData = getGeoJSONSourceData(live);
+          if (liveData) savedSources[sid].data = liveData;
         }
       });
       pm._currentStyleUrl = newStyle;
-      pm.setStyle(newStyle, {diff: false});
+      pm.setStyle(resolveBasemapStyle(newStyle), {diff: false});
       pm.once('style.load', () => {
         // Another loadPage may have already started — bail if stale
         if (styleLoadGenRef.current !== myGen) return;
@@ -1095,7 +1239,7 @@ const ImageExportStudio = () => {
           commitViz();
         });
       });
-    } else if (pm && pm.isStyleLoaded()) {
+    } else if (pm && isStyleReady(pm)) {
       // Same style — update camera, layers, render mode, viz directly
       if (cam) pm.jumpTo({ center: cam.center, zoom: cam.zoom, bearing: cam.bearing, pitch: cam.pitch });
       commitViz();
@@ -1148,19 +1292,17 @@ const ImageExportStudio = () => {
       orientation: 'landscape', format: 'png', jpegQuality: 0.92,
       previewStyle: mapStyle || '',
       layerVis: { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true },
-      prvRenderMode: 'filled', prvFillOpacity: 0.6, prvBorderWidth: 2,
-      prvVizType: 'attribute', prvVizAttribute: 'Sigla_Regiao', prvVizIndicator: '', prvVizYear: '', prvVizValueType: 'value',
-      prvFilterRegion: 'all', prvFilterState: 'all', prvFilterCityType: 'all',
+      ...mainVizCfg(),
       incNorth: true, incScale: true, incLegend: true, incAnnLegend: true, incTitle: true,
       titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
-      overlayPos: { north:{x:0.02,y:0.05}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
+      overlayPos: { north:{x:0.02,y:0.14}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
     };
     const newIdx = exportPagesRef.current.length;
     setCurrentPageIdx(newIdx);
     pageIdxRef.current = newIdx;
     setExportPages(prev => { const n = [...prev, defaultPage]; exportPagesRef.current = n; return n; });
     loadPage(defaultPage);
-  }, [saveCurrentPage, setExportPages, loadPage, mapStyle]);
+  }, [saveCurrentPage, setExportPages, loadPage, mapStyle, mainVizCfg]);
 
   const deletePage = useCallback((idx) => {
     if (exportPagesRef.current.length <= 1) return;
@@ -1191,7 +1333,7 @@ const ImageExportStudio = () => {
     const pm = previewMapRef.current;
     // When called with explicit cfg (from commitViz/page-load), trust that the map is idle.
     // When called from the viz-reapply effect (no cfg), enforce the style-loaded guard.
-    const styleReady = cfg ? !!pm : (!!pm && pm.isStyleLoaded());
+    const styleReady = cfg ? !!pm : (!!pm && isStyleReady(pm));
     if (!styleReady || !csvData) return;
     const vizType = cfg?.prvVizType ?? prvVizType;
     const vizAttr = cfg?.prvVizAttribute ?? prvVizAttribute;
@@ -1201,82 +1343,92 @@ const ImageExportStudio = () => {
     const fRegion = cfg?.prvFilterRegion ?? prvFilterRegion;
     const fState = cfg?.prvFilterState ?? prvFilterState;
     const fCity = cfg?.prvFilterCityType ?? prvFilterCityType;
-    const renderMode = cfg?.prvRenderMode ?? prvRenderMode;
 
-    // 1. Filter data
+    // 1. Municípios que passam nos filtros do Estúdio
+    const isCapital = (c) => String(c.Capital).trim().toLowerCase() === 'true';
     let filtered = [...csvData];
-    if (fCity === 'capital') filtered = filtered.filter(c => c.Capital === 'true');
-    else if (fCity === 'non-capital') filtered = filtered.filter(c => c.Capital !== 'true');
+    if (fCity === 'capital') filtered = filtered.filter(isCapital);
+    else if (fCity === 'non-capital') filtered = filtered.filter(c => !isCapital(c));
     if (fRegion !== 'all') filtered = filtered.filter(c => c.Sigla_Regiao === fRegion);
     if (fState !== 'all') filtered = filtered.filter(c => c.Sigla_Estado === fState);
+    const inFilter = new Set(filtered.map(c => String(c.Codigo_Municipio)));
 
-    // 2. Compute color expression
-    let attribute, values, colorExpr;
-    if (vizType === 'indicator' && vizInd && vizYr) {
-      attribute = 'visualization_value';
-      values = (indicadoresData || [])
-        .filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr)
-        .map(r => { const p = parseFloat(vizVT === 'position' ? r.Indice_Posicional : r.Valor); return isNaN(p) ? null : p; })
-        .filter(v => v !== null);
-      colorExpr = getColorScale(attribute, values);
+    // 2. Valor de cada município para a variável escolhida no Estúdio (recalculado aqui,
+    //    em vez de reaproveitar a variável do mapa principal)
+    const useIndicator = vizType === 'indicator' && vizInd && vizYr;
+    const rawByCode = new Map();
+    if (useIndicator) {
+      (indicadoresData || [])
+        .filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr && inFilter.has(String(r.Codigo_Municipio)))
+        .forEach(r => rawByCode.set(String(r.Codigo_Municipio), vizVT === 'position' ? r.Indice_Posicional : r.Valor));
     } else {
-      attribute = vizAttr || 'Sigla_Regiao';
-      values = filtered.map(r => r[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
-      colorExpr = getColorScale(attribute, values);
+      filtered.forEach(r => rawByCode.set(String(r.Codigo_Municipio), r[vizAttr || 'Sigla_Regiao']));
     }
-    // 3. Fix step expression if thresholds are not strictly ascending
-    if (colorExpr && colorExpr[0] === 'step') {
-      const fixed = [colorExpr[0], colorExpr[1], colorExpr[2]];
-      let lastThreshold = -Infinity;
-      for (let i = 3; i < colorExpr.length; i += 2) {
-        const th = colorExpr[i];
-        if (th > lastThreshold) {
-          fixed.push(th, colorExpr[i + 1]);
-          lastThreshold = th;
-        }
-      }
-      colorExpr = fixed;
-    }
+    const rawValues = [...rawByCode.values()].filter(v => !isNoDataMarker(v));
+    // Formato numérico decidido pela coluna completa (não só pelos municípios filtrados)
+    const fullColumn = (useIndicator
+      ? (indicadoresData || []).filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr).map(r => (vizVT === 'position' ? r.Indice_Posicional : r.Valor))
+      : csvData.map(r => r[vizAttr || 'Sigla_Regiao'])).filter(v => !isNoDataMarker(v));
+    const numeric = (vizAttr !== 'Nome_Municipio' || useIndicator) && isNumericValues(rawValues);
+    const parseNumber = makeNumberParser(fullColumn);
+    const values = numeric ? rawValues.map(parseNumber).filter(n => !Number.isNaN(n)) : rawValues;
+    const missing = filtered.length - values.length;
 
-    // 4. Apply to preview map
+    // 3. Expressão de cor + cores da legenda editada no mapa principal (mesma chave de legenda)
+    const attribute = 'studio_value';
+    const legendKey = getLegendKey(
+      useIndicator ? { type: 'indicator', indicator: vizInd, year: vizYr, valueType: vizVT } : { type: 'attribute', attribute: vizAttr },
+      vizAttr,
+    );
+    const customLegend = legendKey ? legendConfigByKey?.[legendKey] : null;
+    const baseExpr = getColorScale(attribute, values);
+    const colorExpr = withNoDataColor(attribute, applyCustomLegendColors(baseExpr, customLegend));
+
+    // 4. Grava o valor e a pertença ao filtro em cada feição da prévia
     try {
-      if (colorExpr) {
-        if (pm.getLayer('sectors-fill-layer')) {
-          pm.setPaintProperty('sectors-fill-layer', 'fill-color', colorExpr);
-          // Always match outline to fill — in border mode fill-opacity is 0 so this is invisible anyway
-          pm.setPaintProperty('sectors-fill-layer', 'fill-outline-color', colorExpr);
-        }
-        // Always sync line-color so switching modes shows correct colors immediately
-        if (pm.getLayer('sectors-line-layer')) {
-          pm.setPaintProperty('sectors-line-layer', 'line-color', colorExpr);
-        }
+      const src = pm.getSource('sectors');
+      const data = getGeoJSONSourceData(src);
+      if (src && data?.features) {
+        const features = data.features.map(f => {
+          const code = String(f.properties?.CD_MUN ?? f.properties?.Codigo_Municipio ?? '');
+          const raw = rawByCode.get(code);
+          let v = isNoDataMarker(raw) ? null : raw;
+          if (v !== null && numeric) { const n = parseNumber(v); v = Number.isNaN(n) ? null : n; }
+          else if (v !== null) v = `${v}`;
+          return { ...f, properties: { ...f.properties, studio_value: v, studio_in: inFilter.has(code) } };
+        });
+        src.setData({ type: 'FeatureCollection', features });
       }
-    } catch(e) { console.warn('Viz apply error:', e); }
+    } catch (e) { console.warn('Studio data update error:', e); }
 
-    // 4. Update legend data for overlay
-    const expr = colorExpr;
-    const exprType = expr?.[0];
-    const items = [];
-    if (exprType === 'match') {
-      for (let i = 2; i < expr.length - 1; i += 2) {
-        items.push({ color: expr[i + 1], value: `${expr[i]}` });
+    // 5. Cores em polígonos, contornos e pontos; filtros escondem de fato os demais municípios
+    const polyFilter = ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']];
+    const inStudio = ['==', ['get', 'studio_in'], true];
+    try {
+      if (pm.getLayer('sectors-fill-layer')) {
+        pm.setPaintProperty('sectors-fill-layer', 'fill-color', colorExpr);
+        // Always match outline to fill — in border mode fill-opacity is 0 so this is invisible anyway
+        pm.setPaintProperty('sectors-fill-layer', 'fill-outline-color', colorExpr);
+        pm.setFilter('sectors-fill-layer', ['all', polyFilter, inStudio]);
       }
-    } else if (exprType === 'step') {
-      const nums = values.map(v => parseFloat(v)).filter(v => !isNaN(v)).sort((a, b) => a - b);
-      if (nums.length) {
-        let prev = nums[0];
-        items.push({ color: expr[2], value: `${nums[0].toLocaleString('pt-BR')}` });
-        for (let i = 3; i < expr.length; i += 2) {
-          const th = Number(expr[i]);
-          items[items.length - 1].value = `${prev.toLocaleString('pt-BR')} - ${th.toLocaleString('pt-BR')}`;
-          items.push({ color: expr[i + 1], value: `${th.toLocaleString('pt-BR')} - ${nums[nums.length-1].toLocaleString('pt-BR')}` });
-          prev = th;
-        }
+      if (pm.getLayer('sectors-line-layer')) {
+        pm.setPaintProperty('sectors-line-layer', 'line-color', colorExpr);
+        pm.setFilter('sectors-line-layer', ['all', polyFilter, inStudio]);
       }
-    }
-    const title = vizType === 'indicator' ? `${vizInd} (${vizYr})` : `Atributo: ${attribute}`;
-    setLegendData({ title, items });
-  }, [csvData, indicadoresData, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
+      if (pm.getLayer('sectors-point-layer')) {
+        pm.setPaintProperty('sectors-point-layer', 'circle-color', colorExpr);
+        pm.setFilter('sectors-point-layer', ['all', ['==', ['geometry-type'], 'Point'], inStudio]);
+      }
+    } catch (e) { console.warn('Viz apply error:', e); }
+
+    // 6. Legenda da prévia/exportação — a mesma do mapa principal quando a variável é a mesma
+    const { items: autoItems } = buildLegendItems(baseExpr, values, missing);
+    const items = customLegend?.items?.length
+      ? [...customLegend.items.filter(it => !it.noData), ...autoItems.filter(it => it.noData)]
+      : autoItems;
+    const defaultTitle = useIndicator ? `Indicador: ${vizInd} (${vizYr})` : `Atributo: ${vizAttr}`;
+    setLegendData({ title: customLegend?.title || defaultTitle, items });
+  }, [csvData, indicadoresData, legendConfigByKey, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType]);
 
   // Always keep ref pointing to latest version so loadPage (with [] deps) can call it
@@ -1373,7 +1525,7 @@ const ImageExportStudio = () => {
       const ownSourceIds = new Set();
       // Find all own layers and their source IDs
       (currentStyle.layers || []).forEach(l => {
-        if (OWN_LAYERS.has(l.id)) {
+        if (isAppLayer(l.id)) {
           savedLayers.push(JSON.parse(JSON.stringify(l)));
           if (l.source) ownSourceIds.add(l.source);
         }
@@ -1385,14 +1537,13 @@ const ImageExportStudio = () => {
           savedSources[sid] = JSON.parse(JSON.stringify(src));
           // For geojson sources, get live data
           const liveSource = pm.getSource(sid);
-          if (liveSource && liveSource._data) {
-            savedSources[sid].data = liveSource._data;
-          }
+          const liveData = getGeoJSONSourceData(liveSource);
+          if (liveData) savedSources[sid].data = liveData;
         }
       });
 
       pm._currentStyleUrl = newStyle;
-      pm.setStyle(newStyle, {diff: false});
+      pm.setStyle(resolveBasemapStyle(newStyle), {diff: false});
       pm.once('style.load', () => {
         pm.jumpTo({ center, zoom, bearing, pitch });
         // Re-add custom sources
@@ -1413,7 +1564,7 @@ const ImageExportStudio = () => {
           LAYER_CATEGORIES.forEach(cat => {
             if (!layerVis[cat.key]) {
               allLayers.forEach(l => {
-                if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
+                if (!isAppLayer(l.id) && cat.match(l)) {
                   try { pm.setLayoutProperty(l.id, 'visibility', 'none'); } catch(e) {}
                 }
               });
@@ -1433,14 +1584,14 @@ const ImageExportStudio = () => {
   // Toggle layer visibility in preview map
   const togglePreviewLayer = useCallback((catKey) => {
     const pm = previewMapRef.current;
-    if (!pm || !pm.isStyleLoaded()) return;
+    if (!pm || !isStyleReady(pm)) return;
     const cat = LAYER_CATEGORIES.find(c => c.key === catKey);
     if (!cat) return;
     const newVis = !layerVis[catKey];
     const visibility = newVis ? 'visible' : 'none';
     const allLayers = pm.getStyle().layers || [];
     allLayers.forEach(l => {
-      if (!OWN_LAYERS.has(l.id) && cat.match(l.id)) {
+      if (!isAppLayer(l.id) && cat.match(l)) {
         try { pm.setLayoutProperty(l.id, 'visibility', visibility); } catch(e) {}
       }
     });
@@ -1450,7 +1601,7 @@ const ImageExportStudio = () => {
   // Apply render mode / opacity / border to preview map
   const applyPreviewRender = useCallback(() => {
     const pm = previewMapRef.current;
-    if (!pm || !pm.isStyleLoaded()) return;
+    if (!pm || !isStyleReady(pm)) return;
     try {
       if (pm.getLayer('sectors-fill-layer')) {
         pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', prvRenderMode === 'filled' ? prvFillOpacity : 0);
@@ -1488,11 +1639,9 @@ const ImageExportStudio = () => {
             features.push({ type: 'Feature', properties: { label: `${Math.abs(lng)}° ${lng >= 0 ? 'L' : 'O'}`, axis: 'lng' }, geometry: { type: 'LineString', coordinates: coords } });
           }
           pm.addSource('graticule-source', { type: 'geojson', data: { type: 'FeatureCollection', features } });
-          const gWeight = graticuleStyle.bold ? 'Bold' : 'Regular';
-          const gVariant = graticuleStyle.italic ? ' Italic' : '';
           pm.addLayer({ id: 'graticule-lines', type: 'line', source: 'graticule-source', paint: { 'line-color': graticuleStyle.lineColor, 'line-width': graticuleStyle.lineWidth, 'line-dasharray': [4, 4] } });
           pm.addLayer({ id: 'graticule-labels', type: 'symbol', source: 'graticule-source',
-            layout: { 'symbol-placement': 'line', 'text-field': ['get', 'label'], 'text-size': graticuleStyle.fontSize, 'text-font': [`DIN Pro ${gWeight}${gVariant}`, `Arial Unicode MS ${gWeight}`], 'text-max-angle': 30, 'text-allow-overlap': false, 'symbol-spacing': 300, 'text-keep-upright': true, 'text-letter-spacing': 0.05 },
+            layout: { 'symbol-placement': 'line', 'text-field': ['get', 'label'], 'text-size': graticuleStyle.fontSize, 'text-font': getFontStack(graticuleStyle.bold ? 'Bold' : 'Regular', !!graticuleStyle.italic), 'text-max-angle': 30, 'text-allow-overlap': false, 'symbol-spacing': 300, 'text-keep-upright': true, 'text-letter-spacing': 0.05 },
             paint: { 'text-color': graticuleStyle.textColor, 'text-halo-color': graticuleStyle.showHalo ? graticuleStyle.haloColor : 'transparent', 'text-halo-width': graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0, 'text-halo-blur': 0.2 } });
         }
         if (pm.getLayer('graticule-lines')) {
@@ -1503,9 +1652,7 @@ const ImageExportStudio = () => {
         if (pm.getLayer('graticule-labels')) {
           pm.setLayoutProperty('graticule-labels', 'visibility', 'visible');
           pm.setLayoutProperty('graticule-labels', 'text-size', graticuleStyle.fontSize);
-          const gWeight = graticuleStyle.bold ? 'Bold' : 'Regular';
-          const gVariant = graticuleStyle.italic ? ' Italic' : '';
-          pm.setLayoutProperty('graticule-labels', 'text-font', [`DIN Pro ${gWeight}${gVariant}`, `Arial Unicode MS ${gWeight}`]);
+          pm.setLayoutProperty('graticule-labels', 'text-font', getFontStack(graticuleStyle.bold ? 'Bold' : 'Regular', !!graticuleStyle.italic));
           pm.setPaintProperty('graticule-labels', 'text-color', graticuleStyle.textColor);
           pm.setPaintProperty('graticule-labels', 'text-halo-color', graticuleStyle.showHalo ? graticuleStyle.haloColor : 'transparent');
           pm.setPaintProperty('graticule-labels', 'text-halo-width', graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0);
@@ -1534,19 +1681,22 @@ const ImageExportStudio = () => {
     } else {
       setIncNorth(showNorthArrow); setIncScale(showScaleBar);
       setIncLegend(showAttributeLegend); setIncAnnLegend(showAnnotationLegend);
-      setPreviewStyle(mapStyle || 'mapbox://styles/mapbox/light-v11');
+      setPreviewStyle(normalizeBasemap(mapStyle));
       setLayerVis({ labels: true, roads: true, buildings: true, admin: true, water: true, landuse: true });
       setExportPages([{ name: 'Página 1', preset: 0, customW: 3840, customH: 2160, useCustom: false,
-        orientation: 'landscape', format: 'png', jpegQuality: 0.92, previewStyle: mapStyle || '',
+        orientation: 'landscape', format: 'png', jpegQuality: 0.92, previewStyle: normalizeBasemap(mapStyle),
         layerVis: { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true },
-        prvRenderMode: 'filled', prvFillOpacity: 0.6, prvBorderWidth: 2,
-        prvVizType: 'attribute', prvVizAttribute: colorAttribute || 'Sigla_Regiao', prvVizIndicator: '', prvVizYear: '', prvVizValueType: 'value',
-        prvFilterRegion: 'all', prvFilterState: 'all', prvFilterCityType: 'all',
+        ...mainVizCfg(),
         incNorth: showNorthArrow, incScale: showScaleBar, incLegend: showAttributeLegend, incAnnLegend: showAnnotationLegend, incTitle: true,
         titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
-        overlayPos: { north:{x:0.02,y:0.05}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
+        overlayPos: { north:{x:0.02,y:0.14}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
       }]);
       setCurrentPageIdx(0);
+      // A primeira página começa com a mesma variável, cores e modo do mapa principal
+      const m = mainVizCfg();
+      setPrvVizType(m.prvVizType); setPrvVizAttribute(m.prvVizAttribute); setPrvVizIndicator(m.prvVizIndicator);
+      setPrvVizYear(m.prvVizYear); setPrvVizValueType(m.prvVizValueType);
+      setPrvRenderMode(m.prvRenderMode); setPrvFillOpacity(m.prvFillOpacity); setPrvBorderWidth(m.prvBorderWidth);
     }
 
     // Read legend
@@ -1577,17 +1727,20 @@ const ImageExportStudio = () => {
       if (!previewContainerRef.current) return;
       // Always start with deep-cloned main map style (guarantees all geometries)
       const styleCopy = JSON.parse(JSON.stringify(mainMap.getStyle()));
-      const pm = new mapboxgl.Map({
+      const pm = new maplibregl.Map({
         container: previewContainerRef.current,
         style: styleCopy,
         center: savedCam ? savedCam.center : mainMap.getCenter(),
         zoom: savedCam ? savedCam.zoom : mainMap.getZoom(),
         bearing: savedCam ? savedCam.bearing : mainMap.getBearing(),
         pitch: savedCam ? savedCam.pitch : mainMap.getPitch(),
-        preserveDrawingBuffer: true, attributionControl: false,
+        // A moldura da prévia já tem o tamanho real da saída; pixelRatio 1 evita um canvas
+        // (tamanho da saída × devicePixelRatio) acima do limite de memória dos celulares.
+        pixelRatio: 1,
+        canvasContextAttributes: { preserveDrawingBuffer: true }, attributionControl: false,
       });
-      pm.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right');
-      pm._currentStyleUrl = savedStyle || 'mapbox://styles/mapbox/satellite-v9';
+      pm.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+      pm._currentStyleUrl = normalizeBasemap(mapStyle); // a prévia começa com uma cópia do estilo do mapa principal
       previewMapRef.current = pm;
       // Use ref-based callback to avoid stale closures — ensures overlays
       // always redraw with the latest positions/state after map events.
@@ -1611,10 +1764,10 @@ const ImageExportStudio = () => {
           prvFilterRegion: savedPage.prvFilterRegion ?? 'all',
           prvFilterState: savedPage.prvFilterState ?? 'all',
           prvFilterCityType: savedPage.prvFilterCityType ?? 'all',
-        } : null;
+        } : mainVizCfg();
         // If the saved page has a different style, switch to it
         // handlePreviewStyleChange handles saving/re-adding custom layers
-        if (savedStyle && savedStyle !== mainMap.getStyle()?.name && savedStyle.startsWith('mapbox://')) {
+        if (savedStyle && normalizeBasemap(savedStyle) !== normalizeBasemap(mapStyle)) {
           // Wait for map to fully settle before switching style
           pm.once('idle', () => {
             handlePreviewStyleChange(savedStyle);
@@ -1638,7 +1791,9 @@ const ImageExportStudio = () => {
     if (w === 0 || h === 0) return;
     // Skip full redraw if no overlays are visible
     const anyVisible = incNorth || incScale || incLegend || incAnnLegend || incTitle || studioElements.length > 0;
-    const dpr = window.devicePixelRatio || 1;
+    // A moldura já está na resolução final (e aparece reduzida na tela): multiplicar pelo
+    // devicePixelRatio criaria um canvas 4–9× maior e estouraria a memória do celular.
+    const dpr = 1;
     const targetCW = Math.round(w * dpr);
     const targetCH = Math.round(h * dpr);
     // Only resize canvas when dimensions actually changed (resizing clears context state)
@@ -1660,9 +1815,9 @@ const ImageExportStudio = () => {
       bearing: pm.getBearing(), zoom: pm.getZoom(), lat: center.lat,
       legendData, annData, vizName, scale: 1, titleCfg,
       legendCustomTitle, annLegendCustomTitle, northArrowStyle,
-      elementsStack, studioElements,
+      elementsStack, studioElements, creditsCfg, attribution: mapAttributionText(pm),
     });
-  }, [incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
+  }, [creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
 
   // Keep ref always pointing to the latest redraw function — map event listeners
   // use this ref to avoid stale closures that cause overlay/handle desync.
@@ -1679,22 +1834,29 @@ const ImageExportStudio = () => {
     const pm = previewMapRef.current;
     if (!pm) return;
     setExporting(true); setProgress('Preparando...');
+    let hm = null;
+    let hiddenDiv = null;
     try {
       const style = pm.getStyle(), center = pm.getCenter(), bearing = pm.getBearing(), pitch = pm.getPitch();
       // Frame is already at targetW dimensions, so use zoom directly
       const exportZoom = pm.getZoom();
 
-      const hiddenDiv = document.createElement('div');
+      hiddenDiv = document.createElement('div');
       hiddenDiv.style.cssText = `position:fixed;left:-99999px;top:-99999px;width:${targetW}px;height:${targetH}px;overflow:hidden;`;
       document.body.appendChild(hiddenDiv);
       setProgress('Renderizando mapa em alta resolução...');
 
-      const hm = new mapboxgl.Map({ container: hiddenDiv, style, center: [center.lng, center.lat], zoom: exportZoom, bearing, pitch, preserveDrawingBuffer: true, interactive: false, fadeDuration: 0, attributionControl: false });
-      await new Promise((res, rej) => { const t = setTimeout(() => rej(new Error('Timeout')), 30000); hm.once('idle', () => { clearTimeout(t); setTimeout(res, 2000); }); });
+      // pixelRatio 1: o canvas sai exatamente com targetW × targetH pixels, em qualquer aparelho
+      hm = new maplibregl.Map({ container: hiddenDiv, style, center: [center.lng, center.lat], zoom: exportZoom, bearing, pitch, pixelRatio: 1, canvasContextAttributes: { preserveDrawingBuffer: true }, interactive: false, fadeDuration: 0, attributionControl: false });
+      await new Promise((res, rej) => {
+        const t = setTimeout(() => rej(new Error('o mapa demorou demais para carregar (verifique a internet)')), 30000);
+        hm.once('idle', () => { clearTimeout(t); setTimeout(res, 1000); });
+      });
 
       setProgress('Capturando imagem...');
       const out = document.createElement('canvas'); out.width = targetW; out.height = targetH;
       const ctx = out.getContext('2d');
+      if (!ctx) throw new Error('o aparelho não conseguiu criar uma imagem desse tamanho; tente uma resolução menor');
       ctx.drawImage(hm.getCanvas(), 0, 0, targetW, targetH);
 
       setProgress('Desenhando elementos...');
@@ -1703,25 +1865,43 @@ const ImageExportStudio = () => {
         bearing, zoom: exportZoom, lat: center.lat,
         legendData, annData, vizName, scale: 1, titleCfg,
         legendCustomTitle, annLegendCustomTitle, northArrowStyle,
-        elementsStack, studioElements,
+        elementsStack, studioElements, creditsCfg, attribution: mapAttributionText(pm),
       });
 
       setProgress('Gerando arquivo...');
-      const mime = format==='jpeg'?'image/jpeg':'image/png';
-      out.toBlob((blob) => {
-        if (!blob) { setProgress('Erro.'); setExporting(false); return; }
-        const url = URL.createObjectURL(blob), a = document.createElement('a');
-        a.href = url; a.download = `mapa_export_${targetW}x${targetH}.${format}`; a.click();
-        URL.revokeObjectURL(url); hm.remove(); document.body.removeChild(hiddenDiv);
-        setExporting(false); setProgress('✅ Imagem exportada com sucesso!');
+      const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const blob = await new Promise(res => out.toBlob(res, mime, format === 'jpeg' ? jpegQuality : undefined));
+      if (!blob) throw new Error('não foi possível gerar o arquivo; tente uma resolução menor');
+      const name = `${fileSlug(titleCfg?.title) || 'mapa'}_${targetW}x${targetH}.${format === 'jpeg' ? 'jpg' : 'png'}`;
+      const url = URL.createObjectURL(blob);
+      if (isTouchDevice()) {
+        // Celular: mostrar a imagem com "Compartilhar/Salvar" e "Baixar" (download automático
+        // costuma falhar ou abrir uma aba no iOS)
+        const file = typeof File !== 'undefined' ? new File([blob], name, { type: mime }) : null;
+        setExportResult({ url, file, name });
+        setProgress('✅ Imagem pronta!');
+      } else {
+        downloadUrl(url, name);
+        // Revogar só depois: o download ainda está lendo o blob neste momento
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        setProgress('✅ Imagem exportada com sucesso!');
         setTimeout(() => setProgress(''), 3000);
-      }, mime, format==='jpeg'?jpegQuality:undefined);
-    } catch (err) { console.error('Export error:', err); setProgress(`Erro: ${err.message}`); setExporting(false); }
-  }, [targetW, targetH, format, jpegQuality, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
+      }
+    } catch (err) {
+      console.error('Export error:', err);
+      setProgress(`Erro: ${err.message}`);
+    } finally {
+      // Sempre liberar o mapa oculto (contexto WebGL) e o contêiner, mesmo em caso de erro
+      try { hm?.remove(); } catch (e) { /* ignore */ }
+      if (hiddenDiv?.parentNode) hiddenDiv.parentNode.removeChild(hiddenDiv);
+      setExporting(false);
+    }
+  }, [targetW, targetH, format, jpegQuality, creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
 
   // Save current page state before closing
   const handleClose = useCallback(() => {
     saveCurrentPage();
+    closeExportResult();
     // Explicitly remove preview map before component unmounts
     if (previewMapRef.current) {
       previewMapRef.current.remove();
@@ -1735,7 +1915,7 @@ const ImageExportStudio = () => {
         map.current.triggerRepaint();
       }
     }, 100);
-  }, [saveCurrentPage, setShowImageStudio, map]);
+  }, [saveCurrentPage, setShowImageStudio, map, closeExportResult]);
 
   if (!showImageStudio || !mapLoaded) return null;
 
@@ -1863,6 +2043,15 @@ const ImageExportStudio = () => {
                 </div>
               )}
               <label className="studio-check-row"><input type="checkbox" checked={incTitle} onChange={e => setIncTitle(e.target.checked)} /><span className="studio-check-label">🏷️ Título</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={creditsCfg.show} onChange={e => setCreditsCfg(c => ({ ...c, show: e.target.checked }))} /><span className="studio-check-label">📝 Fonte, elaboração e data</span></label>
+              {creditsCfg.show && (
+                <div className="studio-credits-fields">
+                  <input className="studio-text-input" type="text" placeholder="Fonte dos dados (ex.: IBGE, Censo 2022)" value={creditsCfg.fonte} onChange={e => setCreditsCfg(c => ({ ...c, fonte: e.target.value }))} />
+                  <input className="studio-text-input" type="text" placeholder="Elaboração (seu nome, turma)" value={creditsCfg.autor} onChange={e => setCreditsCfg(c => ({ ...c, autor: e.target.value }))} />
+                  <input className="studio-text-input" type="text" placeholder="Data" value={creditsCfg.data} onChange={e => setCreditsCfg(c => ({ ...c, data: e.target.value }))} />
+                  <small className="studio-credits-note">A atribuição do mapa base (ex.: © OpenStreetMap) é incluída automaticamente, como exige a licença.</small>
+                </div>
+              )}
               <label className="studio-check-row"><input type="checkbox" checked={incMunPoints} onChange={e => setIncMunPoints(e.target.checked)} /><span className="studio-check-label">📍 Pontos dos Municípios</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incMeasurements} onChange={e => setIncMeasurements(e.target.checked)} /><span className="studio-check-label">📐 Exibir Medidas nas Anotações</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incGraticule} onChange={e => setIncGraticule(e.target.checked)} /><span className="studio-check-label">🌐 Paralelos e Meridianos</span></label>
@@ -2151,7 +2340,7 @@ const ImageExportStudio = () => {
                 <div className="studio-input-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4 }}>
                   <label>Estilo Personalizado</label>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    <input className="studio-text-input" type="text" placeholder="mapbox://styles/user/id"
+                    <input className="studio-text-input" type="text" placeholder="https://.../style.json"
                       onKeyDown={e => { if (e.key === 'Enter' && e.target.value.trim()) handlePreviewStyleChange(e.target.value.trim()); }}
                       id="studio-custom-style-input" />
                     <button className="studio-toolbar-btn" style={{ padding: '4px 8px', fontSize: '0.65rem' }}
@@ -2162,8 +2351,9 @@ const ImageExportStudio = () => {
                 </div>
                 <div className="studio-input-row">
                   <label>Estilo</label>
-                  <select className="studio-select" value={previewStyle} onChange={e => handlePreviewStyleChange(e.target.value)}>
-                    {MAP_STYLES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  <select className="studio-select" value={previewStyle || normalizeBasemap(mapStyle)} onChange={e => handlePreviewStyleChange(e.target.value)}>
+                    {BASEMAPS.map(b => <option key={b.id} value={b.id}>{b.label}</option>)}
+                    {previewStyle && !BASEMAPS.some(b => b.id === previewStyle) && <option value={previewStyle}>Personalizado</option>}
                   </select>
                 </div>
                 <div style={{ marginTop: 6 }}>
@@ -2211,6 +2401,18 @@ const ImageExportStudio = () => {
                 <span>🎨 Visualização e Filtros</span><span className={`studio-chevron ${openSections.vizFilter ? 'open' : ''}`}>▸</span>
               </div>
               {openSections.vizFilter && (<>
+                <button type="button" className="studio-toolbar-btn" style={{ width: '100%', marginBottom: 8, minHeight: 36 }}
+                  title="Usa a mesma variável, cores e modo de exibição do mapa principal"
+                  onClick={() => {
+                    const m = mainVizCfg();
+                    setPrvVizType(m.prvVizType); setPrvVizAttribute(m.prvVizAttribute); setPrvVizIndicator(m.prvVizIndicator);
+                    setPrvVizYear(m.prvVizYear); setPrvVizValueType(m.prvVizValueType);
+                    setPrvRenderMode(m.prvRenderMode); setPrvFillOpacity(m.prvFillOpacity); setPrvBorderWidth(m.prvBorderWidth);
+                    setPrvFilterRegion('all'); setPrvFilterState('all'); setPrvFilterCityType('all');
+                    applyPreviewVisualization(m);
+                  }}>
+                  ↺ Igual ao mapa principal
+                </button>
                 <div className="studio-input-row">
                   <label>Tipo</label>
                   <select className="studio-select" value={prvVizType} onChange={e => { setPrvVizType(e.target.value); }}>
@@ -2295,7 +2497,7 @@ const ImageExportStudio = () => {
             onMouseDown={handleWrapperMouseDown}
             style={{ cursor: 'grab', overflow: 'hidden', position: 'relative' }}>
             <div style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%, -50%) translate(${viewPan.x}px, ${viewPan.y}px) scale(${viewZoom})`, transformOrigin: 'center center' }}>
-              <div ref={previewFrameRef} className="studio-preview-frame" style={{ width: targetW, height: targetH, position: 'relative', overflow: 'hidden' }}>
+              <div ref={previewFrameRef} className="studio-preview-frame" style={{ width: targetW, height: targetH, position: 'relative', overflow: 'hidden', '--ui-scale': 1 / (viewZoom || 1) }}>
                 {/* Live Mapbox map */}
                 <div ref={previewContainerRef} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }} />
                 {/* Canvas overlay */}
@@ -2363,6 +2565,25 @@ const ImageExportStudio = () => {
             </div>
             <span className="studio-page-info">{currentPageIdx + 1} / {exportPages.length}</span>
           </div>
+          {exportResult && (
+            <div className="studio-export-result" role="dialog" aria-label="Imagem exportada">
+              <img src={exportResult.url} alt="Prévia da imagem exportada" />
+              <div className="studio-export-result-body">
+                <strong>Imagem pronta: {exportResult.name}</strong>
+                <span>No iPhone, toque em <em>Compartilhar</em> e depois em <em>Salvar Imagem</em>. No Android, escolha <em>Salvar</em> ou o app para enviar.</span>
+                <div className="studio-export-result-actions">
+                  {exportResult.file && navigator.canShare?.({ files: [exportResult.file] }) && (
+                    <button type="button" className="studio-export-btn" onClick={async () => {
+                      try { await navigator.share({ files: [exportResult.file], title: exportResult.name }); }
+                      catch (e) { if (e?.name !== 'AbortError') downloadUrl(exportResult.url, exportResult.name); }
+                    }}>📤 Compartilhar / Salvar</button>
+                  )}
+                  <button type="button" className="studio-cancel-btn" onClick={() => downloadUrl(exportResult.url, exportResult.name)}>⬇️ Baixar</button>
+                  <button type="button" className="studio-cancel-btn" onClick={closeExportResult}>Fechar</button>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="studio-actions">
             {exporting ? (
               <div className="studio-progress"><div className="studio-progress-spinner" /><span>{progress}</span></div>
