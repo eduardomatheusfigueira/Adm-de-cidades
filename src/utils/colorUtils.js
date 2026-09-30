@@ -185,7 +185,8 @@ export const buildLegendItems = (scaleExpression, values, missingCount = 0) => {
   } else if (type === 'step') {
     const numericValues = (values || []).map(makeNumberParser(values)).filter((v) => !Number.isNaN(v)).sort((a, b) => a - b);
     if (!numericValues.length) return { type: 'dynamic', items: [] };
-    const fmt = (v) => v.toLocaleString('pt-BR');
+    // Casas decimais conforme a grandeza (valores de normalização/intervalos iguais têm muitas)
+    const fmt = (v) => v.toLocaleString('pt-BR', { maximumFractionDigits: Math.abs(v) >= 100 ? 1 : Math.abs(v) >= 1 ? 2 : 3 });
     const minValue = numericValues[0];
     const maxValue = numericValues[numericValues.length - 1];
     const bounds = [minValue];
@@ -243,3 +244,54 @@ export const applyCustomLegendColors = (expression, customLegend) => {
   }
   return out;
 };
+
+// Valor exibido no mapa para cada linha: o próprio atributo ou, com normalização,
+// atributo ÷ coluna de referência × fator (ex.: casos ÷ população × 100.000).
+// O formato numérico de cada coluna é decidido pela coluna inteira (`allRows`).
+export function makeVizValueGetter(allRows, attribute, symbology) {
+  const column = (name) => (allRows || []).map(r => r?.[name]).filter(v => !isNoDataMarker(v));
+  const col = column(attribute);
+  const numeric = attribute !== 'Nome_Municipio' && isNumericValues(col);
+  const parseNum = makeNumberParser(col);
+  const toNum = (parse, v) => {
+    if (typeof v === 'number') return Number.isFinite(v) ? v : NaN;
+    return isNoDataMarker(v) ? NaN : parse(v);
+  };
+  const by = symbology?.normalizeBy;
+  if (!by || !numeric) {
+    return {
+      numeric,
+      normalized: false,
+      get: (row) => {
+        const v = row?.[attribute];
+        if (isNoDataMarker(v)) return null;
+        if (!numeric) return `${v}`;
+        const n = toNum(parseNum, v);
+        return Number.isNaN(n) ? null : n;
+      },
+    };
+  }
+  const parseDen = makeNumberParser(column(by));
+  const factor = Number(symbology.factor) || 1;
+  return {
+    numeric: true,
+    normalized: true,
+    get: (row) => {
+      const n = toNum(parseNum, row?.[attribute]);
+      const d = toNum(parseDen, row?.[by]);
+      return Number.isFinite(n) && Number.isFinite(d) && d !== 0 ? (n / d) * factor : null;
+    },
+  };
+}
+
+// Título legível de uma variável normalizada: "casos por 100.000 População"
+export const normalizedLabel = (attribute, symbology) => {
+  if (!symbology?.normalizeBy) return attribute;
+  const f = Number(symbology.factor) || 1;
+  return `${attribute} ÷ ${symbology.normalizeBy}${f !== 1 ? ` × ${f.toLocaleString('pt-BR')}` : ''}`;
+};
+
+// Nomes típicos de contagens absolutas (mapa coroplético de totais engana: municípios
+// grandes/populosos sempre aparecem com as cores mais fortes)
+export const looksLikeAbsoluteCount = (attribute) =>
+  /popula|habitantes|^total|_total|quantidade|^qtd|^n[ºo°]?_|numero|número|casos|obitos|óbitos|nascidos|matr[ií]culas|eleitores|domic[ií]lios|empregos|estabelecimentos/i.test(attribute || '');

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { getColorScale, buildLegendItems, isNumericValues, makeNumberParser, isNoDataMarker, STEP_SENTINEL } from '../utils/colorUtils';
+import { getColorScale, buildLegendItems, isNumericValues, makeNumberParser, isNoDataMarker, STEP_SENTINEL, looksLikeAbsoluteCount } from '../utils/colorUtils';
 import { SEQUENTIAL, DIVERGING, CATEGORICAL, CLASSIFICATION_METHODS, numericColors, categoricalColors } from '../utils/palettes';
 import '../styles/SymbologyPanel.css';
 
@@ -36,7 +36,42 @@ function Histogram({ values, thresholds, colors }) {
 
 // Painel de simbologia: método de classificação, nº de classes, paleta e prévia.
 // `rawValues` são os valores da variável escolhida (como estão na tabela).
-export default function SymbologyPanel({ rawValues, symbology, onChange }) {
+const FACTORS = [
+  { v: 1, label: 'sem multiplicar' },
+  { v: 100, label: '× 100 (percentual)' },
+  { v: 1000, label: 'por mil (× 1.000)' },
+  { v: 10000, label: 'por 10 mil' },
+  { v: 100000, label: 'por 100 mil (taxas de saúde)' },
+];
+
+// Normalização: divide a variável por outra coluna (área, população...) e multiplica por um fator
+function NormalizeControls({ attribute, symbology, set, options }) {
+  const absolute = looksLikeAbsoluteCount(attribute) && !symbology.normalizeBy;
+  return (
+    <div className="symb-normalize">
+      {absolute && (
+        <p className="symb-warn">
+          ⚠️ “{attribute}” parece ser uma <strong>contagem absoluta</strong>. Em mapas coloridos por área, totais
+          fazem municípios grandes ou populosos parecerem sempre “maiores”. Prefira dividir por população ou área
+          (taxa ou densidade) — ou use símbolos proporcionais.
+        </p>
+      )}
+      <label className="symb-label" htmlFor="symb-norm">Dividir por (normalizar)</label>
+      <select id="symb-norm" className="visualization-dropdown" value={symbology.normalizeBy || ''}
+        onChange={e => set({ normalizeBy: e.target.value || null })}>
+        <option value="">Não dividir (valor original)</option>
+        {options.map(o => <option key={o} value={o}>{o === 'Area_Municipio' ? 'Área do município (km²) → densidade' : o}</option>)}
+      </select>
+      {symbology.normalizeBy && (
+        <select className="visualization-dropdown" value={symbology.factor || 1} onChange={e => set({ factor: Number(e.target.value) })} aria-label="Multiplicar o resultado">
+          {FACTORS.map(f => <option key={f.v} value={f.v}>{f.label}</option>)}
+        </select>
+      )}
+    </div>
+  );
+}
+
+export default function SymbologyPanel({ rawValues, symbology, onChange, attribute, normalizeOptions = [], attributeIsNumeric = false }) {
   const filled = useMemo(() => (rawValues || []).filter(v => !isNoDataMarker(v)), [rawValues]);
   const numeric = useMemo(() => isNumericValues(filled), [filled]);
   const sorted = useMemo(() => {
@@ -78,6 +113,9 @@ export default function SymbologyPanel({ rawValues, symbology, onChange }) {
   const obtained = preview?.items?.length || 0;
   return (
     <div className="symb-panel">
+      {attribute && attributeIsNumeric && (
+        <NormalizeControls attribute={attribute} symbology={symbology} set={set} options={normalizeOptions} />
+      )}
       <label className="symb-label" htmlFor="symb-method">Classificação</label>
       <select id="symb-method" className="visualization-dropdown" value={symbology.method} onChange={e => set({ method: e.target.value })}>
         {CLASSIFICATION_METHODS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}

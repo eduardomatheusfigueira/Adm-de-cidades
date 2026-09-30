@@ -101,3 +101,40 @@ describe('legenda', () => {
     expect(custom[4]).toBe('#111111');
   });
 });
+
+import { makeVizValueGetter, looksLikeAbsoluteCount, normalizedLabel } from '../colorUtils';
+
+describe('normalização', () => {
+  const rows = [
+    { pop: '1.000', area: '10,5', uf: 'SP' },
+    { pop: '22.516', area: '100', uf: 'RJ' },
+    { pop: '-', area: '50', uf: 'MG' },
+    { pop: '500', area: '0', uf: 'ES' },
+  ];
+  it('sem normalização: número no formato da coluna', () => {
+    const g = makeVizValueGetter(rows, 'pop', null);
+    expect(g.numeric).toBe(true);
+    expect(rows.map(g.get)).toEqual([1000, 22516, null, 500]);
+  });
+  it('divide pela coluna de referência e multiplica pelo fator; divisão por zero vira "sem dados"', () => {
+    const g = makeVizValueGetter(rows, 'pop', { normalizeBy: 'area', factor: 1 });
+    expect(g.normalized).toBe(true);
+    const v = rows.map(g.get);
+    expect(v[0]).toBeCloseTo(1000 / 10.5);
+    expect(v[1]).toBeCloseTo(225.16);
+    expect(v[2]).toBeNull();
+    expect(v[3]).toBeNull();
+    expect(makeVizValueGetter(rows, 'pop', { normalizeBy: 'area', factor: 100000 }).get(rows[1])).toBeCloseTo(22516000);
+  });
+  it('categorias não são normalizadas', () => {
+    const g = makeVizValueGetter(rows, 'uf', { normalizeBy: 'area' });
+    expect(g.numeric).toBe(false);
+    expect(g.get(rows[0])).toBe('SP');
+  });
+  it('reconhece contagens absolutas e monta o rótulo', () => {
+    expect(looksLikeAbsoluteCount('populacao')).toBe(true);
+    expect(looksLikeAbsoluteCount('Total de casos')).toBe(true);
+    expect(looksLikeAbsoluteCount('taxa_alfabetizacao')).toBe(false);
+    expect(normalizedLabel('casos', { normalizeBy: 'populacao', factor: 100000 })).toBe('casos ÷ populacao × 100.000');
+  });
+});

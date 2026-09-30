@@ -120,3 +120,22 @@
   flex: none;
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
+
+.symb-normalize {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.symb-warn {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #7c2d12;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}

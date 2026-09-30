@@ -4,7 +4,7 @@ import { DataContext } from '../contexts/DataContext';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext'; // Importado UIContext
 import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, isStyleReady, isAppLayer } from '../utils/basemaps';
-import { isNumericValues } from '../utils/colorUtils';
+import { isNumericValues, makeVizValueGetter } from '../utils/colorUtils';
 import { DEFAULT_SYMBOLOGY } from '../utils/palettes';
 import SymbologyPanel from './SymbologyPanel';
 
@@ -48,9 +48,11 @@ const VisualizationMenu = ({
   const [currentBorderWidth, setCurrentBorderWidth] = useState(2);
   const [currentFillOpacity, setCurrentFillOpacity] = useState(0.6);
   const [currentSymbology, setCurrentSymbology] = useState(DEFAULT_SYMBOLOGY);
+  const [currentLabels, setCurrentLabels] = useState(false);
   // Mantém o painel de simbologia igual ao que está aplicado no mapa (ex.: após carregar um perfil)
   useEffect(() => {
     if (visualizationConfig?.symbology) setCurrentSymbology({ ...DEFAULT_SYMBOLOGY, ...visualizationConfig.symbology });
+    if (visualizationConfig) setCurrentLabels(!!visualizationConfig.labels);
   }, [visualizationConfig]);
 
   // Map layer visibility toggles
@@ -106,8 +108,10 @@ const VisualizationMenu = ({
         .filter(r => r.Nome_Indicador === currentSelectedIndicator && r.Ano_Observacao === currentSelectedYear)
         .map(r => (currentIndicatorValueType === 'position' ? r.Indice_Posicional : r.Valor));
     }
-    return (filteredCsvData || csvData || []).map(r => r[currentSelectedAttribute]);
-  }, [currentVisualizationType, currentSelectedIndicator, currentSelectedYear, currentIndicatorValueType, indicadoresData, filteredCsvData, csvData, currentSelectedAttribute]);
+    // mesmo valor que irá para o mapa (inclusive normalizado)
+    const getter = makeVizValueGetter(csvData, currentSelectedAttribute, currentSymbology);
+    return (filteredCsvData || csvData || []).map(getter.get);
+  }, [currentVisualizationType, currentSelectedIndicator, currentSelectedYear, currentIndicatorValueType, indicadoresData, filteredCsvData, csvData, currentSelectedAttribute, currentSymbology]);
 
   const [availableYears, setAvailableYears] = useState([]);
   const [availableIndicators, setAvailableIndicators] = useState([]);
@@ -268,6 +272,7 @@ const VisualizationMenu = ({
       config.valueType = currentIndicatorValueType;
     }
     config.symbology = currentSymbology;
+    config.labels = currentLabels;
     config.renderMode = currentRenderMode;
     config.borderWidth = currentBorderWidth;
     config.fillOpacity = currentFillOpacity;
@@ -418,7 +423,20 @@ const VisualizationMenu = ({
               </>
             )}
             <div className="visualization-group">
-              <SymbologyPanel rawValues={symbologyValues} symbology={currentSymbology} onChange={setCurrentSymbology} />
+              <SymbologyPanel
+                rawValues={symbologyValues}
+                symbology={currentSymbology}
+                onChange={setCurrentSymbology}
+                attribute={currentVisualizationType === 'attribute' ? currentSelectedAttribute : null}
+                normalizeOptions={numericAttributes.filter(a => a !== currentSelectedAttribute)}
+                attributeIsNumeric={numericAttributes.includes(currentSelectedAttribute)}
+              />
+            </div>
+            <div className="visualization-group">
+              <label className="symb-check">
+                <input type="checkbox" checked={currentLabels} onChange={e => setCurrentLabels(e.target.checked)} />
+                Mostrar nomes dos municípios
+              </label>
             </div>
             <div className="visualization-group">
               <label>Modo de Renderização:</label>

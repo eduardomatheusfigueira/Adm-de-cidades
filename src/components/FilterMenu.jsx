@@ -5,7 +5,7 @@ import { AnnotationContext } from '../contexts/AnnotationContext';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { generateExportHtml } from '../utils/exportMap';
-import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing, toNumericIfPossible } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, makeVizValueGetter, normalizedLabel } from '../utils/colorUtils';
 import { getGeoJSONSourceData, resolveBasemapStyle } from '../utils/basemaps';
 import { useProjectState } from '../hooks/useProjectState';
 import DataWizard from './DataWizard';
@@ -171,6 +171,7 @@ const FilterMenu = ({ onImportGeometry }) => {
     if (!attribute) return null;
 
     let values = [];
+    let missing = 0;
     if (visualizationConfig?.type === 'indicator') {
       const { indicator, year, valueType } = visualizationConfig;
       values = (indicadoresData || [])
@@ -178,19 +179,16 @@ const FilterMenu = ({ onImportGeometry }) => {
         .map(row => (valueType === 'position' ? row.Indice_Posicional : row.Valor))
         .filter(v => !isNoDataMarker(v));
     } else {
-      values = (filteredCsvData || []).map(row => row[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
-    }
-
-    if (visualizationConfig?.type !== 'indicator') {
-      values = toNumericIfPossible(values, (csvData || []).map(row => row[attribute]).filter(v => !isNoDataMarker(v)));
+      // mesmo valor exibido no mapa (inclusive normalizado), com o formato da coluna inteira
+      const getter = makeVizValueGetter(csvData, attribute, visualizationConfig?.symbology);
+      if (getter.normalized) title = `Atributo: ${normalizedLabel(attribute, visualizationConfig.symbology)}`;
+      const rows = filteredCsvData || [];
+      values = rows.map(getter.get).filter(v => v !== null && v !== undefined);
+      missing = rows.length - values.length;
     }
     const scaleExpression = getColorScale(attribute, values, visualizationConfig?.symbology);
-    const expressionType = scaleExpression?.[0];
     const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
-    let items = [];
-
-    const missing = visualizationConfig?.type === 'indicator' ? 0 : countMissing(filteredCsvData, attribute, expressionType === 'step');
-    items = buildLegendItems(scaleExpression, values, missing).items;
+    let items = buildLegendItems(scaleExpression, values, missing).items;
 
     if (customLegend && customLegend.items && customLegend.items.length > 0) {
       title = customLegend.title || title;

@@ -6,7 +6,7 @@ import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { AnnotationContext } from '../contexts/AnnotationContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale, getLegendKey, isNoDataMarker, isNumericValues, makeNumberParser, withNoDataColor, buildLegendItems, applyCustomLegendColors } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, isNumericValues, makeNumberParser, withNoDataColor, buildLegendItems, applyCustomLegendColors, makeVizValueGetter, normalizedLabel } from '../utils/colorUtils';
 import { getAnnotationMeasurement } from '../utils/geoUtils';
 import { pickScaleDistance, metersPerPixel } from '../utils/scale';
 import { loadUfsGeometry } from '../utils/malhas';
@@ -1520,22 +1520,29 @@ const ImageExportStudio = () => {
     // 2. Valor de cada município para a variável escolhida no Estúdio (recalculado aqui,
     //    em vez de reaproveitar a variável do mapa principal)
     const useIndicator = vizType === 'indicator' && vizInd && vizYr;
-    const rawByCode = new Map();
+    const symbology = visualizationConfig?.symbology;
+    const valueByCode = new Map(); // número, texto (categorias) ou null (sem dados)
+    let numeric;
     if (useIndicator) {
-      (indicadoresData || [])
-        .filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr && inFilter.has(String(r.Codigo_Municipio)))
-        .forEach(r => rawByCode.set(String(r.Codigo_Municipio), vizVT === 'position' ? r.Indice_Posicional : r.Valor));
+      const rows = (indicadoresData || []).filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr);
+      const raw = (r) => (vizVT === 'position' ? r.Indice_Posicional : r.Valor);
+      // Formato numérico decidido pela coluna completa (não só pelos municípios filtrados)
+      const fullColumn = rows.map(raw).filter(v => !isNoDataMarker(v));
+      numeric = isNumericValues(fullColumn);
+      const parseNumber = makeNumberParser(fullColumn);
+      rows.filter(r => inFilter.has(String(r.Codigo_Municipio))).forEach(r => {
+        const v = raw(r);
+        if (isNoDataMarker(v)) return;
+        const n = numeric ? parseNumber(v) : v;
+        valueByCode.set(String(r.Codigo_Municipio), numeric ? (Number.isNaN(n) ? null : n) : `${v}`);
+      });
     } else {
-      filtered.forEach(r => rawByCode.set(String(r.Codigo_Municipio), r[vizAttr || 'Sigla_Regiao']));
+      // mesmo valor do mapa principal (inclusive normalizado)
+      const getter = makeVizValueGetter(csvData, vizAttr || 'Sigla_Regiao', symbology);
+      numeric = getter.numeric;
+      filtered.forEach(r => valueByCode.set(String(r.Codigo_Municipio), getter.get(r)));
     }
-    const rawValues = [...rawByCode.values()].filter(v => !isNoDataMarker(v));
-    // Formato numérico decidido pela coluna completa (não só pelos municípios filtrados)
-    const fullColumn = (useIndicator
-      ? (indicadoresData || []).filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr).map(r => (vizVT === 'position' ? r.Indice_Posicional : r.Valor))
-      : csvData.map(r => r[vizAttr || 'Sigla_Regiao'])).filter(v => !isNoDataMarker(v));
-    const numeric = (vizAttr !== 'Nome_Municipio' || useIndicator) && isNumericValues(rawValues);
-    const parseNumber = makeNumberParser(fullColumn);
-    const values = numeric ? rawValues.map(parseNumber).filter(n => !Number.isNaN(n)) : rawValues;
+    const values = [...valueByCode.values()].filter(v => v !== null && v !== undefined);
     const missing = filtered.length - values.length;
 
     // 3. Expressão de cor + cores da legenda editada no mapa principal (mesma chave de legenda)
@@ -1546,7 +1553,7 @@ const ImageExportStudio = () => {
     );
     const customLegend = legendKey ? legendConfigByKey?.[legendKey] : null;
     // Mesma classificação e paleta escolhidas no mapa principal
-    const baseExpr = getColorScale(attribute, values, visualizationConfig?.symbology);
+    const baseExpr = getColorScale(attribute, values, symbology);
     const colorExpr = withNoDataColor(attribute, applyCustomLegendColors(baseExpr, customLegend));
 
     // 4. Grava o valor e a pertença ao filtro em cada feição da prévia
@@ -1556,10 +1563,7 @@ const ImageExportStudio = () => {
       if (src && data?.features) {
         const features = data.features.map(f => {
           const code = String(f.properties?.CD_MUN ?? f.properties?.Codigo_Municipio ?? '');
-          const raw = rawByCode.get(code);
-          let v = isNoDataMarker(raw) ? null : raw;
-          if (v !== null && numeric) { const n = parseNumber(v); v = Number.isNaN(n) ? null : n; }
-          else if (v !== null) v = `${v}`;
+          const v = valueByCode.has(code) ? valueByCode.get(code) : null;
           return { ...f, properties: { ...f.properties, studio_value: v, studio_in: inFilter.has(code) } };
         });
         src.setData({ type: 'FeatureCollection', features });
@@ -1591,7 +1595,7 @@ const ImageExportStudio = () => {
     const items = customLegend?.items?.length
       ? [...customLegend.items.filter(it => !it.noData), ...autoItems.filter(it => it.noData)]
       : autoItems;
-    const defaultTitle = useIndicator ? `Indicador: ${vizInd} (${vizYr})` : `Atributo: ${vizAttr}`;
+    const defaultTitle = useIndicator ? `Indicador: ${vizInd} (${vizYr})` : `Atributo: ${normalizedLabel(vizAttr, symbology)}`;
     setLegendData({ title: customLegend?.title || defaultTitle, items });
   }, [csvData, indicadoresData, legendConfigByKey, visualizationConfig, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType]);

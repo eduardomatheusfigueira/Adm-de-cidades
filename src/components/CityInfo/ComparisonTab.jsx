@@ -133,7 +133,7 @@ const ComparisonTab = ({ indicators }) => {
                                 cursor={{ fill: '#444' }}
                                 contentStyle={{ backgroundColor: '#333', border: 'none', borderRadius: '8px' }}
                                 formatter={(value, name, props) => [
-                                    <div>
+                                    <div key="valor">
                                         <div>Índice: {value.toFixed(4)}</div>
                                         <div style={{ fontSize: '0.8em', color: '#aaa' }}>Valor Real: {props.payload.valor} {props.payload.unit}</div>
                                     </div>,

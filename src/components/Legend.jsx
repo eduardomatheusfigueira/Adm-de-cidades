@@ -3,7 +3,7 @@ import { Rnd } from 'react-rnd';
 import '../styles/Legend.css';
 import { UIContext } from '../contexts/UIContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing, toNumericIfPossible } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, makeVizValueGetter, normalizedLabel } from '../utils/colorUtils';
 
 const isValidColor = (value) => /^#([0-9A-F]{3}){1,2}$/i.test(value);
 
@@ -49,22 +49,18 @@ const Legend = () => {
         // Valores brutos: getColorScale/buildLegendItems decidem o formato numérico da coluna inteira
         .map((row) => (valueType === 'position' ? row.Indice_Posicional : row.Valor))
         .filter((value) => !isNoDataMarker(value));
-    } else {
-      values = (filteredCsvData || [])
-        .map((row) => row[attribute])
-        .filter((value) => value !== undefined && value !== null && `${value}`.trim() !== '');
+      const scaleExpression = getColorScale(attribute, values, visualizationConfig?.symbology);
+      const { type, items } = buildLegendItems(scaleExpression, values, 0);
+      return { title, items, type };
     }
 
-    // Números lidos com o formato decidido pela coluna completa (não só os filtrados)
-    if (visualizationConfig?.type !== 'indicator') {
-      values = toNumericIfPossible(values, (csvData || []).map((row) => row[attribute]).filter((v) => !isNoDataMarker(v)));
-    }
+    // Atributo (com normalização opcional); formato numérico decidido pela coluna completa
+    const getter = makeVizValueGetter(csvData, attribute, visualizationConfig?.symbology);
+    if (getter.normalized) title = `Atributo: ${normalizedLabel(attribute, visualizationConfig.symbology)}`;
+    const rows = filteredCsvData || [];
+    values = rows.map(getter.get).filter((v) => v !== null && v !== undefined);
     const scaleExpression = getColorScale(attribute, values, visualizationConfig?.symbology);
-    // Indicadores sem linha para o município também são "sem dados", mas a contagem
-    // aqui considera só os registros existentes do atributo/indicador.
-    const missing = visualizationConfig?.type === 'indicator'
-      ? 0
-      : countMissing(filteredCsvData, attribute, scaleExpression?.[0] === 'step');
+    const missing = rows.length - values.length;
     const { type, items } = buildLegendItems(scaleExpression, values, missing);
     return { title, items, type };
   }, [legendKey, colorAttribute, visualizationConfig, filteredCsvData, csvData, indicadoresData]);
