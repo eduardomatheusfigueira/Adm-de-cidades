@@ -1207,7 +1207,7 @@ export const MapProvider = ({ children }) => {
 
   const handleMapStyleChange = useCallback((newStyle) => {
     setMapNotice(null);
-    setMapStyle(normalizeBasemap(newStyle)); // Aceita ids, URLs personalizadas e URLs mapbox:// de perfis antigos
+    setMapStyle(normalizeBasemap(newStyle)); // Aceita ids, URLs do OpenFreeMap e URLs mapbox:// de perfis antigos
   }, []);
 
   const flyToCity = useCallback((city) => {

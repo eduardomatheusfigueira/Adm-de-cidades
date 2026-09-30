@@ -104,6 +104,16 @@ const LEGACY_MAPBOX = {
   'satellite-streets-v12': 'satelite',
 };
 
+// Estilos por URL só do servidor do OpenFreeMap. Um perfil ou link ?modelo= pode trazer
+// qualquer valor; um estilo de terceiros pode injetar HTML na atribuição do mapa.
+const TRUSTED_STYLE_HOSTS = ['tiles.openfreemap.org'];
+export const isTrustedStyleUrl = (value) => {
+  try {
+    const u = new URL(value);
+    return u.protocol === 'https:' && TRUSTED_STYLE_HOSTS.includes(u.hostname);
+  } catch (e) { return false; }
+};
+
 // Normaliza qualquer valor salvo (id, URL mapbox:// antiga, URL de estilo personalizada).
 export const normalizeBasemap = (value) => {
   if (!value || typeof value !== 'string') return DEFAULT_BASEMAP;
@@ -112,7 +122,7 @@ export const normalizeBasemap = (value) => {
     const key = value.split('/').pop();
     return LEGACY_MAPBOX[key] || DEFAULT_BASEMAP;
   }
-  if (/^https?:\/\//.test(value)) return value; // estilo personalizado (URL de style.json)
+  if (isTrustedStyleUrl(value)) return value; // estilo do OpenFreeMap por URL
   return DEFAULT_BASEMAP;
 };
 

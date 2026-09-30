@@ -26,6 +26,7 @@
     "react-dom": "^18.2.0",
     "react-rnd": "^10.5.3",
     "react-select": "^5.10.1",
+    "read-excel-file": "^9.3.10",
     "recharts": "^3.5.0",
     "simple-statistics": "^7.12.1",
     "topojson-client": "^3.1.0"
@@ -41,5 +42,8 @@
     "playwright": "^1.58.2",
     "vite": "^4.2.0",
     "vitest": "^0.34.6"
+  },
+  "overrides": {
+    "fflate": "^0.8.3"
   }
 }

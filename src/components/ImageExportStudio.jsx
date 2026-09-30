@@ -734,6 +734,13 @@ function drawCustomStudioElement(ctx, W, H, el) {
   ctx.restore();
 }
 
+// Texto puro de um trecho HTML. DOMParser cria um documento inerte: não executa scripts
+// nem carrega imagens (innerHTML num elemento da página dispararia onerror/onload).
+function htmlToText(html) {
+  const doc = new DOMParser().parseFromString(String(html), 'text/html');
+  return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
+}
+
 // Texto de atribuição do mapa base (exigido pelas licenças do OpenStreetMap/OpenFreeMap e Esri)
 export function mapAttributionText(pm) {
   try {
@@ -741,15 +748,13 @@ export function mapAttributionText(pm) {
     const parts = new Set();
     Object.values(sources).forEach(src => {
       if (!src?.attribution) return;
-      const div = document.createElement('div');
-      div.innerHTML = src.attribution;
-      const text = (div.textContent || '').replace(/\s+/g, ' ').trim();
+      const text = htmlToText(src.attribution);
       if (text) parts.add(text);
     });
     // Tile sources carregadas por URL (estilos remotos) expõem a atribuição só na instância
     Object.keys(sources).forEach(id => {
       const a = pm.getSource(id)?.attribution;
-      if (a) { const div = document.createElement('div'); div.innerHTML = a; const t = (div.textContent || '').replace(/\s+/g, ' ').trim(); if (t) parts.add(t); }
+      if (a) { const t = htmlToText(a); if (t) parts.add(t); }
     });
     return [...parts].join(' · ');
   } catch (e) { return ''; }
