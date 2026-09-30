@@ -11,3 +11,18 @@ describe('escala gráfica', () => {
     expect([1, 2, 5]).toContain(Math.round(meters / Math.pow(10, Math.floor(Math.log10(meters)))));
   });
 });
+
+import { symbolLegendCircles, symbolRadius, SYMBOL_MAX_RADIUS } from '../proportional';
+
+describe('símbolos proporcionais', () => {
+  it('área proporcional ao valor (raio ∝ √valor)', () => {
+    expect(symbolRadius(100, 100)).toBe(SYMBOL_MAX_RADIUS);
+    expect(symbolRadius(25, 100)).toBeCloseTo(SYMBOL_MAX_RADIUS / 2);
+    expect(symbolRadius(0, 100)).toBe(0);
+  });
+  it('legenda com valores redondos e decrescentes', () => {
+    const c = symbolLegendCircles(128127);
+    expect(c.map(x => x.value)).toEqual([100000, 25000, 5000]);
+    c.forEach((x, i) => { if (i) expect(x.r).toBeLessThan(c[i - 1].r); });
+  });
+});

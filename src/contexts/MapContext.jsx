@@ -4,6 +4,7 @@ import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';
 import { getColorScale, getLegendKey, withNoDataColor, applyCustomLegendColors, makeVizValueGetter, makeNumberParser } from '../utils/colorUtils';
+import { SYMBOL_COLOR, NEUTRAL_FILL, symbolRadiusExpression } from '../utils/proportional';
 import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
 import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
 
@@ -386,7 +387,53 @@ export const MapProvider = ({ children }) => {
     const borderWidth = visualizationConfig?.borderWidth || 2;
     const fillOpacity = visualizationConfig?.fillOpacity ?? 0.6;
 
-    if (renderMode === 'border') {
+    // Símbolos proporcionais: um círculo na sede de cada município, com área ∝ valor ORIGINAL
+    // (sem normalização), sobre os polígonos em cinza neutro
+    const symbolsOn = renderMode === 'symbols';
+    let symbolFeatures = [];
+    let symbolMax = 0;
+    if (symbolsOn) {
+      const rawGetter = makeVizValueGetter(allRows, currentAttributeForColoring, null);
+      if (rawGetter.numeric) {
+        currentMapData.forEach(row => {
+          const props = currentAttributeForColoring === 'visualization_value'
+            ? finalFeatures.find(f => String(f.properties.CD_MUN) === String(row.Codigo_Municipio))?.properties || {}
+            : row;
+          const v = rawGetter.get(props);
+          const lon = parseCoord(row.Longitude_Municipio), lat = parseCoord(row.Latitude_Municipio);
+          if (!(v > 0) || !Number.isFinite(lon) || !Number.isFinite(lat)) return;
+          symbolMax = Math.max(symbolMax, v);
+          symbolFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [lon, lat] }, properties: { __sym: v, NAME: row.Nome_Municipio, CD_MUN: String(row.Codigo_Municipio) } });
+        });
+        symbolFeatures.sort((a, b) => b.properties.__sym - a.properties.__sym); // grandes por baixo
+      }
+    }
+    const symbolsData = { type: 'FeatureCollection', features: symbolFeatures };
+    if (map.current.getSource('sectors-symbols')) map.current.getSource('sectors-symbols').setData(symbolsData);
+    else map.current.addSource('sectors-symbols', { type: 'geojson', data: symbolsData });
+    if (!map.current.getLayer('sectors-symbols-layer')) {
+      map.current.addLayer({
+        id: 'sectors-symbols-layer', type: 'circle', source: 'sectors-symbols',
+        paint: { 'circle-color': SYMBOL_COLOR, 'circle-opacity': 0.72, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 1 },
+      }, map.current.getLayer('sectors-label-layer') ? 'sectors-label-layer' : undefined);
+    }
+    map.current.setPaintProperty('sectors-symbols-layer', 'circle-radius', symbolRadiusExpression(symbolMax || 1));
+    map.current.setLayoutProperty('sectors-symbols-layer', 'visibility', symbolsOn ? 'visible' : 'none');
+
+    if (symbolsOn) {
+      if (map.current.getLayer('sectors-fill-layer')) {
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-color', NEUTRAL_FILL);
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-opacity', 0.8);
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-outline-color', '#9ca3af');
+      }
+      if (map.current.getLayer('sectors-line-layer')) {
+        map.current.setPaintProperty('sectors-line-layer', 'line-opacity', 0);
+        map.current.setPaintProperty('sectors-line-layer', 'line-width', 0);
+      }
+      if (map.current.getLayer('sectors-point-layer')) {
+        map.current.setPaintProperty('sectors-point-layer', 'circle-color', NEUTRAL_FILL);
+      }
+    } else if (renderMode === 'border') {
       // Border mode: transparent fill, colored inward border
       if (map.current.getLayer('sectors-fill-layer')) {
         map.current.setPaintProperty('sectors-fill-layer', 'fill-color', colorRenderScaleExpression);

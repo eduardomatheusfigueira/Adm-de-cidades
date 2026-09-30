@@ -10,6 +10,7 @@ import { getColorScale, getLegendKey, isNoDataMarker, isNumericValues, makeNumbe
 import { getAnnotationMeasurement } from '../utils/geoUtils';
 import { pickScaleDistance, metersPerPixel } from '../utils/scale';
 import { loadUfsGeometry } from '../utils/malhas';
+import { symbolLegendCircles, SYMBOL_COLOR, NEUTRAL_FILL } from '../utils/proportional';
 
 // Safari < 16 não tem CanvasRenderingContext2D.roundRect; sem isso a exportação lança erro.
 if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
@@ -287,6 +288,35 @@ function drawScale(ctx, x, y, w, h, zoom, lat, numericScale) {
   ctx.font = `italic ${Math.max(7, Math.round(h * 0.13))}px Inter,sans-serif`;
   ctx.fillStyle = '#64748b'; ctx.textAlign = 'center';
   ctx.fillText(numericScale ? `Escala 1:${numericScale.toLocaleString('pt-BR')} · Web Mercator (EPSG:3857)` : 'Projeção: Web Mercator (EPSG:3857)', x + w / 2, bY + bH + h * 0.2);
+}
+
+// Legenda de símbolos proporcionais (círculos aninhados) desenhada na prancha
+function drawSymbolLegend(ctx, x, y, w, title, circles, s = 1) {
+  const pad = 14 * s, titleFs = Math.round(15 * s), fs = Math.round(13 * s);
+  const R = circles[0].r * s;
+  const h = pad * 2 + titleFs * 1.4 + Math.max(R * 2, circles.length * fs * 1.15) + 6 * s;
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.strokeStyle = 'rgba(0,0,0,0.08)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, 6 * s); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#1e293b'; ctx.font = `bold ${titleFs}px Inter,sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText(wrapText(ctx, title, w - pad * 2)[0], x + pad, y + pad);
+  const baseY = y + h - pad;
+  const cx = x + pad + R;
+  let lastLabelY = -Infinity;
+  circles.forEach(c => {
+    const r = c.r * s, cy = baseY - r;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(217,95,2,0.25)'; ctx.fill();
+    ctx.strokeStyle = SYMBOL_COLOR; ctx.lineWidth = 1.2 * s; ctx.stroke();
+    // rótulos com espaçamento mínimo (círculos pequenos têm topos muito próximos)
+    const labelY = Math.max(cy - r, lastLabelY + fs * 1.15);
+    lastLabelY = labelY;
+    ctx.setLineDash([2 * s, 2 * s]); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1 * s;
+    ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx + R + 8 * s, labelY); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#1e293b'; ctx.font = `${fs}px Inter,sans-serif`; ctx.textBaseline = 'middle';
+    ctx.fillText(c.value.toLocaleString('pt-BR'), cx + R + 14 * s, labelY);
+  });
+  ctx.restore();
 }
 
 // Escala numérica (1:N) para impressão em papel: metros no terreno por metro no papel,
@@ -777,6 +807,8 @@ function drawOverlays(ctx, W, H, opts) {
     } else if (id === 'scale' && incScale) {
       // com densidade s, cada pixel de saída vale 1/s do terreno de um pixel da prévia
       drawScale(ctx, overlayPos.scale.x * W, overlayPos.scale.y * H, OVL.SCALE_W * s, OVL.SCALE_H * s, zoom + Math.log2(s), lat, numericScaleFor(zoom, lat, mmPerDesignPx));
+    } else if (id === 'legend' && incLegend && legendData?.symbols?.length) {
+      drawSymbolLegend(ctx, overlayPos.legend.x * W, overlayPos.legend.y * H, OVL.LEG_W * s, legendCustomTitle || legendData.title, legendData.symbols, s);
     } else if (id === 'legend' && incLegend && legendData?.items?.length) {
       drawLegend(ctx, overlayPos.legend.x * W, overlayPos.legend.y * H, OVL.LEG_W * s, legendCustomTitle || legendData.title, legendData.items);
     } else if (id === 'annLegend' && incAnnLegend && annData?.length) {
@@ -1570,6 +1602,23 @@ const ImageExportStudio = () => {
       }
     } catch (e) { console.warn('Studio data update error:', e); }
 
+    // Símbolos proporcionais: polígonos neutros; círculos (camada copiada do mapa principal)
+    const renderMode = cfg?.prvRenderMode ?? prvRenderMode;
+    if (renderMode === 'symbols' && !useIndicator) {
+      const getter = makeVizValueGetter(csvData, vizAttr, null);
+      const max = Math.max(0, ...filtered.map(getter.get).filter(v => v > 0));
+      try {
+        if (pm.getLayer('sectors-fill-layer')) {
+          pm.setPaintProperty('sectors-fill-layer', 'fill-color', NEUTRAL_FILL);
+          pm.setPaintProperty('sectors-fill-layer', 'fill-outline-color', '#9ca3af');
+          pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', 0.8);
+        }
+        if (pm.getLayer('sectors-symbols-layer')) pm.setLayoutProperty('sectors-symbols-layer', 'visibility', 'visible');
+      } catch (e) { console.warn('Viz apply error:', e); }
+      setLegendData({ title: `Atributo: ${vizAttr}`, items: [], symbols: symbolLegendCircles(max) });
+      return;
+    }
+
     // 5. Cores em polígonos, contornos e pontos; filtros escondem de fato os demais municípios
     const polyFilter = ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']];
     const inStudio = ['==', ['get', 'studio_in'], true];
@@ -1598,7 +1647,7 @@ const ImageExportStudio = () => {
     const defaultTitle = useIndicator ? `Indicador: ${vizInd} (${vizYr})` : `Atributo: ${normalizedLabel(vizAttr, symbology)}`;
     setLegendData({ title: customLegend?.title || defaultTitle, items });
   }, [csvData, indicadoresData, legendConfigByKey, visualizationConfig, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
-    prvFilterRegion, prvFilterState, prvFilterCityType]);
+    prvFilterRegion, prvFilterState, prvFilterCityType, prvRenderMode]);
 
   // Always keep ref pointing to latest version so loadPage (with [] deps) can call it
   applyPreviewVizRef.current = applyPreviewVisualization;
@@ -1614,7 +1663,7 @@ const ImageExportStudio = () => {
     }, 400);
     return () => clearTimeout(t);
   }, [prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
-    prvFilterRegion, prvFilterState, prvFilterCityType, applyPreviewVisualization]);
+    prvFilterRegion, prvFilterState, prvFilterCityType, prvRenderMode, applyPreviewVisualization]);
 
   const baseW = useCustom ? customW : PRESETS[preset].w;
   const baseH = useCustom ? customH : PRESETS[preset].h;
@@ -1788,8 +1837,11 @@ const ImageExportStudio = () => {
     if (!pm || !isStyleReady(pm)) return;
     try {
       if (pm.getLayer('sectors-fill-layer')) {
-        pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', prvRenderMode === 'filled' ? prvFillOpacity : 0);
+        pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', prvRenderMode === 'filled' ? prvFillOpacity : prvRenderMode === 'symbols' ? 0.8 : 0);
         // fill-outline-color is managed by applyPreviewVisualization (always = fill-color)
+      }
+      if (pm.getLayer('sectors-symbols-layer')) {
+        pm.setLayoutProperty('sectors-symbols-layer', 'visibility', prvRenderMode === 'symbols' ? 'visible' : 'none');
       }
       if (pm.getLayer('sectors-line-layer')) {
         // line-color is managed by applyPreviewVisualization; only width/opacity change here
@@ -2720,6 +2772,7 @@ const ImageExportStudio = () => {
                     <select className="studio-select" value={prvRenderMode} onChange={e => setPrvRenderMode(e.target.value)}>
                       <option value="filled">Preenchido</option>
                       <option value="border">Borda</option>
+                      <option value="symbols">Símbolos proporcionais</option>
                     </select>
                   </div>
                   {prvRenderMode === 'filled' && (

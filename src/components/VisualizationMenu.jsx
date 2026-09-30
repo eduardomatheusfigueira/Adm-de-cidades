@@ -443,6 +443,7 @@ const VisualizationMenu = ({
               <select className="visualization-dropdown" value={currentRenderMode} onChange={(e) => setCurrentRenderMode(e.target.value)}>
                 <option value="filled">Preenchido</option>
                 <option value="border">Borda</option>
+                <option value="symbols">Símbolos proporcionais (círculos)</option>
               </select>
             </div>
             {currentRenderMode === 'border' && (
