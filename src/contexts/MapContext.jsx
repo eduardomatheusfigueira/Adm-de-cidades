@@ -6,6 +6,7 @@ import { AnnotationContext } from './AnnotationContext';
 import { getColorScale, getLegendKey, withNoDataColor, noDataHatchFilter, applyCustomLegendColors, makeVizValueGetter, makeNumberParser } from '../utils/colorUtils';
 import { HATCH_ID, HATCH_LAYER, ensureHatchPattern } from '../utils/hatch';
 import { syncReferenceLayers, newReferenceLayer } from '../utils/referenceLayers';
+import { buildGraticule, mapBoundsArray } from '../utils/graticule';
 import { SYMBOL_COLOR, NEUTRAL_FILL, symbolRadiusExpression } from '../utils/proportional';
 import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
 import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady, enforceAppLayerOrder } from '../utils/basemaps';
@@ -1073,43 +1074,8 @@ export const MapProvider = ({ children }) => {
   // GRATICULE (Parallels & Meridians)
   // =============================================
 
-  // Helper: build graticule GeoJSON at the given zoom level
-  const buildGraticuleGeoJson = useCallback((currentZoom) => {
-    let interval;
-    if (currentZoom >= 8) interval = 0.5;
-    else if (currentZoom >= 6) interval = 1;
-    else if (currentZoom >= 4) interval = 2;
-    else if (currentZoom >= 2) interval = 5;
-    else interval = 10;
-
-    const features = [];
-
-    for (let lat = -90; lat <= 90; lat += interval) {
-      const coords = [];
-      for (let lng = -180; lng <= 180; lng += 2) {
-        coords.push([lng, lat]);
-      }
-      features.push({
-        type: 'Feature',
-        properties: { label: `${Math.abs(lat)}° ${lat >= 0 ? 'N' : 'S'}`, axis: 'lat' },
-        geometry: { type: 'LineString', coordinates: coords },
-      });
-    }
-
-    for (let lng = -180; lng <= 180; lng += interval) {
-      const coords = [];
-      for (let lat = -85; lat <= 85; lat += 2) {
-        coords.push([lng, lat]);
-      }
-      features.push({
-        type: 'Feature',
-        properties: { label: `${Math.abs(lng)}° ${lng >= 0 ? 'L' : 'O'}`, axis: 'lng' },
-        geometry: { type: 'LineString', coordinates: coords },
-      });
-    }
-
-    return { type: 'FeatureCollection', features };
-  }, []);
+  // Gratícula para o zoom e a área visível atuais (rótulos em graus e minutos)
+  const buildGraticuleGeoJson = useCallback(() => buildGraticule(map.current.getZoom(), mapBoundsArray(map.current)), []);
 
   // Fonte da gratícula a partir das opções de estilo (Noto Sans: Regular, Bold ou Italic)
   const getGraticuleFonts = useCallback((style) => getFontStack(style.bold ? 'Bold' : 'Regular', !!style.italic), []);
@@ -1129,7 +1095,7 @@ export const MapProvider = ({ children }) => {
       return;
     }
 
-    const geoJson = buildGraticuleGeoJson(map.current.getZoom());
+    const geoJson = buildGraticuleGeoJson();
 
     if (!map.current.getSource(GRATICULE_SOURCE)) {
       map.current.addSource(GRATICULE_SOURCE, { type: 'geojson', data: geoJson });
@@ -1191,20 +1157,20 @@ export const MapProvider = ({ children }) => {
     map.current.setPaintProperty('graticule-labels', 'text-halo-width', graticuleStyle.showHalo ? graticuleStyle.haloWidth : 0);
   }, [mapLoaded, styleVersion, showGraticule, graticuleStyle, getGraticuleFonts]);
 
-  // Effect 3: Regenerate GeoJSON data when zoom changes (interval adapts)
+  // Effect 3: refaz a gratícula ao mover (espaçamentos finos cobrem só a área visível)
   useEffect(() => {
     if (!map.current || !mapLoaded || !showGraticule) return;
 
     const updateGraticuleData = () => {
       if (!map.current || !map.current.getSource('graticule-source')) return;
-      const geoJson = buildGraticuleGeoJson(map.current.getZoom());
+      const geoJson = buildGraticuleGeoJson();
       map.current.getSource('graticule-source').setData(geoJson);
     };
 
-    map.current.on('zoomend', updateGraticuleData);
+    map.current.on('moveend', updateGraticuleData);
     return () => {
       if (map.current) {
-        map.current.off('zoomend', updateGraticuleData);
+        map.current.off('moveend', updateGraticuleData);
       }
     };
   }, [mapLoaded, styleVersion, showGraticule, buildGraticuleGeoJson]);

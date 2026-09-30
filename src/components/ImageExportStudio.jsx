@@ -14,6 +14,7 @@ import { pickScaleDistance, metersPerPixel } from '../utils/scale';
 import { loadUfsGeometry } from '../utils/malhas';
 import { symbolLegendCircles, SYMBOL_COLOR, NEUTRAL_FILL } from '../utils/proportional';
 import { HATCH_LAYER, ensureHatchPattern, drawHatch } from '../utils/hatch';
+import { buildGraticule, mapBoundsArray, computeFrameTicks } from '../utils/graticule';
 
 // Safari < 16 não tem CanvasRenderingContext2D.roundRect; sem isso a exportação lança erro.
 if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
@@ -777,7 +778,7 @@ export function ensureStudioFonts() {
 }
 
 // Bloco de créditos (canto inferior direito): Fonte, Elaboração, Data + atribuição do mapa base
-function drawCredits(ctx, W, H, cfg, attribution) {
+function drawCredits(ctx, W, H, cfg, attribution, inset = 0) {
   const lines = [];
   if (cfg?.show) {
     if (cfg.fonte?.trim()) lines.push({ text: `Fonte dos dados: ${cfg.fonte.trim()}`, bold: false });
@@ -799,7 +800,8 @@ function drawCredits(ctx, W, H, cfg, attribution) {
   const lineH = (l) => (l.small ? smallFs : fs) * 1.35;
   const boxH = wrapped.reduce((a, l) => a + lineH(l), 0) + pad * 2;
   const boxW = Math.min(maxW, Math.max(...wrapped.map(l => { ctx.font = `${l.small ? smallFs : fs}px Inter,sans-serif`; return ctx.measureText(l.text).width; })) + pad * 2);
-  const x = W - boxW - W * 0.01, y = H - boxH - H * 0.012;
+  // Com moldura, o bloco fica dentro do quadro do mapa (a margem é das coordenadas)
+  const x = W - inset - boxW - W * 0.01, y = H - inset - boxH - H * 0.012;
   ctx.fillStyle = 'rgba(255,255,255,0.88)';
   ctx.beginPath(); ctx.roundRect(x, y, boxW, boxH, fs * 0.3); ctx.fill();
   let cy = y + pad;
@@ -823,6 +825,7 @@ function drawOverlays(ctx, W, H, opts) {
 
   const s = scale || 1;
   drawFrame(ctx, W, H, frameCfg, pxPerMm);
+  if (opts.frameTicks) drawFrameTicks(ctx, W, H, frameCfg, pxPerMm, opts.frameTicks);
   const stack = elementsStack || ['title', 'north', 'scale', 'legend', 'annLegend'];
 
   stack.forEach(id => {
@@ -855,7 +858,7 @@ function drawOverlays(ctx, W, H, opts) {
     const p = overlayPos.inset || INSET_DEFAULT_POS;
     drawInset(ctx, p.x * W, p.y * H, OVL.INSET_W * s, OVL.INSET_H * s, inset, s);
   }
-  drawCredits(ctx, W, H, creditsCfg, attribution);
+  drawCredits(ctx, W, H, creditsCfg, attribution, Math.round((frameCfg?.margin || 0) * (pxPerMm || W / 297)));
 }
 
 // Margem branca + linha de moldura (neatline) em volta da área do mapa.
@@ -874,6 +877,41 @@ function drawFrame(ctx, W, H, cfg, pxPerMm) {
     ctx.lineWidth = lw;
     ctx.strokeRect(m + lw / 2, m + lw / 2, W - 2 * m - lw, H - 2 * m - lw);
   }
+}
+
+// Coordenadas na moldura (como nas cartas topográficas): marcas nas bordas do quadro do mapa
+// onde passam paralelos e meridianos, com rótulos em graus e minutos na margem.
+function drawFrameTicks(ctx, W, H, cfg, pxPerMm, ticks) {
+  const mmPx = pxPerMm || W / 297;
+  const m = Math.round((cfg?.margin || 0) * mmPx);
+  if (m <= 0) return; // sem margem, não há onde escrever
+  const tick = Math.min(m * 0.35, 2 * mmPx);
+  const fs = Math.max(8, Math.min(m * 0.42, 2.6 * mmPx));
+  ctx.save();
+  ctx.strokeStyle = cfg.lineColor || '#00242D';
+  ctx.fillStyle = cfg.lineColor || '#00242D';
+  ctx.lineWidth = Math.max(1, mmPx * 0.3);
+  ctx.font = `${fs}px Inter, sans-serif`;
+  const gap = tick + fs * 0.35;
+  // Meridianos: marcas em cima e embaixo, rótulo horizontal na margem
+  ticks.lng.forEach(({ f, label }) => {
+    const x = f * W;
+    if (x < m + fs || x > W - m - fs) return;
+    ctx.beginPath(); ctx.moveTo(x, m); ctx.lineTo(x, m - tick); ctx.moveTo(x, H - m); ctx.lineTo(x, H - m + tick); ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom'; ctx.fillText(label, x, m - gap);
+    ctx.textBaseline = 'top'; ctx.fillText(label, x, H - m + gap);
+  });
+  // Paralelos: marcas nas laterais, rótulo girado acompanhando a borda
+  ticks.lat.forEach(({ f, label }) => {
+    const y = f * H;
+    if (y < m + fs || y > H - m - fs) return;
+    ctx.beginPath(); ctx.moveTo(m, y); ctx.lineTo(m - tick, y); ctx.moveTo(W - m, y); ctx.lineTo(W - m + tick, y); ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.save(); ctx.translate(m - gap, y); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'bottom'; ctx.fillText(label, 0, 0); ctx.restore();
+    ctx.save(); ctx.translate(W - m + gap, y); ctx.rotate(Math.PI / 2); ctx.textBaseline = 'bottom'; ctx.fillText(label, 0, 0); ctx.restore();
+  });
+  ctx.restore();
 }
 
 // Draggable & Resizable overlay handle
@@ -1371,22 +1409,7 @@ const ImageExportStudio = () => {
         // Graticule — create on-demand if needed
         if (newGraticule) {
           if (!pm.getSource('graticule-source')) {
-            const zoom = pm.getZoom();
-            let interval;
-            if (zoom >= 8) interval = 0.5;
-            else if (zoom >= 6) interval = 1;
-            else if (zoom >= 4) interval = 2;
-            else if (zoom >= 2) interval = 5;
-            else interval = 10;
-            const gFeatures = [];
-            for (let lat = -90; lat <= 90; lat += interval) {
-              const c = []; for (let lng = -180; lng <= 180; lng += 2) c.push([lng, lat]);
-              gFeatures.push({ type: 'Feature', properties: { label: `${Math.abs(lat)}° ${lat >= 0 ? 'N' : 'S'}`, axis: 'lat' }, geometry: { type: 'LineString', coordinates: c } });
-            }
-            for (let lng = -180; lng <= 180; lng += interval) {
-              const c = []; for (let lat = -85; lat <= 85; lat += 2) c.push([lng, lat]);
-              gFeatures.push({ type: 'Feature', properties: { label: `${Math.abs(lng)}° ${lng >= 0 ? 'L' : 'O'}`, axis: 'lng' }, geometry: { type: 'LineString', coordinates: c } });
-            }
+            const gFeatures = buildGraticule(pm.getZoom(), mapBoundsArray(pm)).features;
             try {
               pm.addSource('graticule-source', { type: 'geojson', data: { type: 'FeatureCollection', features: gFeatures } });
               pm.addLayer({ id: 'graticule-lines', type: 'line', source: 'graticule-source', paint: { 'line-color': 'rgba(120,140,170,0.45)', 'line-width': 0.8, 'line-dasharray': [4, 4] } });
@@ -1882,25 +1905,7 @@ const ImageExportStudio = () => {
       // Graticule (parallels & meridians) — create layers on-demand if they don't exist
       if (incGraticule) {
         if (!pm.getSource('graticule-source')) {
-          // Build graticule GeoJSON for current zoom
-          const zoom = pm.getZoom();
-          let interval;
-          if (zoom >= 8) interval = 0.5;
-          else if (zoom >= 6) interval = 1;
-          else if (zoom >= 4) interval = 2;
-          else if (zoom >= 2) interval = 5;
-          else interval = 10;
-          const features = [];
-          for (let lat = -90; lat <= 90; lat += interval) {
-            const coords = [];
-            for (let lng = -180; lng <= 180; lng += 2) coords.push([lng, lat]);
-            features.push({ type: 'Feature', properties: { label: `${Math.abs(lat)}° ${lat >= 0 ? 'N' : 'S'}`, axis: 'lat' }, geometry: { type: 'LineString', coordinates: coords } });
-          }
-          for (let lng = -180; lng <= 180; lng += interval) {
-            const coords = [];
-            for (let lat = -85; lat <= 85; lat += 2) coords.push([lng, lat]);
-            features.push({ type: 'Feature', properties: { label: `${Math.abs(lng)}° ${lng >= 0 ? 'L' : 'O'}`, axis: 'lng' }, geometry: { type: 'LineString', coordinates: coords } });
-          }
+          const features = buildGraticule(pm.getZoom(), mapBoundsArray(pm)).features;
           pm.addSource('graticule-source', { type: 'geojson', data: { type: 'FeatureCollection', features } });
           pm.addLayer({ id: 'graticule-lines', type: 'line', source: 'graticule-source', paint: { 'line-color': graticuleStyle.lineColor, 'line-width': graticuleStyle.lineWidth, 'line-dasharray': [4, 4] } });
           pm.addLayer({ id: 'graticule-labels', type: 'symbol', source: 'graticule-source',
@@ -2004,6 +2009,11 @@ const ImageExportStudio = () => {
       });
       pm.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
       ensureHatchPattern(pm);
+      // Gratícula acompanha o enquadramento da prévia (espaçamento e área visível)
+      pm.on('moveend', () => {
+        const src = pm.getSource('graticule-source');
+        if (src) src.setData(buildGraticule(pm.getZoom(), mapBoundsArray(pm)));
+      });
       pm._currentStyleUrl = normalizeBasemap(mapStyle); // a prévia começa com uma cópia do estilo do mapa principal
       previewMapRef.current = pm;
       // Use ref-based callback to avoid stale closures — ensures overlays
@@ -2081,8 +2091,9 @@ const ImageExportStudio = () => {
       legendCustomTitle, annLegendCustomTitle, northArrowStyle,
       elementsStack, studioElements, creditsCfg, attribution: mapAttributionText(pm),
       frameCfg, pxPerMm: pxPerMmDesign, mmPerDesignPx, incInset, inset: insetFor(pm),
+      frameTicks: incGraticule ? computeFrameTicks(pm) : null,
     });
-  }, [creditsCfg, frameCfg, pxPerMmDesign, mmPerDesignPx, incInset, ufsGeo, insetHighlight, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
+  }, [incGraticule, creditsCfg, frameCfg, pxPerMmDesign, mmPerDesignPx, incInset, ufsGeo, insetHighlight, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
 
   // Keep ref always pointing to the latest redraw function — map event listeners
   // use this ref to avoid stale closures that cause overlay/handle desync.
@@ -2229,6 +2240,7 @@ const ImageExportStudio = () => {
         legendCustomTitle, annLegendCustomTitle, northArrowStyle,
         elementsStack, studioElements, creditsCfg, attribution: mapAttributionText(pm),
         frameCfg, pxPerMm: pxPerMmDesign * exportK, mmPerDesignPx, incInset, inset: insetFor(pm),
+        frameTicks: incGraticule ? computeFrameTicks(pm) : null,
       });
 
       setProgress('Gerando arquivo...');
@@ -2276,7 +2288,7 @@ const ImageExportStudio = () => {
       if (hiddenDiv?.parentNode) hiddenDiv.parentNode.removeChild(hiddenDiv);
       setExporting(false);
     }
-  }, [targetW, targetH, frameW, frameH, exportK, paperCfg, paperPx, frameCfg, pxPerMmDesign, mmPerDesignPx, incInset, ufsGeo, insetHighlight, format, jpegQuality, creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
+  }, [incGraticule, targetW, targetH, frameW, frameH, exportK, paperCfg, paperPx, frameCfg, pxPerMmDesign, mmPerDesignPx, incInset, ufsGeo, insetHighlight, format, jpegQuality, creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
 
   // Save current page state before closing
   const handleClose = useCallback(() => {
@@ -2491,6 +2503,7 @@ const ImageExportStudio = () => {
               <label className="studio-check-row"><input type="checkbox" checked={incMunPoints} onChange={e => setIncMunPoints(e.target.checked)} /><span className="studio-check-label">Pontos dos municípios</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incMeasurements} onChange={e => setIncMeasurements(e.target.checked)} /><span className="studio-check-label">Medidas nas anotações</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incGraticule} onChange={e => setIncGraticule(e.target.checked)} /><span className="studio-check-label">Paralelos e meridianos</span></label>
+              {incGraticule && <small className="studio-credits-note">{frameCfg.margin > 0 ? 'As coordenadas (graus e minutos) aparecem também na margem da moldura.' : 'Dê uma margem à moldura (Modelos e moldura) para as coordenadas aparecerem na borda, como numa carta topográfica.'}</small>}
               {incGraticule && (
                 <div style={{ paddingLeft: 18, marginTop: 2, marginBottom: 6 }}>
                   {/* Line controls */}
