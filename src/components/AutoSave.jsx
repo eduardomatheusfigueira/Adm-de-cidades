@@ -23,6 +23,8 @@ export default function AutoSave() {
   const [status, setStatus] = useState('checking');
   const [pending, setPending] = useState(null);
   const [lastSaved, setLastSaved] = useState(null);
+  const [showSaved, setShowSaved] = useState(false);
+  const hideTimer = useRef(null);
   const writtenRefs = useRef({});
   const buildRef = useRef(buildProfile);
   buildRef.current = buildProfile;
@@ -56,6 +58,10 @@ export default function AutoSave() {
     try {
       await storeSetMany(entries);
       setLastSaved(entries.meta.savedAt);
+      // O aviso "Salvo" aparece por alguns segundos e some (não fica por cima do mapa)
+      setShowSaved(true);
+      clearTimeout(hideTimer.current);
+      hideTimer.current = setTimeout(() => setShowSaved(false), 2500);
     } catch (e) {
       console.warn('[AutoSave] Falha ao salvar:', e);
       BIG_KEYS.forEach(k => { delete writtenRefs.current[k]; });
@@ -113,7 +119,7 @@ export default function AutoSave() {
     );
   }
 
-  if (status === 'on' && lastSaved) {
+  if (status === 'on' && lastSaved && showSaved) {
     return <div className="autosave-indicator" title="O trabalho é salvo automaticamente neste navegador">✓ Salvo às {new Date(lastSaved).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>;
   }
   return null;

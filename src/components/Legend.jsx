@@ -107,12 +107,13 @@ const Legend = () => {
 
   return (
     <Rnd
-      default={{
-        x: 10,
-        y: 300,
-        width: 250,
-        height: 'auto',
-      }}
+      default={(() => {
+        // No celular a legenda começa menor e mais alta, sem cobrir a barra de escala
+        const w = typeof window !== 'undefined' ? window.innerWidth : 1024;
+        return w < 600
+          ? { x: 8, y: 150, width: Math.min(220, w - 72), height: 'auto' }
+          : { x: 10, y: 300, width: 250, height: 'auto' };
+      })()}
       minWidth={150}
       bounds="parent"
       dragHandleClassName="legend-drag-handle"

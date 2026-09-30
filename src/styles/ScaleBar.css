@@ -127,3 +127,18 @@
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
+
+/* Celular: escala compacta e botão de fechar sempre visível (não há hover no toque) */
+@media (max-width: 600px) {
+  .scale-bar-container {
+    padding: 6px 16px 4px;
+    /* acima da atribuição do mapa base, no canto inferior */
+    bottom: 36px;
+  }
+
+  .scale-bar-close {
+    opacity: 0.7;
+    font-size: 0.8rem;
+    padding: 4px 6px;
+  }
+}

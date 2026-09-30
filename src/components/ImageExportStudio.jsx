@@ -8,6 +8,7 @@ import { AnnotationContext } from '../contexts/AnnotationContext';
 import { DataContext } from '../contexts/DataContext';
 import { getColorScale, getLegendKey, isNoDataMarker, isNumericValues, makeNumberParser, withNoDataColor, buildLegendItems, applyCustomLegendColors } from '../utils/colorUtils';
 import { getAnnotationMeasurement } from '../utils/geoUtils';
+import { pickScaleDistance } from '../utils/scale';
 
 // Safari < 16 não tem CanvasRenderingContext2D.roundRect; sem isso a exportação lança erro.
 if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
@@ -208,19 +209,7 @@ function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
   ctx.restore();
 }
 
-// Escala gráfica: o comprimento da barra é calculado pela distância real
-// (barra = distância / metros-por-pixel). Antes a barra tinha tamanho fixo e o rótulo não
-// correspondia à distância representada.
-// MapLibre usa tiles de 512 px: metros por pixel no equador em z0 = 40075016.686 / 512.
-export function pickScaleDistance(maxBarPx, zoom, lat) {
-  const mpp = 78271.5168 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom);
-  const maxMeters = maxBarPx * mpp;
-  // Maior valor "redondo" (1, 2 ou 5 × 10^n) que cabe na largura disponível
-  const pow = Math.pow(10, Math.floor(Math.log10(maxMeters)));
-  const best = [5, 2, 1].map(m => m * pow).find(v => v <= maxMeters) || pow;
-  return { meters: best, barPx: best / mpp, mpp };
-}
-
+// Escala gráfica: o comprimento da barra é calculado pela distância real (utils/scale.js).
 function formatScaleNumber(v) {
   return v.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 }

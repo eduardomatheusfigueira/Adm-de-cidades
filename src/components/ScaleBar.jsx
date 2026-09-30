@@ -1,17 +1,10 @@
 import React, { useContext, useState, useEffect, useRef, useCallback } from 'react';
 import '../styles/ScaleBar.css';
+import { pickScaleDistance } from '../utils/scale';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 
-// Nice round numbers for scale labels
-const SCALE_STEPS = [
-  1, 2, 5, 10, 20, 50, 100, 200, 500,
-  1000, 2000, 5000, 10000, 20000, 50000,
-  100000, 200000, 500000, 1000000,
-  2000000, 5000000, 10000000, 20000000
-];
 
-const NUM_SEGMENTS = 5;
 
 const formatDistance = (meters, short = false) => {
   if (meters >= 1000) {
@@ -32,8 +25,10 @@ const ScaleBar = () => {
   const isDraggingRef = useRef(false);
   const offsetRef = useRef({ x: 0, y: 0 });
 
+  // Pointer Events: o mesmo código arrasta com mouse, dedo ou caneta
   const onDragStart = useCallback((e) => {
-    if (!elRef.current) return;
+    if (!elRef.current || e.button > 0) return;
+    if (e.target.closest('button')) return;
     e.preventDefault();
     isDraggingRef.current = true;
     const rect = elRef.current.getBoundingClientRect();
@@ -59,12 +54,14 @@ const ScaleBar = () => {
 
     const onUp = () => {
       isDraggingRef.current = false;
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
     };
 
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
   }, []);
 
   // Calculate scale from map state
@@ -76,31 +73,12 @@ const ScaleBar = () => {
       const center = m.getCenter();
       const zoom = m.getZoom();
 
-      // MapLibre GL JS uses 512px tiles; the correct constant is 40075016.686 / 512 = 78271.5168
-      const metersPerPixel = 78271.5168 * Math.cos(center.lat * Math.PI / 180) / Math.pow(2, zoom);
-
-      // Target total bar width: 200-300 pixels (wide enough to avoid label overlap)
-      const targetMinPx = 200;
-      const targetMaxPx = 300;
-
-      let bestStep = SCALE_STEPS[0];
-      for (let i = 0; i < SCALE_STEPS.length; i++) {
-        const step = SCALE_STEPS[i];
-        const px = step / metersPerPixel;
-        if (px >= targetMinPx && px <= targetMaxPx) {
-          bestStep = step;
-          break;
-        }
-        if (px > targetMaxPx) {
-          // Prefer this wider step over the previous too-narrow one
-          bestStep = step;
-          break;
-        }
-        bestStep = step;
-      }
-
-      const barWidth = Math.round(bestStep / metersPerPixel);
-      const clampedWidth = Math.max(180, Math.min(400, barWidth));
+      // Barra com o comprimento exato da distância representada (sem forçar largura mínima/máxima,
+      // o que distorcia a escala); no celular a barra é menor para caber na tela.
+      const containerW = m.getContainer()?.clientWidth || 1024;
+      const maxBarPx = Math.min(300, Math.max(120, containerW * 0.5));
+      const { meters: bestStep, barPx } = pickScaleDistance(maxBarPx, zoom, center.lat);
+      const clampedWidth = Math.round(barPx);
       const unit = bestStep >= 1000 ? 'km' : 'm';
 
       setScaleInfo({
@@ -126,6 +104,8 @@ const ScaleBar = () => {
   if (!mapLoaded || !showScaleBar) return null;
 
   // Build segment data
+  // Menos divisões em barras curtas (celular), para os rótulos não se sobreporem
+  const NUM_SEGMENTS = scaleInfo.width < 170 ? 2 : scaleInfo.width < 240 ? 4 : 5;
   const segmentWidth = scaleInfo.width / NUM_SEGMENTS;
   const distPerSegment = scaleInfo.totalDistance / NUM_SEGMENTS;
 
@@ -145,8 +125,8 @@ const ScaleBar = () => {
     <div
       ref={elRef}
       className="scale-bar-container"
-      onMouseDown={onDragStart}
-      style={{ cursor: 'move' }}
+      onPointerDown={onDragStart}
+      style={{ cursor: 'move', touchAction: 'none' }}
     >
       <button
         className="scale-bar-close"
