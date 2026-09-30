@@ -11,7 +11,7 @@ export const PROFILE_VERSION = 3;
 export function useProjectState() {
   const {
     csvData, setCsvData, setFilteredCsvData, csvHeaders, setCsvHeaders,
-    indicadoresData, setIndicadoresData, geojsonData, setGeojsonData,
+    indicadoresData, setIndicadoresData, geojsonData, setGeojsonData, ensureGeometryForUfs,
   } = useContext(DataContext);
   const {
     colorAttribute, setColorAttribute, visualizationConfig, setVisualizationConfig,
@@ -30,13 +30,20 @@ export function useProjectState() {
     return { center: [c.lng, c.lat], zoom: m.getZoom(), bearing: m.getBearing(), pitch: m.getPitch() };
   }, [map]);
 
-  const buildProfile = useCallback(() => ({
+  const buildProfile = useCallback(() => {
+    // Geometrias da malha embutida viram só a lista de UFs (perfil bem menor);
+    // geometrias importadas pelo aluno continuam dentro do perfil
+    const features = geojsonData?.features || [];
+    const malhaUfs = [...new Set(features.filter(f => f.properties?.__base).map(f => String(f.properties.CD_MUN).slice(0, 2)))];
+    const own = features.filter(f => !f.properties?.__base);
+    return {
     version: PROFILE_VERSION,
     // Dados
     municipios: csvData,
     csvHeaders,
     indicadores: indicadoresData,
-    geometrias: geojsonData,
+    geometrias: { type: 'FeatureCollection', features: own },
+    malhaUfs,
     // Visualização
     colorAttribute,
     visualizationConfig,
@@ -50,7 +57,8 @@ export function useProjectState() {
     // Mapa
     mapStyle,
     camera: getCamera(),
-  }), [csvData, csvHeaders, indicadoresData, geojsonData, colorAttribute, visualizationConfig, legendConfigByKey,
+  };
+  }, [csvData, csvHeaders, indicadoresData, geojsonData, colorAttribute, visualizationConfig, legendConfigByKey,
     annotations, visualizations, activeVisualizationId, exportPages, mapStyle, getCamera]);
 
   const applyProfile = useCallback((profile) => {
@@ -64,6 +72,10 @@ export function useProjectState() {
     }
     if (profile.indicadores) setIndicadoresData(profile.indicadores);
     if (profile.geometrias) setGeojsonData(profile.geometrias);
+    // Malha embutida referenciada pelo perfil (carregada depois das geometrias próprias)
+    if (Array.isArray(profile.malhaUfs) && profile.malhaUfs.length) {
+      setTimeout(() => { ensureGeometryForUfs(profile.malhaUfs, true).catch(e => console.warn('Malha do perfil:', e)); }, 0);
+    }
 
     if (profile.version >= 2) {
       if (profile.colorAttribute) setColorAttribute(profile.colorAttribute);
@@ -99,7 +111,7 @@ export function useProjectState() {
     }
   }, [setCsvData, setFilteredCsvData, setCsvHeaders, setIndicadoresData, setGeojsonData, setColorAttribute,
     setVisualizationConfig, updateLegendConfig, setAnnotations, setVisualizations, setActiveVisualizationId,
-    setExportPages, handleMapStyleChange, map]);
+    setExportPages, handleMapStyleChange, map, ensureGeometryForUfs]);
 
   return { buildProfile, applyProfile };
 }

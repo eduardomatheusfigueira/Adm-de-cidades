@@ -439,3 +439,10 @@ body {
   font-size: 18px;
   color: inherit;
 }
+
+.autosave-instructions {
+  white-space: pre-wrap;
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 6px 8px;
+}
