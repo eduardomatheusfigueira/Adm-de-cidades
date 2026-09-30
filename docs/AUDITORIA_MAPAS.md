@@ -843,6 +843,26 @@ O restante da Fase 0 (F0.4 autosave, F0.5 classificação única, F0.7 malha, F0
 
 ### Fase 0 — "Liberar para a turma" (≈ 15–25 dias úteis de 1 pessoa; F0.7 completo tende a G)
 
+> **Status (implementado na Fase 0b):**
+> - **F0.4 — salvamento automático:** IndexedDB com "Continuar de onde parou?".
+> - **F0.5 — classificação única e segura:** `utils/colorUtils.js`.
+> - **F0.6 — escala correta:** tela, PNG e HTML usam `utils/scale.js`.
+> - **F0.7 — malha IBGE embutida:** `public/data/malhas/`, com "Mapa do Brasil" e "Juntar minha tabela".
+> - **F0.8 — Estúdio herda a visualização:** cores, legenda e filtros reais.
+> - **F0.9/F0.10 — Estúdio no celular:** arraste com o dedo, "Compartilhar/Salvar", nome do arquivo pelo título e aviso de navegador embutido.
+> - **F0.11 — layout mobile:** cabeçalho, abas, 100dvh e rodapé.
+> - **F0.12 — desenho por toque:** botões Concluir/Desfazer e fechar no 1º ponto.
+> - **F0.13 — camadas recriadas a cada troca de mapa base.**
+> - **F0.14 — itens concluídos:**
+>   - bloco "Fonte / Elaboração / Data";
+>   - atribuição do mapa base no PNG;
+>   - booleanos de capital;
+>   - `fitBounds` só quando os dados mudam.
+> - **Pendentes:**
+>   - F0.1: testar em aparelhos reais;
+>   - F0.3: publicar (Vercel/Netlify);
+>   - F0.15: teste automatizado no repositório/CI.
+
 A estimativa anterior (5–8 dias) não fechava com a escala do próprio relatório: são 5 tarefas M (F0.4, F0.5, F0.7, F0.8, F0.9, de 2–5 dias cada, ou 10–25 dias) e 10 tarefas P. Por isso a Fase 0 foi dividida em Fase 0-mínima (acima) e Fase 0b (o restante da tabela abaixo).
 
 Objetivo: o aluno faz um mapa temático **correto** e o entrega pelo computador e pelo celular, sem perder trabalho.
