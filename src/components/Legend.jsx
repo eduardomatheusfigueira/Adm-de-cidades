@@ -3,7 +3,33 @@ import { Rnd } from 'react-rnd';
 import '../styles/Legend.css';
 import { UIContext } from '../contexts/UIContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing, toNumericIfPossible } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, makeVizValueGetter, normalizedLabel } from '../utils/colorUtils';
+import { symbolLegendCircles, SYMBOL_COLOR } from '../utils/proportional';
+
+// Legenda de símbolos proporcionais: círculos aninhados alinhados pela base
+export const SymbolLegend = ({ circles }) => {
+  if (!circles?.length) return <p style={{ fontSize: '0.8em', color: '#555' }}>Sem valores positivos para desenhar.</p>;
+  const R = circles[0].r, W = R * 2 + 90, H = Math.max(R * 2, circles.length * 13) + 8;
+  return (
+    <svg className="legend-symbols" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Legenda de símbolos proporcionais">
+      {(() => {
+        let lastY = -Infinity;
+        return circles.map((c, i) => {
+          const cy = H - 4 - c.r;
+          const ly = Math.max(cy - c.r, lastY + 13); // rótulos sem sobreposição
+          lastY = ly;
+          return (
+            <g key={i}>
+              <circle cx={R + 2} cy={cy} r={c.r} fill={SYMBOL_COLOR} fillOpacity={0.25} stroke={SYMBOL_COLOR} strokeWidth="1.2" />
+              <line x1={R + 2} x2={R * 2 + 12} y1={cy - c.r} y2={ly} stroke="#64748b" strokeDasharray="2 2" />
+              <text x={R * 2 + 16} y={ly + 4} fontSize="11" fill="#1e293b">{c.value.toLocaleString('pt-BR')}</text>
+            </g>
+          );
+        });
+      })()}
+    </svg>
+  );
+};
 
 const isValidColor = (value) => /^#([0-9A-F]{3}){1,2}$/i.test(value);
 
@@ -49,25 +75,32 @@ const Legend = () => {
         // Valores brutos: getColorScale/buildLegendItems decidem o formato numérico da coluna inteira
         .map((row) => (valueType === 'position' ? row.Indice_Posicional : row.Valor))
         .filter((value) => !isNoDataMarker(value));
-    } else {
-      values = (filteredCsvData || [])
-        .map((row) => row[attribute])
-        .filter((value) => value !== undefined && value !== null && `${value}`.trim() !== '');
+      const scaleExpression = getColorScale(attribute, values, visualizationConfig?.symbology);
+      const { type, items } = buildLegendItems(scaleExpression, values, 0);
+      return { title, items, type };
     }
 
-    // Números lidos com o formato decidido pela coluna completa (não só os filtrados)
-    if (visualizationConfig?.type !== 'indicator') {
-      values = toNumericIfPossible(values, (csvData || []).map((row) => row[attribute]).filter((v) => !isNoDataMarker(v)));
-    }
-    const scaleExpression = getColorScale(attribute, values);
-    // Indicadores sem linha para o município também são "sem dados", mas a contagem
-    // aqui considera só os registros existentes do atributo/indicador.
-    const missing = visualizationConfig?.type === 'indicator'
-      ? 0
-      : countMissing(filteredCsvData, attribute, scaleExpression?.[0] === 'step');
+    // Atributo (com normalização opcional); formato numérico decidido pela coluna completa
+    const getter = makeVizValueGetter(csvData, attribute, visualizationConfig?.symbology);
+    if (getter.normalized) title = `Atributo: ${normalizedLabel(attribute, visualizationConfig.symbology)}`;
+    const rows = filteredCsvData || [];
+    values = rows.map(getter.get).filter((v) => v !== null && v !== undefined);
+    const scaleExpression = getColorScale(attribute, values, visualizationConfig?.symbology);
+    const missing = rows.length - values.length;
     const { type, items } = buildLegendItems(scaleExpression, values, missing);
     return { title, items, type };
   }, [legendKey, colorAttribute, visualizationConfig, filteredCsvData, csvData, indicadoresData]);
+
+  // Símbolos proporcionais: círculos de referência (área ∝ valor original)
+  const symbolLegend = useMemo(() => {
+    if (visualizationConfig?.renderMode !== 'symbols') return null;
+    const attribute = visualizationConfig.type === 'attribute' ? visualizationConfig.attribute : colorAttribute;
+    if (!attribute || visualizationConfig.type === 'indicator') return null;
+    const getter = makeVizValueGetter(csvData, attribute, null);
+    if (!getter.numeric) return null;
+    const max = Math.max(0, ...(filteredCsvData || []).map(getter.get).filter(v => v > 0));
+    return { title: attribute, circles: symbolLegendCircles(max) };
+  }, [visualizationConfig, colorAttribute, csvData, filteredCsvData]);
 
   const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
 
@@ -76,7 +109,7 @@ const Legend = () => {
   const [draftItems, setDraftItems] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const displayedTitle = customLegend?.title ?? baseLegend?.title ?? 'Legenda';
+  const displayedTitle = symbolLegend ? `Atributo: ${symbolLegend.title}` : (customLegend?.title ?? baseLegend?.title ?? 'Legenda');
   const displayedItems = customLegend?.items ?? baseLegend?.items ?? [];
 
   useEffect(() => {
@@ -140,7 +173,9 @@ const Legend = () => {
           >✕</button>
         </div>
 
-        {!isEditing ? (
+        {symbolLegend ? (
+          <SymbolLegend circles={symbolLegend.circles} />
+        ) : !isEditing ? (
           <>
             {displayedItems.length === 0 && (
               <p style={{ fontSize: '0.8em', color: '#555', marginTop: '5px', fontStyle: 'italic' }}>(Escala de cores dinâmica)</p>

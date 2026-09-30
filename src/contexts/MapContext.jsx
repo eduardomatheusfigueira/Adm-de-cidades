@@ -3,7 +3,8 @@ import maplibregl from 'maplibre-gl';
 import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';
-import { getColorScale, getLegendKey, makeNumberParser, withNoDataColor, applyCustomLegendColors, isNoDataMarker, isNumericValues } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, withNoDataColor, applyCustomLegendColors, makeVizValueGetter, makeNumberParser } from '../utils/colorUtils';
+import { SYMBOL_COLOR, NEUTRAL_FILL, symbolRadiusExpression } from '../utils/proportional';
 import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
 import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
 
@@ -291,21 +292,15 @@ export const MapProvider = ({ children }) => {
     }
 
     const combinedGeoJson = { type: 'FeatureCollection', features: finalFeatures };
-    // Coluna numérica: grava o valor como número ("590,3" → 590.3, "22.516" → 22516), com o
-    // formato decidido pela coluna completa; o que não é número vira null = "Sem dados"
-    const rawValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => !isNoDataMarker(v));
-    if (currentAttributeForColoring !== 'Nome_Municipio' && isNumericValues(rawValues)) {
-      const fullColumn = currentAttributeForColoring === 'visualization_value'
-        ? rawValues
-        : (csvData || []).map(r => r[currentAttributeForColoring]).filter(v => !isNoDataMarker(v));
-      const parseNumber = makeNumberParser(fullColumn);
-      finalFeatures.forEach(f => {
-        const n = parseNumber(f.properties[currentAttributeForColoring]);
-        f.properties[currentAttributeForColoring] = Number.isNaN(n) ? null : n;
-      });
-    }
-    const attributeValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => v !== undefined && v !== null);
-    const baseScaleExpression = getColorScale(currentAttributeForColoring, attributeValues);
+    // Valor exibido: número lido no formato da coluna inteira ("590,3" → 590.3, "22.516" → 22516)
+    // ou, com normalização, atributo ÷ referência × fator; o que não é número vira null = "Sem dados"
+    const symbology = visualizationConfig?.symbology;
+    const allRows = currentAttributeForColoring === 'visualization_value' ? finalFeatures.map(f => f.properties) : (csvData || []);
+    const vizGetter = makeVizValueGetter(allRows, currentAttributeForColoring, symbology);
+    const colorProp = vizGetter.normalized ? '__viz_value' : currentAttributeForColoring;
+    if (vizGetter.numeric) finalFeatures.forEach(f => { f.properties[colorProp] = vizGetter.get(f.properties); });
+    const attributeValues = finalFeatures.map(f => f.properties[colorProp]).filter(v => v !== undefined && v !== null);
+    const baseScaleExpression = getColorScale(colorProp, attributeValues, symbology);
     let colorRenderScaleExpression = baseScaleExpression;
 
     const legendKey = getLegendKey(visualizationConfig, colorAttribute);
@@ -313,7 +308,7 @@ export const MapProvider = ({ children }) => {
 
     colorRenderScaleExpression = applyCustomLegendColors(baseScaleExpression, customLegend);
 
-    colorRenderScaleExpression = withNoDataColor(currentAttributeForColoring, colorRenderScaleExpression);
+    colorRenderScaleExpression = withNoDataColor(colorProp, colorRenderScaleExpression);
 
     if (map.current.getSource('sectors')) {
       map.current.getSource('sectors').setData(combinedGeoJson);
@@ -368,12 +363,77 @@ export const MapProvider = ({ children }) => {
       }
     }
 
+    // Rótulos com o nome dos municípios (ligados no menu de Visualização)
+    if (!map.current.getLayer('sectors-label-layer')) {
+      map.current.addLayer({
+        id: 'sectors-label-layer', type: 'symbol', source: 'sectors',
+        layout: {
+          'text-field': ['coalesce', ['get', 'NAME'], ['get', 'Nome_Municipio'], ''],
+          'text-font': [FONT_BOLD],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 5, 9, 9, 12, 12, 14],
+          'text-max-width': 8,
+          'text-padding': 2,
+          'symbol-sort-key': ['*', -1, ['coalesce', ['to-number', ['get', 'AREA']], 0]],
+          visibility: visualizationConfig?.labels ? 'visible' : 'none',
+        },
+        paint: { 'text-color': '#111827', 'text-halo-color': 'rgba(255,255,255,0.9)', 'text-halo-width': 1.4 },
+      });
+    } else {
+      map.current.setLayoutProperty('sectors-label-layer', 'visibility', visualizationConfig?.labels ? 'visible' : 'none');
+    }
+
     // Determine render mode from visualizationConfig
     const renderMode = visualizationConfig?.renderMode || 'filled';
     const borderWidth = visualizationConfig?.borderWidth || 2;
     const fillOpacity = visualizationConfig?.fillOpacity ?? 0.6;
 
-    if (renderMode === 'border') {
+    // Símbolos proporcionais: um círculo na sede de cada município, com área ∝ valor ORIGINAL
+    // (sem normalização), sobre os polígonos em cinza neutro
+    const symbolsOn = renderMode === 'symbols';
+    let symbolFeatures = [];
+    let symbolMax = 0;
+    if (symbolsOn) {
+      const rawGetter = makeVizValueGetter(allRows, currentAttributeForColoring, null);
+      if (rawGetter.numeric) {
+        currentMapData.forEach(row => {
+          const props = currentAttributeForColoring === 'visualization_value'
+            ? finalFeatures.find(f => String(f.properties.CD_MUN) === String(row.Codigo_Municipio))?.properties || {}
+            : row;
+          const v = rawGetter.get(props);
+          const lon = parseCoord(row.Longitude_Municipio), lat = parseCoord(row.Latitude_Municipio);
+          if (!(v > 0) || !Number.isFinite(lon) || !Number.isFinite(lat)) return;
+          symbolMax = Math.max(symbolMax, v);
+          symbolFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [lon, lat] }, properties: { __sym: v, NAME: row.Nome_Municipio, CD_MUN: String(row.Codigo_Municipio) } });
+        });
+        symbolFeatures.sort((a, b) => b.properties.__sym - a.properties.__sym); // grandes por baixo
+      }
+    }
+    const symbolsData = { type: 'FeatureCollection', features: symbolFeatures };
+    if (map.current.getSource('sectors-symbols')) map.current.getSource('sectors-symbols').setData(symbolsData);
+    else map.current.addSource('sectors-symbols', { type: 'geojson', data: symbolsData });
+    if (!map.current.getLayer('sectors-symbols-layer')) {
+      map.current.addLayer({
+        id: 'sectors-symbols-layer', type: 'circle', source: 'sectors-symbols',
+        paint: { 'circle-color': SYMBOL_COLOR, 'circle-opacity': 0.72, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 1 },
+      }, map.current.getLayer('sectors-label-layer') ? 'sectors-label-layer' : undefined);
+    }
+    map.current.setPaintProperty('sectors-symbols-layer', 'circle-radius', symbolRadiusExpression(symbolMax || 1));
+    map.current.setLayoutProperty('sectors-symbols-layer', 'visibility', symbolsOn ? 'visible' : 'none');
+
+    if (symbolsOn) {
+      if (map.current.getLayer('sectors-fill-layer')) {
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-color', NEUTRAL_FILL);
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-opacity', 0.8);
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-outline-color', '#9ca3af');
+      }
+      if (map.current.getLayer('sectors-line-layer')) {
+        map.current.setPaintProperty('sectors-line-layer', 'line-opacity', 0);
+        map.current.setPaintProperty('sectors-line-layer', 'line-width', 0);
+      }
+      if (map.current.getLayer('sectors-point-layer')) {
+        map.current.setPaintProperty('sectors-point-layer', 'circle-color', NEUTRAL_FILL);
+      }
+    } else if (renderMode === 'border') {
       // Border mode: transparent fill, colored inward border
       if (map.current.getLayer('sectors-fill-layer')) {
         map.current.setPaintProperty('sectors-fill-layer', 'fill-color', colorRenderScaleExpression);

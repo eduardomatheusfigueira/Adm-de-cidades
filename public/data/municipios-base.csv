@@ -116,11 +116,11 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 1302900;Maués;AM;N;40253.0;False;;-57.7067;-3.39289
 1303007;Nhamundá;AM;N;14197.7;False;;-56.7112;-2.20793
 1303106;Nova Olinda do Norte;AM;N;5645.2;False;;-59.094;-3.90037
-1303205;Novo Airão;AM;N;-38020.3;False;;-60.9434;-2.63637
+1303205;Novo Airão;AM;N;38020.3;False;;-60.9434;-2.63637
 1303304;Novo Aripuanã;AM;N;41458.2;False;;-60.3732;-5.12593
 1303403;Parintins;AM;N;5991.3;False;;-56.729;-2.63741
 1303502;Pauini;AM;N;41880.2;False;;-66.992;-7.71311
-1303536;Presidente Figueiredo;AM;N;-25598.8;False;;-60.0234;-2.02981
+1303536;Presidente Figueiredo;AM;N;25598.8;False;;-60.0234;-2.02981
 1303569;Rio Preto da Eva;AM;N;5849.6;False;;-59.6858;-2.7045
 1303601;Santa Isabel do Rio Negro;AM;N;63268.4;False;;-65.0092;-0.410824
 1303700;Santo Antônio do Içá;AM;N;12392.1;False;;-67.9463;-3.09544
@@ -161,7 +161,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 1500701;Anajás;PA;N;6969.7;False;;-49.9354;-0.996811
 1500800;Ananindeua;PA;N;185.5;False;;-48.3743;-1.36391
 1500859;Anapu;PA;N;11976.5;False;;-51.2003;-3.46985
-1500909;Augusto Corrêa;PA;N;-1096.7;False;;-46.6147;-1.05109
+1500909;Augusto Corrêa;PA;N;1096.7;False;;-46.6147;-1.05109
 1500958;Aurora do Pará;PA;N;1825.9;False;;-47.5677;-2.14898
 1501006;Aveiro;PA;N;17192.6;False;;-55.3199;-3.60841
 1501105;Bagre;PA;N;4422.7;False;;-50.1987;-1.90057
@@ -173,7 +173,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 1501501;Benevides;PA;N;189.4;False;;-48.2434;-1.36183
 1501576;Bom Jesus do Tocantins;PA;N;2834.2;False;;-48.6047;-5.0424
 1501600;Bonito;PA;N;590.5;False;;-47.3066;-1.36745
-1501709;Bragança;PA;N;-2103.7;False;;-46.7826;-1.06126
+1501709;Bragança;PA;N;2103.7;False;;-46.7826;-1.06126
 1501725;Brasil Novo;PA;N;6408.9;False;;-52.534;-3.29792
 1501758;Brejo Grande do Araguaia;PA;N;1294.9;False;;-48.4103;-5.69822
 1501782;Breu Branco;PA;N;3966.7;False;;-49.5735;-3.77191
@@ -194,7 +194,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 1502772;Curionópolis;PA;N;2383.8;False;;-49.6068;-6.09965
 1502806;Curralinho;PA;N;3641.6;False;;-49.7952;-1.81179
 1502855;Curuá;PA;N;1440.2;False;;-55.1168;-1.88775
-1502905;Curuçá;PA;N;-674.4;False;;-47.8515;-0.733214
+1502905;Curuçá;PA;N;674.4;False;;-47.8515;-0.733214
 1502939;Dom Eliseu;PA;N;5301.5;False;;-47.8245;-4.19944
 1502954;Eldorado do Carajás;PA;N;2977.8;False;;-49.3553;-6.10389
 1503002;Faro;PA;N;11847.0;False;;-56.7405;-2.16805
@@ -249,7 +249,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 1505908;Porto de Moz;PA;N;17538.6;False;;-52.2361;-1.74691
 1506005;Prainha;PA;N;14884.8;False;;-53.4779;-1.798
 1506104;Primavera;PA;N;261.1;False;;-47.1253;-0.945439
-1506112;Quatipuru;PA;N;-325.8;False;;-47.0134;-0.899604
+1506112;Quatipuru;PA;N;325.8;False;;-47.0134;-0.899604
 1506138;Redenção;PA;N;3846.9;False;;-50.0317;-8.02529
 1506161;Rio Maria;PA;N;4138.8;False;;-50.0379;-7.31236
 1506187;Rondon do Pará;PA;N;8302.8;False;;-48.067;-4.77793
@@ -284,14 +284,14 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 1507961;Terra Alta;PA;N;209.3;False;;-47.9004;-1.02963
 1507979;Terra Santa;PA;N;1911.9;False;;-56.4877;-2.10443
 1508001;Tomé-Açu;PA;N;5177.7;False;;-48.1415;-2.41302
-1508035;Tracuateua;PA;N;-853.9;False;;-46.9031;-1.07653
+1508035;Tracuateua;PA;N;853.9;False;;-46.9031;-1.07653
 1508050;Trairão;PA;N;12069.2;False;;-55.9429;-4.57347
 1508084;Tucumã;PA;N;2527.6;False;;-51.1626;-6.74687
 1508100;Tucuruí;PA;N;2103.5;False;;-49.6773;-3.7657
 1508126;Ulianópolis;PA;N;5123.7;False;;-47.4892;-3.75007
 1508159;Uruará;PA;N;10866.2;False;;-53.7396;-3.71519
 1508209;Vigia;PA;N;537.2;False;;-48.1386;-0.861194
-1508308;Viseu;PA;N;-4945.8;False;;-46.1399;-1.19124
+1508308;Viseu;PA;N;4945.8;False;;-46.1399;-1.19124
 1508357;Vitória do Xingu;PA;N;3155.1;False;;-52.0088;-2.87922
 1508407;Xinguara;PA;N;3807.5;False;;-49.9437;-7.0983
 1600055;Serra do Navio;AP;N;7810.7;False;;-52.0036;0.901357
@@ -452,7 +452,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2100055;Açailândia;MA;NE;5845.4;False;;-47.5004;-4.94714
 2100105;Afonso Cunha;MA;NE;373.8;False;;-43.3275;-4.13631
 2100154;Água Doce do Maranhão;MA;NE;445.9;False;;-42.1189;-2.84048
-2100204;Alcântara;MA;NE;-1495.9;False;;-44.4062;-2.39574
+2100204;Alcântara;MA;NE;1495.9;False;;-44.4062;-2.39574
 2100303;Aldeias Altas;MA;NE;1954.6;False;;-43.4689;-4.62621
 2100402;Altamira do Maranhão;MA;NE;540.2;False;;-45.4706;-4.16598
 2100436;Alto Alegre do Maranhão;MA;NE;386.0;False;;-44.446;-4.213
@@ -462,7 +462,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2100600;Amarante do Maranhão;MA;NE;7719.9;False;;-46.7473;-5.56913
 2100709;Anajatuba;MA;NE;1018.1;False;;-44.6126;-3.26269
 2100808;Anapurus;MA;NE;612.9;False;;-43.1014;-3.67577
-2100832;Apicum-Açu;MA;NE;-347.4;False;;-45.0864;-1.45862
+2100832;Apicum-Açu;MA;NE;347.4;False;;-45.0864;-1.45862
 2100873;Araguanã;MA;NE;808.9;False;;-45.6589;-2.94644
 2100907;Araioses;MA;NE;1799.2;False;;-41.905;-2.89091
 2100956;Arame;MA;NE;3065.3;False;;-46.0032;-4.88347
@@ -495,13 +495,13 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2102408;Cajapió;MA;NE;912.3;False;;-44.6741;-2.87326
 2102507;Cajari;MA;NE;548.8;False;;-45.0145;-3.32742
 2102556;Campestre do Maranhão;MA;NE;618.0;False;;-47.3625;-6.17075
-2102606;Cândido Mendes;MA;NE;-1628.4;False;;-45.7161;-1.43265
+2102606;Cândido Mendes;MA;NE;1628.4;False;;-45.7161;-1.43265
 2102705;Cantanhede;MA;NE;777.5;False;;-44.383;-3.63757
 2102754;Capinzal do Norte;MA;NE;594.3;False;;-44.328;-4.7236
 2102804;Carolina;MA;NE;6482.0;False;;-47.4634;-7.33584
-2102903;Carutapera;MA;NE;-1235.3;False;;-46.0085;-1.19696
+2102903;Carutapera;MA;NE;1235.3;False;;-46.0085;-1.19696
 2103000;Caxias;MA;NE;5260.0;False;;-43.3617;-4.86505
-2103109;Cedral;MA;NE;-289.2;False;;-44.5281;-2.00027
+2103109;Cedral;MA;NE;289.2;False;;-44.5281;-2.00027
 2103125;Central do Maranhão;MA;NE;368.4;False;;-44.8254;-2.19831
 2103158;Centro do Guilherme;MA;NE;1081.2;False;;-46.0345;-2.44891
 2103174;Centro Novo do Maranhão;MA;NE;8314.6;False;;-46.1228;-2.12696
@@ -512,7 +512,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2103505;Colinas;MA;NE;1995.1;False;;-44.2543;-6.03199
 2103554;Conceição do Lago-Açu;MA;NE;738.4;False;;-44.8895;-3.85142
 2103604;Coroatá;MA;NE;2279.6;False;;-44.1244;-4.13442
-2103703;Cururupu;MA;NE;-1223.9;False;;-44.8644;-1.81475
+2103703;Cururupu;MA;NE;1223.9;False;;-44.8644;-1.81475
 2103752;Davinópolis;MA;NE;339.8;False;;-47.4217;-5.54637
 2103802;Dom Pedro;MA;NE;372.0;False;;-44.4409;-5.03518
 2103901;Duque Bacelar;MA;NE;319.2;False;;-42.9477;-4.15002
@@ -523,7 +523,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2104099;Formosa da Serra Negra;MA;NE;3966.8;False;;-46.1916;-6.44017
 2104107;Fortaleza dos Nogueiras;MA;NE;1675.7;False;;-46.1749;-6.95983
 2104206;Fortuna;MA;NE;700.3;False;;-44.1565;-5.72792
-2104305;Godofredo Viana;MA;NE;-681.4;False;;-45.7795;-1.40259
+2104305;Godofredo Viana;MA;NE;681.4;False;;-45.7795;-1.40259
 2104404;Gonçalves Dias;MA;NE;881.9;False;;-44.3013;-5.1475
 2104503;Governador Archer;MA;NE;439.1;False;;-44.2754;-5.02078
 2104552;Governador Edison Lobão;MA;NE;619.5;False;;-47.3646;-5.74973
@@ -533,7 +533,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2104677;Governador Nunes Freire;MA;NE;1042.3;False;;-45.8777;-2.12899
 2104701;Graça Aranha;MA;NE;273.0;False;;-44.3358;-5.40547
 2104800;Grajaú;MA;NE;7603.0;False;;-46.1462;-5.81367
-2104909;Guimarães;MA;NE;-594.1;False;;-44.602;-2.12755
+2104909;Guimarães;MA;NE;594.1;False;;-44.602;-2.12755
 2105005;Humberto de Campos;MA;NE;2144.7;False;;-43.4649;-2.59828
 2105104;Icatu;MA;NE;1457.8;False;;-44.0501;-2.77206
 2105153;Igarapé do Meio;MA;NE;395.0;False;;-45.2114;-3.65771
@@ -556,7 +556,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2105989;Lajeado Novo;MA;NE;1053.9;False;;-47.0293;-6.18539
 2106003;Lima Campos;MA;NE;323.6;False;;-44.4646;-4.51837
 2106102;Loreto;MA;NE;3620.0;False;;-45.1451;-7.08111
-2106201;Luís Domingues;MA;NE;-462.5;False;;-45.867;-1.27492
+2106201;Luís Domingues;MA;NE;462.5;False;;-45.867;-1.27492
 2106300;Magalhães de Almeida;MA;NE;435.3;False;;-42.2117;-3.39232
 2106326;Maracaçumé;MA;NE;633.4;False;;-45.9587;-2.04918
 2106359;Marajá do Sena;MA;NE;877.8;False;;-45.4531;-4.62806
@@ -597,7 +597,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2108801;Pirapemas;MA;NE;692.7;False;;-44.2216;-3.72041
 2108900;Poção de Pedras;MA;NE;659.5;False;;-44.9432;-4.74626
 2109007;Porto Franco;MA;NE;1426.8;False;;-47.3962;-6.34149
-2109056;Porto Rico do Maranhão;MA;NE;-195.4;False;;-44.5842;-1.85925
+2109056;Porto Rico do Maranhão;MA;NE;195.4;False;;-44.5842;-1.85925
 2109106;Presidente Dutra;MA;NE;799.7;False;;-44.495;-5.2898
 2109205;Presidente Juscelino;MA;NE;358.0;False;;-44.0715;-2.91872
 2109239;Presidente Médici;MA;NE;440.4;False;;-45.82;-2.38991
@@ -656,7 +656,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2112233;Trizidela do Vale;MA;NE;224.5;False;;-44.628;-4.538
 2112274;Tufilândia;MA;NE;273.0;False;;-45.6238;-3.67355
 2112308;Tuntum;MA;NE;3596.1;False;;-44.6444;-5.25476
-2112407;Turiaçu;MA;NE;-2591.6;False;;-45.3798;-1.65893
+2112407;Turiaçu;MA;NE;2591.6;False;;-45.3798;-1.65893
 2112456;Turilândia;MA;NE;1522.4;False;;-45.3044;-2.21638
 2112506;Tutóia;MA;NE;1662.6;False;;-42.2755;-2.76141
 2112605;Urbano Santos;MA;NE;1217.0;False;;-43.3878;-3.20642
@@ -1282,7 +1282,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2502904;Brejo dos Santos;PB;NE;94.2;False;;-37.8253;-6.37065
 2503001;Caaporã;PB;NE;151.8;False;;-34.9055;-7.51351
 2503100;Cabaceiras;PB;NE;455.5;False;;-36.287;-7.48899
-2503209;Cabedelo;PB;NE;-20.3;False;;-34.8284;-6.98731
+2503209;Cabedelo;PB;NE;20.3;False;;-34.8284;-6.98731
 2503308;Cachoeira dos Índios;PB;NE;174.2;False;;-38.676;-6.91353
 2503407;Cacimba de Areia;PB;NE;221.9;False;;-37.1563;-7.12128
 2503506;Cacimba de Dentro;PB;NE;165.3;False;;-35.7778;-6.6386
@@ -1527,7 +1527,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2605459;Fernando de Noronha;PE;NE;17.6;False;;-32.4107;-3.8396
 2605509;Ferreiros;PE;NE;89.5;False;;-35.2373;-7.44666
 2605608;Flores;PE;NE;960.1;False;;-37.9715;-7.85842
-2605707;Floresta;PE;NE;-1989.8;False;;-38.5687;-8.60307
+2605707;Floresta;PE;NE;1989.8;False;;-38.5687;-8.60307
 2605806;Frei Miguelinho;PE;NE;214.0;False;;-35.9113;-7.93918
 2605905;Gameleira;PE;NE;257.2;False;;-35.3846;-8.5798
 2606002;Garanhuns;PE;NE;461.7;False;;-36.4966;-8.88243
@@ -1542,7 +1542,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2606903;Iguaracy;PE;NE;842.7;False;;-37.5082;-7.83222
 2607000;Inajá;PE;NE;1190.8;False;;-37.8351;-8.90206
 2607109;Ingazeira;PE;NE;245.4;False;;-37.4576;-7.66909
-2607208;Ipojuca;PE;NE;-476.9;False;;-35.0609;-8.39303
+2607208;Ipojuca;PE;NE;476.9;False;;-35.0609;-8.39303
 2607307;Ipubi;PE;NE;866.6;False;;-40.1476;-7.64505
 2607406;Itacuruba;PE;NE;433.7;False;;-38.6975;-8.82231
 2607505;Itaíba;PE;NE;1074.8;False;;-37.4173;-8.94569
@@ -1592,7 +1592,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2611101;Petrolina;PE;NE;4584.9;False;;-40.5027;-9.38866
 2611200;Poção;PE;NE;204.3;False;;-36.7111;-8.18726
 2611309;Pombos;PE;NE;209.3;False;;-35.3967;-8.13982
-2611408;Primavera;PE;NE;-89.1;False;;-35.3544;-8.32999
+2611408;Primavera;PE;NE;89.1;False;;-35.3544;-8.32999
 2611507;Quipapá;PE;NE;231.6;False;;-36.0137;-8.81175
 2611533;Quixaba;PE;NE;211.6;False;;-37.8446;-7.70734
 2611606;Recife;PE;NE;221.6;True;;-34.8771;-8.04666
@@ -1912,7 +1912,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 2906857;Capela do Alto Alegre;BA;NE;660.4;False;;-39.8349;-11.6658
 2906873;Capim Grosso;BA;NE;378.1;False;;-40.0089;-11.3797
 2906899;Caraíbas;BA;NE;766.3;False;;-41.2603;-14.7177
-2906907;Caravelas;BA;NE;-2381.4;False;;-39.2597;-17.7268
+2906907;Caravelas;BA;NE;2381.4;False;;-39.2597;-17.7268
 2907004;Cardeal da Silva;BA;NE;261.9;False;;-37.9469;-11.9472
 2907103;Carinhanha;BA;NE;2767.3;False;;-43.7724;-14.2985
 2907202;Casa Nova;BA;NE;9721.2;False;;-40.974;-9.16408
@@ -3124,9 +3124,9 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3202207;Fundão;ES;SE;280.8;False;;-40.4078;-19.937
 3202256;Governador Lindenberg;ES;SE;360.8;False;;-40.4473;-19.1864
 3202306;Guaçuí;ES;SE;471.2;False;;-41.6734;-20.7668
-3202405;Guarapari;ES;SE;-596.3;False;;-40.5093;-20.6772
+3202405;Guarapari;ES;SE;596.3;False;;-40.5093;-20.6772
 3202454;Ibatiba;ES;SE;242.3;False;;-41.5087;-20.2347
-3202504;Ibiraçu;ES;SE;-200.8;False;;-40.3732;-19.8366
+3202504;Ibiraçu;ES;SE;200.8;False;;-40.3732;-19.8366
 3202553;Ibitirama;ES;SE;332.4;False;;-41.6667;-20.5466
 3202603;Iconha;ES;SE;203.7;False;;-40.8132;-20.7913
 3202652;Irupi;ES;SE;185.4;False;;-41.6444;-20.3501
@@ -3172,9 +3172,9 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3205101;Viana;ES;SE;312.9;False;;-40.4933;-20.3825
 3205150;Vila Pavão;ES;SE;435.9;False;;-40.609;-18.6091
 3205176;Vila Valério;ES;SE;466.1;False;;-40.3849;-18.9958
-3205200;Vila Velha;ES;SE;-211.1;False;;-40.2875;-20.3417
-3205309;Vitória;ES;SE;-84.3;True;;-40.3128;-20.3155
-3300100;Angra dos Reis;RJ;SE;-440.8;False;;-44.3196;-23.0011
+3205200;Vila Velha;ES;SE;211.1;False;;-40.2875;-20.3417
+3205309;Vitória;ES;SE;84.3;True;;-40.3128;-20.3155
+3300100;Angra dos Reis;RJ;SE;440.8;False;;-44.3196;-23.0011
 3300159;Aperibé;RJ;SE;96.2;False;;-42.1017;-21.6252
 3300209;Araruama;RJ;SE;637.1;False;;-42.3326;-22.8697
 3300225;Areal;RJ;SE;112.6;False;;-43.1118;-22.2283
@@ -3203,17 +3203,17 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3301850;Guapimirim;RJ;SE;363.2;False;;-42.9895;-22.5347
 3301876;Iguaba Grande;RJ;SE;51.9;False;;-42.2299;-22.8495
 3301900;Itaboraí;RJ;SE;425.8;False;;-42.8639;-22.7565
-3302007;Itaguaí;RJ;SE;-244.1;False;;-43.7798;-22.8636
+3302007;Itaguaí;RJ;SE;244.1;False;;-43.7798;-22.8636
 3302056;Italva;RJ;SE;297.7;False;;-41.7014;-21.4296
 3302106;Itaocara;RJ;SE;430.9;False;;-42.0758;-21.6748
 3302205;Itaperuna;RJ;SE;1112.2;False;;-41.8799;-21.1997
 3302254;Itatiaia;RJ;SE;226.0;False;;-44.5675;-22.4897
 3302270;Japeri;RJ;SE;83.5;False;;-43.6602;-22.6435
 3302304;Laje do Muriaé;RJ;SE;250.7;False;;-42.1271;-21.2091
-3302403;Macaé;RJ;SE;-1219.2;False;;-41.7848;-22.3768
+3302403;Macaé;RJ;SE;1219.2;False;;-41.7848;-22.3768
 3302452;Macuco;RJ;SE;77.7;False;;-42.2533;-21.9813
 3302502;Magé;RJ;SE;387.8;False;;-43.0315;-22.6632
-3302601;Mangaratiba;RJ;SE;-356.2;False;;-44.0409;-22.9594
+3302601;Mangaratiba;RJ;SE;356.2;False;;-44.0409;-22.9594
 3302700;Maricá;RJ;SE;365.4;False;;-42.8246;-22.9354
 3302809;Mendes;RJ;SE;76.8;False;;-43.7312;-22.5245
 3302858;Mesquita;RJ;SE;39.3;False;;-43.4601;-22.8028
@@ -3226,7 +3226,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3303500;Nova Iguaçu;RJ;SE;520.7;False;;-43.4603;-22.7556
 3303609;Paracambi;RJ;SE;180.8;False;;-43.7108;-22.6078
 3303708;Paraíba do Sul;RJ;SE;583.7;False;;-43.304;-22.1585
-3303807;Paraty;RJ;SE;-931.8;False;;-44.7175;-23.2221
+3303807;Paraty;RJ;SE;931.8;False;;-44.7175;-23.2221
 3303856;Paty do Alferes;RJ;SE;320.9;False;;-43.4285;-22.4309
 3303906;Petrópolis;RJ;SE;796.6;False;;-43.1926;-22.52
 3303955;Pinheiral;RJ;SE;77.4;False;;-44.0022;-22.5172
@@ -3241,7 +3241,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3304409;Rio Claro;RJ;SE;845.6;False;;-44.1419;-22.72
 3304508;Rio das Flores;RJ;SE;480.0;False;;-43.5856;-22.1692
 3304524;Rio das Ostras;RJ;SE;232.5;False;;-41.9475;-22.5174
-3304557;Rio de Janeiro;RJ;SE;-1192.3;True;;-43.2003;-22.9129
+3304557;Rio de Janeiro;RJ;SE;1192.3;True;;-43.2003;-22.9129
 3304607;Santa Maria Madalena;RJ;SE;821.5;False;;-42.0098;-21.9547
 3304706;Santo Antônio de Pádua;RJ;SE;606.9;False;;-42.1832;-21.541
 3304755;São Francisco de Itabapoana;RJ;SE;1118.9;False;;-41.1091;-21.4702
@@ -3337,7 +3337,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3506102;Bebedouro;SP;SE;685.3;False;;-48.4791;-20.9491
 3506201;Bento de Abreu;SP;SE;303.1;False;;-50.814;-21.2686
 3506300;Bernardino de Campos;SP;SE;245.2;False;;-49.4679;-23.0164
-3506359;Bertioga;SP;SE;-492.2;False;;-46.1396;-23.8486
+3506359;Bertioga;SP;SE;492.2;False;;-46.1396;-23.8486
 3506409;Bilac;SP;SE;158.5;False;;-50.4746;-21.404
 3506508;Birigui;SP;SE;532.9;False;;-50.3432;-21.291
 3506607;Biritiba-Mirim;SP;SE;319.1;False;;-46.0407;-23.5698
@@ -3378,7 +3378,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3509601;Campo Limpo Paulista;SP;SE;79.9;False;;-46.7889;-23.2078
 3509700;Campos do Jordão;SP;SE;292.5;False;;-45.5833;-22.7296
 3509809;Campos Novos Paulista;SP;SE;486.8;False;;-49.9987;-22.602
-3509908;Cananéia;SP;SE;-1248.7;False;;-47.9341;-25.0144
+3509908;Cananéia;SP;SE;1248.7;False;;-47.9341;-25.0144
 3509957;Canas;SP;SE;52.6;False;;-45.0521;-22.7003
 3510005;Cândido Mota;SP;SE;600.1;False;;-50.3873;-22.7471
 3510104;Cândido Rodrigues;SP;SE;70.6;False;;-48.6327;-21.3275
@@ -3386,7 +3386,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3510203;Capão Bonito;SP;SE;1646.8;False;;-48.3482;-24.0113
 3510302;Capela do Alto;SP;SE;170.6;False;;-47.7388;-23.4685
 3510401;Capivari;SP;SE;324.3;False;;-47.5071;-22.9951
-3510500;Caraguatatuba;SP;SE;-483.9;False;;-45.4125;-23.6125
+3510500;Caraguatatuba;SP;SE;483.9;False;;-45.4125;-23.6125
 3510609;Carapicuíba;SP;SE;34.3;False;;-46.8407;-23.5235
 3510708;Cardoso;SP;SE;642.0;False;;-49.9183;-20.08
 3510807;Casa Branca;SP;SE;867.6;False;;-47.0852;-21.7708
@@ -3498,7 +3498,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3520103;Igarapava;SP;SE;470.0;False;;-47.7466;-20.0407
 3520202;Igaratá;SP;SE;294.4;False;;-46.157;-23.2037
 3520301;Iguape;SP;SE;1984.9;False;;-47.5537;-24.699
-3520400;Ilhabela;SP;SE;-349.6;False;;-45.3552;-23.7785
+3520400;Ilhabela;SP;SE;349.6;False;;-45.3552;-23.7785
 3520426;Ilha Comprida;SP;SE;190.1;False;;-47.5383;-24.7307
 3520442;Ilha Solteira;SP;SE;659.6;False;;-51.3426;-20.4326
 3520509;Indaiatuba;SP;SE;312.0;False;;-47.2101;-23.0816
@@ -3689,7 +3689,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3537305;Penápolis;SP;SE;713.5;False;;-50.0769;-21.4148
 3537404;Pereira Barreto;SP;SE;983.3;False;;-51.1123;-20.6368
 3537503;Pereiras;SP;SE;224.0;False;;-47.972;-23.0804
-3537602;Peruíbe;SP;SE;-326.6;False;;-47.0012;-24.312
+3537602;Peruíbe;SP;SE;326.6;False;;-47.0012;-24.312
 3537701;Piacatu;SP;SE;234.7;False;;-50.6003;-21.5921
 3537800;Piedade;SP;SE;750.3;False;;-47.4256;-23.7139
 3537909;Pilar do Sul;SP;SE;684.2;False;;-47.7222;-23.8077
@@ -3832,7 +3832,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3550407;São Pedro;SP;SE;616.9;False;;-47.9096;-22.5483
 3550506;São Pedro do Turvo;SP;SE;735.4;False;;-49.7428;-22.7453
 3550605;São Roque;SP;SE;307.3;False;;-47.1357;-23.5226
-3550704;São Sebastião;SP;SE;-403.0;False;;-45.4143;-23.7951
+3550704;São Sebastião;SP;SE;403.0;False;;-45.4143;-23.7951
 3550803;São Sebastião da Grama;SP;SE;254.3;False;;-46.8208;-21.7041
 3550902;São Simão;SP;SE;620.5;False;;-47.5518;-21.4732
 3551009;São Vicente;SP;SE;148.8;False;;-46.3883;-23.9574
@@ -3887,7 +3887,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 3555208;Turiúba;SP;SE;154.3;False;;-50.1135;-20.9428
 3555307;Turmalina;SP;SE;148.5;False;;-50.4792;-20.0486
 3555356;Ubarana;SP;SE;211.0;False;;-49.7198;-21.165
-3555406;Ubatuba;SP;SE;-712.2;False;;-45.0834;-23.4332
+3555406;Ubatuba;SP;SE;712.2;False;;-45.0834;-23.4332
 3555505;Ubirajara;SP;SE;282.8;False;;-49.6613;-22.5272
 3555604;Uchoa;SP;SE;253.8;False;;-49.1713;-20.9511
 3555703;União Paulista;SP;SE;79.9;False;;-49.9025;-20.8862
@@ -5466,7 +5466,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 5213004;Maurilândia;GO;CO;396.6;False;;-50.3388;-17.9719
 5213053;Mimoso de Goiás;GO;CO;1394.9;False;;-48.1611;-15.0515
 5213087;Minaçu;GO;CO;2878.4;False;;-48.2206;-13.5304
-5213103;Mineiros;GO;CO;-9880.7;False;;-52.5537;-17.5654
+5213103;Mineiros;GO;CO;9880.7;False;;-52.5537;-17.5654
 5213400;Moiporá;GO;CO;462.7;False;;-50.739;-16.5434
 5213509;Monte Alegre de Goiás;GO;CO;3137.7;False;;-46.8928;-13.2552
 5213707;Montes Claros de Goiás;GO;CO;2915.9;False;;-51.3979;-16.0059
@@ -5550,7 +5550,7 @@ Codigo_Municipio;Nome_Municipio;Sigla_Estado;Sigla_Regiao;Area_Municipio;Capital
 5220504;Serranópolis;GO;CO;5559.9;False;;-51.9586;-18.3067
 5220603;Silvânia;GO;CO;2358.7;False;;-48.6083;-16.66
 5220686;Simolândia;GO;CO;349.6;False;;-46.4847;-14.4644
-5220702;Sítio d'Abadia;GO;CO;-1312.2;False;;-46.2506;-14.7992
+5220702;Sítio d'Abadia;GO;CO;1312.2;False;;-46.2506;-14.7992
 5221007;Taquaral de Goiás;GO;CO;203.0;False;;-49.6039;-16.0521
 5221080;Teresina de Goiás;GO;CO;780.0;False;;-47.2659;-13.7801
 5221197;Terezópolis de Goiás;GO;CO;108.0;False;;-49.0797;-16.3945

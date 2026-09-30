@@ -52,20 +52,13 @@ const parseCsv = (text) => {
 
 const mapshaper = (args) => execFileSync(MAPSHAPER, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
-// Área geodésica aproximada (km²) de um anel em lon/lat — fórmula esférica (a mesma do Turf)
-const RADIUS = 6378137;
-const rad = (d) => d * Math.PI / 180;
-const ringArea = (coords) => {
-  let area = 0;
-  for (let i = 0; i < coords.length - 1; i++) {
-    const [x1, y1] = coords[i], [x2, y2] = coords[i + 1];
-    area += rad(x2 - x1) * (2 + Math.sin(rad(y1)) + Math.sin(rad(y2)));
-  }
-  return Math.abs(area * RADIUS * RADIUS / 2);
-};
-const geometryAreaKm2 = (g) => {
-  const polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
-  return polys.reduce((sum, rings) => sum + ringArea(rings[0]) - rings.slice(1).reduce((s, r) => s + ringArea(r), 0), 0) / 1e6;
+// Área (km²) de cada município calculada pelo mapshaper (área esférica, com buracos e partes
+// identificados pela geometria — os anéis da fonte nem sempre vêm na ordem padrão do GeoJSON)
+const areasKm2 = (srcFile) => {
+  const out = path.join(TMP, `area-${path.basename(srcFile)}`);
+  // this.area tem sinal conforme o sentido do anel; o valor absoluto é a área
+  mapshaper(['-i', srcFile, '-each', 'AREA_KM2 = Math.abs(this.area) / 1e6', '-o', out, 'format=json']);
+  return Object.fromEntries(JSON.parse(fs.readFileSync(out, 'utf8')).map(r => [String(r.CD_MUN), r.AREA_KM2]));
 };
 
 async function main() {
@@ -85,12 +78,11 @@ async function main() {
     const raw = JSON.parse(await fetchText(GEO_URL(cod)));
     // Propriedades padronizadas: CD_MUN (7 dígitos), NM_MUN, SIGLA_UF
     raw.features.forEach(f => {
-      const code = String(f.properties.id);
-      areaByCode[code] = geometryAreaKm2(f.geometry);
-      f.properties = { CD_MUN: code, NM_MUN: f.properties.name, SIGLA_UF: uf.uf };
+      f.properties = { CD_MUN: String(f.properties.id), NM_MUN: f.properties.name, SIGLA_UF: uf.uf };
     });
     const src = path.join(TMP, `src-${cod}.json`);
     fs.writeFileSync(src, JSON.stringify(raw));
+    Object.assign(areaByCode, areasKm2(src));
 
     const dest = path.join(OUT, `municipios-${cod}.json`);
     mapshaper(['-i', src, 'name=municipios', '-simplify', SIMPLIFY, 'keep-shapes', 'planar',

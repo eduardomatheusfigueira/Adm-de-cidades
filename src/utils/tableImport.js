@@ -17,7 +17,7 @@ export async function readTableFile(file) {
     throw new Error('Planilhas do Excel/LibreOffice precisam ser salvas como CSV antes (Arquivo → Salvar como → CSV).');
   }
   const { text, encoding } = decodeText(await file.arrayBuffer());
-  const parsed = Papa.parse(text.replace(/^﻿/, ''), {
+  const parsed = Papa.parse(text.replace(/^\uFEFF/, ''), {
     header: true,
     skipEmptyLines: 'greedy',
     delimitersToGuess: [';', ',', '\t', '|'],

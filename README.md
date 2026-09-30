@@ -59,6 +59,25 @@ ou em **Dados → Juntar minha tabela (CSV)** sem baixar arquivos de geometria.
 * Limitação conhecida: sete municípios criados depois de 2010 (ex.: Pescaria Brava/SC, Boa Esperança do Norte/MT)
   não têm polígono nessa malha; aparecem como ponto.
 
+## Modelos para a turma (link `?modelo=`)
+
+1. Monte o mapa (dados, cores, páginas do Estúdio) e use **Dados → Perfil → 🎓 Salvar como modelo para a turma**
+   (pede título e instruções para os alunos).
+2. Coloque o arquivo `.json` em `public/modelos/` e faça o deploy. Envie aos alunos o link
+   `https://SEU-SITE/?modelo=nome-do-arquivo` (sem `.json`).
+3. O aluno vê o título e as instruções, toca em **Abrir modelo** e continua o trabalho, que passa a ser
+   salvo automaticamente no aparelho dele.
+
+Também funciona com um `.json` hospedado em outro endereço público: `?modelo=https://.../arquivo.json`.
+Perfis que usam a malha embutida guardam só a lista de estados (arquivos pequenos).
+
+## Desenvolvimento
+
+* `npm run dev` — servidor local
+* `npm test` — testes (Vitest)
+* `npm run lint` — ESLint (erros reais: variáveis não definidas, hooks)
+* `npm run build` — build de produção em `dist/`
+
 ## Tecnologias e Dependências Técnicas
 
 As principais tecnologias declaradas no `package.json` são:

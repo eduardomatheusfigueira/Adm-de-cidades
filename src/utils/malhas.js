@@ -27,7 +27,8 @@ export async function loadMunicipiosGeometry(codigosUf) {
     const topo = await fetchJson(`${BASE}malhas/${u.arquivo}`);
     return feature(topo, topo.objects[Object.keys(topo.objects)[0]]).features;
   }));
-  return parts.flat();
+  // __base: geometria da malha embutida — perfis salvos guardam só a lista de UFs, não os polígonos
+  return parts.flat().map(f => ({ ...f, properties: { ...f.properties, __base: true } }));
 }
 
 // Contornos dos estados (para mapa de localização, contexto etc.)

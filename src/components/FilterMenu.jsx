@@ -5,7 +5,7 @@ import { AnnotationContext } from '../contexts/AnnotationContext';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { generateExportHtml } from '../utils/exportMap';
-import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing, toNumericIfPossible } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, makeVizValueGetter, normalizedLabel } from '../utils/colorUtils';
 import { getGeoJSONSourceData, resolveBasemapStyle } from '../utils/basemaps';
 import { useProjectState } from '../hooks/useProjectState';
 import DataWizard from './DataWizard';
@@ -92,10 +92,10 @@ const FilterMenu = ({ onImportGeometry }) => {
   // ============================
   // SAVE PROFILE (all state)
   // ============================
-  const handleSaveProfile = async () => {
-    const profileData = buildProfile();
+  const handleSaveProfile = async (extra = null, fileName = 'perfil_completo.json') => {
+    const profileData = { ...buildProfile(), ...(extra || {}) };
     const json = JSON.stringify(profileData);
-    const defaultName = 'perfil_completo.json';
+    const defaultName = fileName;
 
     if (window.showSaveFilePicker) {
       try {
@@ -123,6 +123,22 @@ const FilterMenu = ({ onImportGeometry }) => {
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 3000);
     setIsOpen(false);
+  };
+
+  // Modelo para a turma: perfil com título e instruções, aberto pelos alunos via ?modelo=
+  const handleSaveTemplate = async () => {
+    const titulo = window.prompt('Título do modelo (aparece para os alunos):', 'Mapa da atividade');
+    if (titulo === null) return;
+    const instrucoes = window.prompt('Instruções para os alunos (opcional):', 'Complete o mapa: escreva o título, sua fonte e seu nome, e exporte em PDF.') || '';
+    const nome = (titulo || 'modelo').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'modelo';
+    await handleSaveProfile({ modelo: { titulo, instrucoes, criadoEm: new Date().toISOString() } }, `${nome}.json`);
+    window.alert(
+      `Modelo salvo como "${nome}.json".\n\nPara a turma abrir:\n` +
+      `1) Coloque o arquivo na pasta public/modelos/ do repositório (o deploy publica automaticamente) e envie o link:\n` +
+      `${window.location.origin}/?modelo=${nome}\n\n` +
+      `2) Ou hospede o arquivo em um endereço público (que permita acesso de outros sites) e use:\n` +
+      `${window.location.origin}/?modelo=https://endereco/do/arquivo.json`
+    );
   };
 
   // ============================
@@ -171,6 +187,7 @@ const FilterMenu = ({ onImportGeometry }) => {
     if (!attribute) return null;
 
     let values = [];
+    let missing = 0;
     if (visualizationConfig?.type === 'indicator') {
       const { indicator, year, valueType } = visualizationConfig;
       values = (indicadoresData || [])
@@ -178,19 +195,16 @@ const FilterMenu = ({ onImportGeometry }) => {
         .map(row => (valueType === 'position' ? row.Indice_Posicional : row.Valor))
         .filter(v => !isNoDataMarker(v));
     } else {
-      values = (filteredCsvData || []).map(row => row[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
+      // mesmo valor exibido no mapa (inclusive normalizado), com o formato da coluna inteira
+      const getter = makeVizValueGetter(csvData, attribute, visualizationConfig?.symbology);
+      if (getter.normalized) title = `Atributo: ${normalizedLabel(attribute, visualizationConfig.symbology)}`;
+      const rows = filteredCsvData || [];
+      values = rows.map(getter.get).filter(v => v !== null && v !== undefined);
+      missing = rows.length - values.length;
     }
-
-    if (visualizationConfig?.type !== 'indicator') {
-      values = toNumericIfPossible(values, (csvData || []).map(row => row[attribute]).filter(v => !isNoDataMarker(v)));
-    }
-    const scaleExpression = getColorScale(attribute, values);
-    const expressionType = scaleExpression?.[0];
+    const scaleExpression = getColorScale(attribute, values, visualizationConfig?.symbology);
     const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
-    let items = [];
-
-    const missing = visualizationConfig?.type === 'indicator' ? 0 : countMissing(filteredCsvData, attribute, expressionType === 'step');
-    items = buildLegendItems(scaleExpression, values, missing).items;
+    let items = buildLegendItems(scaleExpression, values, missing).items;
 
     if (customLegend && customLegend.items && customLegend.items.length > 0) {
       title = customLegend.title || title;
@@ -328,7 +342,8 @@ const FilterMenu = ({ onImportGeometry }) => {
         <div className="filter-section">
           <h3>Perfil</h3>
           <div className="filter-actions import-export-buttons">
-            <button className="control-button save-profile-button" onClick={handleSaveProfile}>💾 Salvar Perfil</button>
+            <button className="control-button save-profile-button" onClick={() => handleSaveProfile()}>💾 Salvar Perfil</button>
+            <button className="control-button save-profile-button" onClick={handleSaveTemplate}>🎓 Salvar como modelo para a turma</button>
             <button className="control-button load-profile-button" onClick={handleLoadProfile}>📂 Carregar Perfil</button>
           </div>
         </div>

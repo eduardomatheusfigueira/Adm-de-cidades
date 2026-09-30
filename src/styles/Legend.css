@@ -9,7 +9,9 @@
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   overflow-y: auto;
-  max-height: calc(100vh - 80px);
+  /* legendas longas rolam em vez de passar do fim da tela */
+  max-height: 55vh;
+  max-height: 55dvh;
   transition: box-shadow var(--transition-fast);
 }
 

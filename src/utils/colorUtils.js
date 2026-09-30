@@ -1,4 +1,8 @@
-import * as d3 from 'd3';
+import {
+  ascending, color as d3color, scaleOrdinal,
+} from 'd3';
+import * as ss from 'simple-statistics';
+import { numericColors, categoricalColors } from './palettes';
 
 export const getLegendKey = (visualizationConfig, colorAttribute) => {
   if (visualizationConfig?.type === 'indicator') {
@@ -91,47 +95,55 @@ export const withNoDataColor = (attribute, expression) => {
     expression];
 };
 
-// Paleta sequencial com exatamente n cores (1 a 9).
-const sequentialColors = (n, scheme) => {
-  if (Array.isArray(scheme) && scheme.length === n) return scheme;
-  if (n >= 3) return d3.schemeReds[Math.min(n, 9)];
-  const base = d3.schemeReds[3];
-  return n === 2 ? [base[0], base[2]] : [base[1]];
-};
-
-// Default schemes
-const defaultNumericScheme = d3.schemeReds[5]; // Default to 5 categories for Reds
-const defaultCategoricalScheme = d3.schemeCategory10;
-
 // Número usado como limiar "inalcançável" quando só há um valor distinto
 // (a expressão 'step' exige pelo menos um par limiar/cor).
 export const STEP_SENTINEL = 1e300;
 
-export const getColorScale = (
-  attribute,
-  values,
-  numericCategories = 5, // Default number of numeric categories
-  numericScheme = defaultNumericScheme, // Default numeric color scheme
-  categoricalScheme = defaultCategoricalScheme // Default categorical color scheme
-) => {
+// Limiares candidatos (k-1 valores) para cada método de classificação
+export function classBreaks(sortedValues, method = 'quantile', k = 5, manualBreaks = []) {
+  const n = sortedValues.length;
+  const min = sortedValues[0], max = sortedValues[n - 1];
+  if (method === 'equal') {
+    return Array.from({ length: k - 1 }, (_, i) => min + (max - min) * (i + 1) / k);
+  }
+  if (method === 'jenks') {
+    const distinct = new Set(sortedValues).size;
+    const kk = Math.min(k, distinct);
+    if (kk < 2) return [];
+    // ckmeans: agrupamento ótimo em 1 dimensão (quebras naturais de Jenks)
+    return ss.ckmeans(sortedValues, kk).slice(1).map(cluster => cluster[0]);
+  }
+  if (method === 'manual') {
+    return (manualBreaks || []).map(v => (typeof v === 'number' ? v : parseNumberBR(`${v}`))).filter(Number.isFinite).sort((a, b) => a - b);
+  }
+  // quantis
+  return Array.from({ length: k - 1 }, (_, i) => sortedValues[Math.floor(n / k * (i + 1))]);
+}
+
+// Opções de simbologia aceitas por getColorScale (ver DEFAULT_SYMBOLOGY em palettes.js).
+// Compatibilidade: o 3º argumento também pode ser só o número de classes.
+export const getColorScale = (attribute, values, options = {}) => {
+  const opts = typeof options === 'number' ? { classes: options } : (options || {});
+  const method = opts.method || 'quantile';
+  const k = Math.max(2, Math.min(9, Number(opts.classes) || 5));
+
   const filled = (values || []).filter(v => !isNoDataMarker(v));
   if (filled.length === 0) {
     return ['case', ['==', ['get', attribute], null], NO_DATA_COLOR, NO_DATA_COLOR];
   }
 
   if (attribute !== 'Nome_Municipio' && isNumericValues(filled)) {
-    const numericValues = filled.map(makeNumberParser(filled)).sort(d3.ascending);
-    const min = numericValues[0];
+    const numericValues = filled.map(makeNumberParser(filled)).sort(ascending);
+    const min = numericValues[0], max = numericValues[numericValues.length - 1];
 
-    // Limiares por quantis, sem repetição e sempre acima do mínimo: com poucos municípios
-    // ou muitos empates o número de classes diminui, em vez de gerar uma expressão inválida.
+    // Limiares sem repetição e dentro do intervalo dos dados: com poucos municípios ou muitos
+    // empates o número de classes diminui, em vez de gerar uma expressão inválida.
     const thresholds = [];
-    for (let i = 1; i < numericCategories; i++) {
-      const t = numericValues[Math.floor(numericValues.length / numericCategories * i)];
-      if (t > min && (thresholds.length === 0 || t > thresholds[thresholds.length - 1])) thresholds.push(t);
-    }
+    classBreaks(numericValues, method, k, opts.breaks).forEach(t => {
+      if (t > min && t <= max && (thresholds.length === 0 || t > thresholds[thresholds.length - 1])) thresholds.push(t);
+    });
 
-    const colorRange = sequentialColors(thresholds.length + 1, numericScheme);
+    const colorRange = numericColors(opts.palette || 'Reds', thresholds.length + 1, !!opts.reverse);
     const input = ['to-number', ['get', attribute]];
     if (thresholds.length === 0) {
       // Um único valor distinto: uma classe só.
@@ -145,24 +157,10 @@ export const getColorScale = (
     ];
   } else {
     // Categorical Data Handling
-    const uniqueValues = [...new Set(filled.map(v => `${v}`))].sort(); // Sort for consistent color assignment
-    let colorRange;
+    const uniqueValues = [...new Set(filled.map(v => `${v}`))].sort(); // ordem estável das cores
+    const colorRange = categoricalColors(opts.categoricalPalette || 'Category10', uniqueValues.length);
+    const colorScale = scaleOrdinal().domain(uniqueValues).range(colorRange);
 
-    // Use a more diverse scheme if the number of categories exceeds the default scheme's length
-    if (uniqueValues.length > categoricalScheme.length) {
-      console.log(`Generating ${uniqueValues.length} distinct colors using interpolateTurbo.`);
-      // Generate distinct colors using interpolateTurbo, avoiding the very ends (0 and 1)
-      colorRange = d3.quantize(t => d3.interpolateTurbo(t * 0.8 + 0.1), uniqueValues.length);
-    } else {
-      // Use the provided categorical scheme if it has enough colors
-      colorRange = categoricalScheme;
-    }
-
-    const colorScale = d3.scaleOrdinal()
-      .domain(uniqueValues) // Use sorted domain
-      .range(colorRange); // Use the determined color range
-
-    // Build the Mapbox match expression
     const matchExpression = ['match', ['to-string', ['get', attribute]]];
     uniqueValues.forEach(value => {
       matchExpression.push(value, colorScale(value));
@@ -172,9 +170,9 @@ export const getColorScale = (
   }
 };
 
-const toHex = (color) => {
-  const c = d3.color(color);
-  return c ? c.formatHex() : color;
+const toHex = (value) => {
+  const c = d3color(value);
+  return c ? c.formatHex() : value;
 };
 
 // Itens da legenda correspondentes exatamente à expressão gerada por getColorScale.
@@ -189,7 +187,8 @@ export const buildLegendItems = (scaleExpression, values, missingCount = 0) => {
   } else if (type === 'step') {
     const numericValues = (values || []).map(makeNumberParser(values)).filter((v) => !Number.isNaN(v)).sort((a, b) => a - b);
     if (!numericValues.length) return { type: 'dynamic', items: [] };
-    const fmt = (v) => v.toLocaleString('pt-BR');
+    // Casas decimais conforme a grandeza (valores de normalização/intervalos iguais têm muitas)
+    const fmt = (v) => v.toLocaleString('pt-BR', { maximumFractionDigits: Math.abs(v) >= 100 ? 1 : Math.abs(v) >= 1 ? 2 : 3 });
     const minValue = numericValues[0];
     const maxValue = numericValues[numericValues.length - 1];
     const bounds = [minValue];
@@ -247,3 +246,54 @@ export const applyCustomLegendColors = (expression, customLegend) => {
   }
   return out;
 };
+
+// Valor exibido no mapa para cada linha: o próprio atributo ou, com normalização,
+// atributo ÷ coluna de referência × fator (ex.: casos ÷ população × 100.000).
+// O formato numérico de cada coluna é decidido pela coluna inteira (`allRows`).
+export function makeVizValueGetter(allRows, attribute, symbology) {
+  const column = (name) => (allRows || []).map(r => r?.[name]).filter(v => !isNoDataMarker(v));
+  const col = column(attribute);
+  const numeric = attribute !== 'Nome_Municipio' && isNumericValues(col);
+  const parseNum = makeNumberParser(col);
+  const toNum = (parse, v) => {
+    if (typeof v === 'number') return Number.isFinite(v) ? v : NaN;
+    return isNoDataMarker(v) ? NaN : parse(v);
+  };
+  const by = symbology?.normalizeBy;
+  if (!by || !numeric) {
+    return {
+      numeric,
+      normalized: false,
+      get: (row) => {
+        const v = row?.[attribute];
+        if (isNoDataMarker(v)) return null;
+        if (!numeric) return `${v}`;
+        const n = toNum(parseNum, v);
+        return Number.isNaN(n) ? null : n;
+      },
+    };
+  }
+  const parseDen = makeNumberParser(column(by));
+  const factor = Number(symbology.factor) || 1;
+  return {
+    numeric: true,
+    normalized: true,
+    get: (row) => {
+      const n = toNum(parseNum, row?.[attribute]);
+      const d = toNum(parseDen, row?.[by]);
+      return Number.isFinite(n) && Number.isFinite(d) && d !== 0 ? (n / d) * factor : null;
+    },
+  };
+}
+
+// Título legível de uma variável normalizada: "casos por 100.000 População"
+export const normalizedLabel = (attribute, symbology) => {
+  if (!symbology?.normalizeBy) return attribute;
+  const f = Number(symbology.factor) || 1;
+  return `${attribute} ÷ ${symbology.normalizeBy}${f !== 1 ? ` × ${f.toLocaleString('pt-BR')}` : ''}`;
+};
+
+// Nomes típicos de contagens absolutas (mapa coroplético de totais engana: municípios
+// grandes/populosos sempre aparecem com as cores mais fortes)
+export const looksLikeAbsoluteCount = (attribute) =>
+  /popula|habitantes|^total|_total|quantidade|^qtd|^n[ºo°]?_|numero|número|casos|obitos|óbitos|nascidos|matr[ií]culas|eleitores|domic[ií]lios|empregos|estabelecimentos/i.test(attribute || '');

@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { UIContext } from '../contexts/UIContext';
 import { useProjectState } from '../hooks/useProjectState';
 import { BIG_KEYS, loadAutosave, storeClear, storeSetMany } from '../utils/projectStore';
 
@@ -15,10 +16,23 @@ const hasContent = (p) => !!p && (
   !!p.visualizationConfig
 );
 
+// Busca o modelo: nome simples → public/modelos/<nome>.json; ou uma URL completa de um .json público
+async function fetchTemplate(modelo) {
+  const isUrl = /^https?:\/\//i.test(modelo);
+  if (!isUrl && !/^[\w-]{1,80}$/.test(modelo)) throw new Error('Nome de modelo inválido');
+  const url = isUrl ? modelo : `${import.meta.env.BASE_URL || '/'}modelos/${modelo}.json`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Arquivo não encontrado (HTTP ${res.status})`);
+  const profile = await res.json();
+  if (!profile || typeof profile !== 'object' || !('version' in profile)) throw new Error('O arquivo não é um perfil do SisInfo');
+  return profile;
+}
+
 const formatDate = (ts) => new Date(ts).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
 export default function AutoSave() {
   const { buildProfile, applyProfile } = useProjectState();
+  const { setActiveEnvironment } = useContext(UIContext);
   // 'checking' → procurando trabalho salvo; 'ask' → perguntando; 'on' → gravando; 'off' → sem IndexedDB
   const [status, setStatus] = useState('checking');
   const [pending, setPending] = useState(null);
@@ -29,18 +43,48 @@ export default function AutoSave() {
   const buildRef = useRef(buildProfile);
   buildRef.current = buildProfile;
 
-  // 1. Procurar um trabalho salvo ao abrir
+  // Modelo do professor aberto por link (?modelo=nome ou ?modelo=https://...)
+  const [template, setTemplate] = useState(null); // { name, profile, error }
+  const [hasSaved, setHasSaved] = useState(false);
+
+  const checkAutosave = () => loadAutosave()
+    .then(saved => {
+      if (saved && hasContent(saved.profile)) { setPending(saved); setStatus('ask'); }
+      else setStatus('on');
+    })
+    .catch(() => setStatus('off'));
+
+  // 1. Ao abrir: modelo do link (se houver) e depois o trabalho salvo neste aparelho
   useEffect(() => {
-    let cancelled = false;
-    loadAutosave()
-      .then(saved => {
-        if (cancelled) return;
-        if (saved && hasContent(saved.profile)) { setPending(saved); setStatus('ask'); }
-        else setStatus('on');
-      })
-      .catch(() => { if (!cancelled) setStatus('off'); });
-    return () => { cancelled = true; };
-  }, []);
+    const modelo = new URLSearchParams(window.location.search).get('modelo');
+    if (!modelo) { checkAutosave(); return; }
+    loadAutosave().then(saved => setHasSaved(!!saved && hasContent(saved.profile))).catch(() => {});
+    fetchTemplate(modelo)
+      .then(profile => { setTemplate({ name: modelo, profile }); setStatus('template'); })
+      .catch(e => { setTemplate({ name: modelo, error: e.message }); setStatus('template'); });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const clearModeloParam = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('modelo');
+    window.history.replaceState(null, '', url.pathname + (url.search || '') + url.hash);
+  };
+
+  const openTemplate = () => {
+    try { applyProfile(template.profile); } catch (e) { console.error('[AutoSave] Falha ao abrir o modelo:', e); }
+    BIG_KEYS.forEach(k => { writtenRefs.current[k] = undefined; });
+    setActiveEnvironment?.('map');
+    clearModeloParam();
+    setTemplate(null);
+    setStatus('on');
+  };
+
+  const skipTemplate = () => {
+    clearModeloParam();
+    setTemplate(null);
+    setStatus('checking');
+    checkAutosave();
+  };
 
   // 2. Gravar (com atraso de 1,5 s depois da última mudança)
   const profile = buildProfile();
@@ -96,6 +140,33 @@ export default function AutoSave() {
     setPending(null);
     setStatus('on');
   };
+
+  if (status === 'template' && template) {
+    const info = template.profile?.modelo || {};
+    return (
+      <div className="autosave-resume" role="dialog" aria-live="polite">
+        <div className="autosave-resume-text">
+          {template.error ? (
+            <>
+              <strong>Não foi possível abrir o modelo “{template.name}”.</strong>
+              <span>{template.error}. Confira o link com o professor.</span>
+            </>
+          ) : (
+            <>
+              <strong>🎓 Modelo do professor: {info.titulo || template.name}</strong>
+              {info.instrucoes && <span className="autosave-instructions">{info.instrucoes}</span>}
+              <span>O mapa, os dados e as páginas do Estúdio deste modelo serão abertos para você continuar.
+                {hasSaved ? ' O trabalho salvo neste aparelho será substituído.' : ''}</span>
+            </>
+          )}
+        </div>
+        <div className="autosave-resume-actions">
+          {!template.error && <button type="button" className="autosave-btn-primary" onClick={openTemplate}>Abrir modelo</button>}
+          <button type="button" className="autosave-btn" onClick={skipTemplate}>{template.error ? 'OK' : 'Agora não'}</button>
+        </div>
+      </div>
+    );
+  }
 
   if (status === 'ask' && pending) {
     const p = pending.profile;
