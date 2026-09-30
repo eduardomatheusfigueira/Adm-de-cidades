@@ -149,7 +149,7 @@ export function generateExportHtml({
   const initialBearing = mapBearing || 0;
   const nType = northArrowStyle?.type || 'noun';
   const nShowBg = northArrowStyle?.showBg ?? true;
-  const nColor = northArrowStyle?.color || '#1e293b';
+  const nColor = northArrowStyle?.color || '#00242D';
 
   const northSvgInner = nType === 'noun' ? `
     <g color="${nColor}">
@@ -170,8 +170,8 @@ export function generateExportHtml({
       <circle cx="100" cy="114" r="70" fill="none" stroke="currentColor" stroke-width="2.2"/>
       <circle cx="100" cy="114" r="63" fill="none" stroke="currentColor" stroke-width="1.2"/>
       <polygon points="100,46 91,114 100,106" fill="currentColor" stroke="currentColor" stroke-width="1"/>
-      <polygon points="100,46 109,114 100,106" fill="${nShowBg ? '#cbd5e1' : 'rgba(255,255,255,0.75)'}" stroke="currentColor" stroke-width="1"/>
-      <polygon points="100,182 91,114 100,122" fill="${nShowBg ? '#94a3b8' : 'rgba(255,255,255,0.4)'}" stroke="currentColor" stroke-width="1"/>
+      <polygon points="100,46 109,114 100,106" fill="${nShowBg ? '#CCC7BC' : 'rgba(255,255,255,0.75)'}" stroke="currentColor" stroke-width="1"/>
+      <polygon points="100,182 91,114 100,122" fill="${nShowBg ? '#A39E93' : 'rgba(255,255,255,0.4)'}" stroke="currentColor" stroke-width="1"/>
       <polygon points="100,182 109,114 100,122" fill="currentColor" opacity="0.4" stroke="currentColor" stroke-width="1"/>
       <circle cx="100" cy="114" r="4.5" fill="currentColor" stroke="#ffffff" stroke-width="1.2"/>
       <circle cx="100" cy="16" r="13" fill="currentColor"/>
@@ -190,7 +190,7 @@ export function generateExportHtml({
       <text x="100" y="16" text-anchor="middle" dominant-baseline="middle" fill="currentColor" font-size="18" font-weight="900" font-family="Inter,sans-serif">N</text>
       <polygon points="100,42 100,112 84,112" fill="currentColor"/>
       <polygon points="100,42 100,112 116,112" fill="${nShowBg ? '#ffffff' : 'rgba(255,255,255,0.85)'}" stroke="currentColor" stroke-width="1"/>
-      <polygon points="100,182 100,112 84,112" fill="${nShowBg ? '#94a3b8' : 'rgba(255,255,255,0.5)'}" stroke="currentColor" stroke-width="1"/>
+      <polygon points="100,182 100,112 84,112" fill="${nShowBg ? '#A39E93' : 'rgba(255,255,255,0.5)'}" stroke="currentColor" stroke-width="1"/>
       <polygon points="100,182 100,112 116,112" fill="currentColor"/>
       <polygon points="170,112 100,112 100,96" fill="currentColor"/>
       <polygon points="170,112 100,112 100,128" fill="${nShowBg ? '#ffffff' : 'rgba(255,255,255,0.85)'}" stroke="currentColor" stroke-width="1"/>
@@ -220,7 +220,7 @@ export function generateExportHtml({
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    border: 1px solid #e2e8f0;
+    border: 1px solid #E4DFD5;
     z-index: 5;
     overflow: visible;
   }
@@ -238,7 +238,7 @@ export function generateExportHtml({
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #E4DFD5;
     padding-bottom: 6px;
     margin-bottom: 8px;
     cursor: move;
@@ -247,7 +247,7 @@ export function generateExportHtml({
   .legend-title {
     font-weight: 700;
     font-size: 0.85rem;
-    color: #0f172a;
+    color: #00242D;
   }
   .legend-item {
     display: flex;
@@ -277,7 +277,7 @@ export function generateExportHtml({
     flex-shrink: 0;
   }
   .legend-desc {
-    color: #1e293b;
+    color: #00242D;
     line-height: 1.3;
   }
 
@@ -287,13 +287,13 @@ export function generateExportHtml({
     border: none;
     cursor: pointer;
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: #A39E93;
     line-height: 1;
     padding: 2px 4px;
     border-radius: 3px;
     transition: color 0.15s;
   }
-  .widget-close:hover { color: #ef4444; }
+  .widget-close:hover { color: #B3261E; }
 
   /* Title bar */
   .title-bar {
@@ -326,13 +326,13 @@ export function generateExportHtml({
   }
   .north-close {
     position: absolute; top: -4px; right: -4px;
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 50%;
+    background: #fff; border: 1px solid #E4DFD5; border-radius: 50%;
     width: 18px; height: 18px; display: flex; align-items: center;
     justify-content: center; cursor: pointer; font-size: 0.6rem;
-    color: #94a3b8; line-height: 1; opacity: 0; transition: opacity 0.15s;
+    color: #A39E93; line-height: 1; opacity: 0; transition: opacity 0.15s;
   }
   .north-arrow:hover .north-close { opacity: 1; }
-  .north-close:hover { color: #ef4444; }
+  .north-close:hover { color: #B3261E; }
 
   /* Scale Bar */
   .scale-bar {
@@ -348,13 +348,13 @@ export function generateExportHtml({
   .scale-close {
     position: absolute; top: 2px; right: 4px;
     background: none; border: none; cursor: pointer;
-    font-size: 0.6rem; color: #94a3b8; opacity: 0;
+    font-size: 0.6rem; color: #A39E93; opacity: 0;
     transition: opacity 0.15s;
   }
   .scale-bar:hover .scale-close { opacity: 1; }
-  .scale-close:hover { color: #ef4444; }
-  .scale-label { font-size: 0.7rem; font-weight: 600; color: #1e293b; }
-  .scale-line { height: 8px; border-left: 2px solid #1e293b; border-right: 2px solid #1e293b; border-bottom: 2px solid #1e293b; }
+  .scale-close:hover { color: #B3261E; }
+  .scale-label { font-size: 0.7rem; font-weight: 600; color: #00242D; }
+  .scale-line { height: 8px; border-left: 2px solid #00242D; border-right: 2px solid #00242D; border-bottom: 2px solid #00242D; }
 
   /* Toggle buttons */
   .toggle-btns {
@@ -370,7 +370,7 @@ export function generateExportHtml({
     background: #fff;
     width: 30px; height: 30px;
     border-radius: 4px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #E4DFD5;
     cursor: pointer;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     display: none; /* hidden by default, shown via JS */
@@ -405,7 +405,7 @@ ${hasAnnotations ? `<div class="widget legend-panel" id="annotLegend" style="bot
 </div>` : ''}
 
 <!-- North Arrow -->
-<div class="widget north-arrow" id="northArrow" style="top:80px;left:16px;background:${nShowBg ? '#ffffff' : 'transparent'};border:${nShowBg ? '1px solid #e2e8f0' : 'none'};box-shadow:${nShowBg ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'};">
+<div class="widget north-arrow" id="northArrow" style="top:80px;left:16px;background:${nShowBg ? '#ffffff' : 'transparent'};border:${nShowBg ? '1px solid #E4DFD5' : 'none'};box-shadow:${nShowBg ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'};">
   <span class="north-close" onclick="hideWidget('northArrow','btnNorth')">\u2715</span>
   <svg id="northSvg" viewBox="0 0 200 200" style="width:90%;height:90%;transition:transform 0.15s ease-out">
     ${northSvgInner}
@@ -544,10 +544,10 @@ map.on('load', function() {
   map.addLayer({ id: 'ann-line', type: 'line', source: 'annotations', filter: ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'Polygon']], paint: { 'line-color': ['get', 'borderColor'], 'line-width': 2.5 } });
   map.addLayer({ id: 'ann-point', type: 'circle', source: 'annotations', filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'annType'], 'point']], paint: { 'circle-radius': 14, 'circle-color': ['get', 'color'], 'circle-stroke-width': 2, 'circle-stroke-color': ['get', 'borderColor'] } });
   map.addLayer({ id: 'ann-text', type: 'symbol', source: 'annotations', filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'annType'], 'point'], ['has', 'numberStr']], layout: { 'text-field': ['get', 'numberStr'], 'text-size': 11, 'text-font': ['${FONT_BOLD}'], 'text-allow-overlap': true }, paint: { 'text-color': '#000' } });
-  map.addLayer({ id: 'ann-meas-arrows', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'meas-arrow'], layout: { 'text-field': '▶', 'text-size': 10, 'text-font': ['${FONT_BOLD}'], 'text-rotate': ['get', 'bearing'], 'text-rotation-alignment': 'map', 'text-allow-overlap': true, 'text-keep-upright': false }, paint: { 'text-color': '#2563eb', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
-  map.addLayer({ id: 'ann-seg-labels', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'segment-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['${FONT_BOLD}'], 'text-rotate': ['get', 'textAngle'], 'text-rotation-alignment': 'map', 'text-offset': [0, -0.75], 'text-allow-overlap': true, 'text-keep-upright': true }, paint: { 'text-color': '#1e293b', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
-  map.addLayer({ id: 'ann-total-label', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'total-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['${FONT_BOLD}'], 'text-variable-anchor': ['top-left', 'bottom-left', 'top-right', 'bottom-right', 'top', 'bottom'], 'text-radial-offset': 0.8, 'text-allow-overlap': true }, paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
-  map.addLayer({ id: 'ann-area-label', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'area-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['${FONT_BOLD}'], 'text-anchor': 'center', 'text-allow-overlap': true }, paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
+  map.addLayer({ id: 'ann-meas-arrows', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'meas-arrow'], layout: { 'text-field': '▶', 'text-size': 10, 'text-font': ['${FONT_BOLD}'], 'text-rotate': ['get', 'bearing'], 'text-rotation-alignment': 'map', 'text-allow-overlap': true, 'text-keep-upright': false }, paint: { 'text-color': '#015668', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
+  map.addLayer({ id: 'ann-seg-labels', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'segment-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['${FONT_BOLD}'], 'text-rotate': ['get', 'textAngle'], 'text-rotation-alignment': 'map', 'text-offset': [0, -0.75], 'text-allow-overlap': true, 'text-keep-upright': true }, paint: { 'text-color': '#00242D', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
+  map.addLayer({ id: 'ann-total-label', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'total-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['${FONT_BOLD}'], 'text-variable-anchor': ['top-left', 'bottom-left', 'top-right', 'bottom-right', 'top', 'bottom'], 'text-radial-offset': 0.8, 'text-allow-overlap': true }, paint: { 'text-color': '#00242D', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
+  map.addLayer({ id: 'ann-area-label', type: 'symbol', source: 'annotations', filter: ['==', ['get', 'annType'], 'area-label'], layout: { 'symbol-placement': 'point', 'text-field': ['get', 'measurementText'], 'text-size': 12, 'text-font': ['${FONT_BOLD}'], 'text-anchor': 'center', 'text-allow-overlap': true }, paint: { 'text-color': '#00242D', 'text-halo-color': '#ffffff', 'text-halo-width': 3.5 } });
   ` : ''}
 });
 ${sc}

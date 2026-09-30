@@ -196,7 +196,7 @@
 
 .viz-item-delete.confirming {
   opacity: 1;
-  color: #ef4444;
+  color: #B3261E;
   font-weight: 700;
   font-size: 0.85rem;
   animation: confirmPulse 0.6s ease-in-out infinite alternate;
@@ -247,7 +247,7 @@
   padding: 8px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  border-left: 3px solid #3B82F6;
+  border-left: 3px solid #015668;
   margin-bottom: 6px;
   transition: all var(--transition-fast);
   animation: itemFadeIn 0.25s ease-out;
@@ -410,7 +410,7 @@
 .annotation-width-slider {
   width: 50px;
   height: 4px;
-  accent-color: var(--secondary-color, #3B82F6);
+  accent-color: var(--secondary-color, #015668);
   cursor: pointer;
 }
 

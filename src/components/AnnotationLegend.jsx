@@ -125,7 +125,7 @@ const AnnotationLegend = () => {
             )}
             {activeAnnotations.filter(a => !a.isMeasurement).length > 0 && (
               <div className="annotation-section-block">
-                <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>📍 Anotações do Mapa</div>
+                <div style={{ fontSize: '0.65rem', color: '#A39E93', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>📍 Anotações do Mapa</div>
                 {activeAnnotations.filter(a => !a.isMeasurement).map(ann => (
                   <div key={ann.id} className="annotation-view-item">
                     {ann.type === 'point' && (

@@ -30,16 +30,16 @@ export default class ErrorBoundary extends React.Component {
           <p style={{ margin: '0 0 12px', lineHeight: 1.5 }}>
             Uma parte do aplicativo encontrou um erro. Tente continuar; se não funcionar, recarregue a página.
           </p>
-          <p style={{ margin: '0 0 20px', lineHeight: 1.5, fontSize: 14, color: '#475569' }}>
+          <p style={{ margin: '0 0 20px', lineHeight: 1.5, fontSize: 14, color: '#4B4740' }}>
             Dica: use <strong>Salvar Perfil</strong> no menu de dados com frequência para não perder o trabalho.
           </p>
-          <details style={{ marginBottom: 20, fontSize: 12, color: '#64748b' }}>
+          <details style={{ marginBottom: 20, fontSize: 12, color: '#67635A' }}>
             <summary>Detalhes técnicos</summary>
             <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{String(error?.message || error)}</pre>
           </details>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <button type="button" onClick={() => this.setState({ error: null })}
-              style={{ minHeight: 44, padding: '0 16px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', fontSize: 15 }}>
+              style={{ minHeight: 44, padding: '0 16px', borderRadius: 8, border: '1px solid #CCC7BC', background: '#fff', cursor: 'pointer', fontSize: 15 }}>
               Tentar continuar
             </button>
             <button type="button" onClick={() => window.location.reload()}

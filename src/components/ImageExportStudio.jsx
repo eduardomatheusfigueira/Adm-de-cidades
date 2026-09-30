@@ -8,11 +8,12 @@ import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { AnnotationContext } from '../contexts/AnnotationContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale, getLegendKey, isNoDataMarker, isNumericValues, makeNumberParser, withNoDataColor, buildLegendItems, applyCustomLegendColors, makeVizValueGetter, normalizedLabel } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, isNumericValues, makeNumberParser, withNoDataColor, noDataHatchFilter, buildLegendItems, applyCustomLegendColors, makeVizValueGetter, normalizedLabel } from '../utils/colorUtils';
 import { getAnnotationMeasurement } from '../utils/geoUtils';
 import { pickScaleDistance, metersPerPixel } from '../utils/scale';
 import { loadUfsGeometry } from '../utils/malhas';
 import { symbolLegendCircles, SYMBOL_COLOR, NEUTRAL_FILL } from '../utils/proportional';
+import { HATCH_LAYER, ensureHatchPattern, drawHatch } from '../utils/hatch';
 
 // Safari < 16 não tem CanvasRenderingContext2D.roundRect; sem isso a exportação lança erro.
 if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
@@ -53,7 +54,7 @@ const DESIGN_MAX = 1920;
 const designScale = (w, h) => Math.max(1, Math.max(w, h) / DESIGN_MAX);
 
 // Modelos de layout: papel, moldura, posição dos elementos (frações da prancha) e estilo do título
-const DARK_TITLE = { showBg: false, titleColor: '#111827', subtitleColor: '#374151', align: 'left' };
+const DARK_TITLE = { showBg: false, fontFamily: 'Archivo, sans-serif', titleColor: '#00242D', subtitleColor: '#4B4740', subtitleStyle: '', align: 'left' };
 const LAYOUT_TEMPLATES = [
   {
     id: 'academico', label: 'Acadêmico', hint: 'A4 paisagem, margem e moldura',
@@ -64,7 +65,7 @@ const LAYOUT_TEMPLATES = [
   {
     id: 'apresentacao', label: 'Apresentação', hint: 'HD 16:9, tela cheia',
     paper: null, preset: 0, orientation: 'landscape', frame: { margin: 0, line: false },
-    title: { showBg: true, bgColor: '#000000', bgOpacity: 0.6, titleColor: '#ffffff', subtitleColor: '#cccccc', titleSize: 32, subtitleSize: 18, align: 'left' },
+    title: { showBg: true, bgColor: '#00242D', bgOpacity: 0.85, fontFamily: 'Archivo, sans-serif', titleColor: '#ffffff', subtitleColor: '#D6ECF3', subtitleStyle: '', titleSize: 32, subtitleSize: 18, align: 'left' },
     pos: { title: { x: 0.02, y: 0.02 }, north: { x: 0.02, y: 0.14 }, legend: { x: 0.82, y: 0.05 }, annLegend: { x: 0.8, y: 0.4 }, scale: { x: 0.02, y: 0.82 }, inset: { x: 0.86, y: 0.55 } },
   },
   {
@@ -82,7 +83,7 @@ const MOBILE_MAX_PIXELS = 16.7e6;
 function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
   const style = cfg.type || 'noun';
   const showBg = cfg.showBg ?? true;
-  const color = cfg.color || '#1e293b';
+  const color = cfg.color || '#00242D';
   const rot = (-bearing * Math.PI) / 180;
   const cx = x + size / 2;
   const cy = y + size / 2;
@@ -193,10 +194,10 @@ function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
     ctx.fillStyle = color; ctx.fill();
     // North Right (light)
     ctx.beginPath(); ctx.moveTo(0, -54 * scale); ctx.lineTo(9 * scale, 14 * scale); ctx.lineTo(0, 6 * scale); ctx.closePath();
-    ctx.fillStyle = showBg ? '#cbd5e1' : 'rgba(255,255,255,0.75)'; ctx.fill(); ctx.stroke();
+    ctx.fillStyle = showBg ? '#CCC7BC' : 'rgba(255,255,255,0.75)'; ctx.fill(); ctx.stroke();
     // South Left (light)
     ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(-9 * scale, 14 * scale); ctx.lineTo(0, 22 * scale); ctx.closePath();
-    ctx.fillStyle = showBg ? '#94a3b8' : 'rgba(255,255,255,0.4)'; ctx.fill(); ctx.stroke();
+    ctx.fillStyle = showBg ? '#A39E93' : 'rgba(255,255,255,0.4)'; ctx.fill(); ctx.stroke();
     // South Right (dark)
     ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(9 * scale, 14 * scale); ctx.lineTo(0, 22 * scale); ctx.closePath();
     ctx.fillStyle = color; ctx.globalAlpha = 0.4; ctx.fill(); ctx.globalAlpha = 1.0;
@@ -239,7 +240,7 @@ function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
     ctx.fillStyle = showBg ? '#ffffff' : 'rgba(255,255,255,0.85)'; ctx.fill(); ctx.stroke();
     // South
     ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(-16 * scale, 12 * scale); ctx.closePath();
-    ctx.fillStyle = showBg ? '#94a3b8' : 'rgba(255,255,255,0.5)'; ctx.fill(); ctx.stroke();
+    ctx.fillStyle = showBg ? '#A39E93' : 'rgba(255,255,255,0.5)'; ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0, 82 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(16 * scale, 12 * scale); ctx.closePath(); ctx.fillStyle = color; ctx.fill();
     // East
     ctx.beginPath(); ctx.moveTo(70 * scale, 12 * scale); ctx.lineTo(0, 12 * scale); ctx.lineTo(0, -4 * scale); ctx.closePath(); ctx.fill();
@@ -279,16 +280,16 @@ function drawScale(ctx, x, y, w, h, zoom, lat, numericScale) {
   ctx.beginPath(); ctx.roundRect(x, y, w, h, 6); ctx.fill(); ctx.stroke();
   const bX = x + pad, bY = y + h * 0.5;
   ctx.font = `${Math.max(8, Math.round(h * 0.16))}px Inter,sans-serif`;
-  ctx.fillStyle = '#1e293b'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  ctx.fillStyle = '#00242D'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
   for (let i = 0; i <= NS; i++) {
     const v = (meters / NS) * i / div;
     const label = i === NS ? `${formatScaleNumber(v)} ${unit}` : formatScaleNumber(v);
     ctx.fillText(label, bX + sW * i, bY - 3);
   }
-  for (let i = 0; i < NS; i++) { ctx.fillStyle = i % 2 === 0 ? '#1e293b' : '#fff'; ctx.fillRect(bX + sW * i, bY, sW, bH); }
-  ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1; ctx.strokeRect(bX, bY, barPx, bH);
+  for (let i = 0; i < NS; i++) { ctx.fillStyle = i % 2 === 0 ? '#00242D' : '#fff'; ctx.fillRect(bX + sW * i, bY, sW, bH); }
+  ctx.strokeStyle = '#00242D'; ctx.lineWidth = 1; ctx.strokeRect(bX, bY, barPx, bH);
   ctx.font = `italic ${Math.max(7, Math.round(h * 0.13))}px Inter,sans-serif`;
-  ctx.fillStyle = '#64748b'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#67635A'; ctx.textAlign = 'center';
   ctx.fillText(numericScale ? `Escala 1:${numericScale.toLocaleString('pt-BR')} · Web Mercator (EPSG:3857)` : 'Projeção: Web Mercator (EPSG:3857)', x + w / 2, bY + bH + h * 0.2);
 }
 
@@ -300,7 +301,7 @@ function drawSymbolLegend(ctx, x, y, w, title, circles, s = 1) {
   ctx.save();
   ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.strokeStyle = 'rgba(0,0,0,0.08)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.roundRect(x, y, w, h, 6 * s); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#1e293b'; ctx.font = `bold ${titleFs}px Inter,sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillStyle = '#00242D'; ctx.font = `700 ${titleFs}px Archivo,sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   ctx.fillText(wrapText(ctx, title, w - pad * 2)[0], x + pad, y + pad);
   const baseY = y + h - pad;
   const cx = x + pad + R;
@@ -313,9 +314,9 @@ function drawSymbolLegend(ctx, x, y, w, title, circles, s = 1) {
     // rótulos com espaçamento mínimo (círculos pequenos têm topos muito próximos)
     const labelY = Math.max(cy - r, lastLabelY + fs * 1.15);
     lastLabelY = labelY;
-    ctx.setLineDash([2 * s, 2 * s]); ctx.strokeStyle = '#64748b'; ctx.lineWidth = 1 * s;
+    ctx.setLineDash([2 * s, 2 * s]); ctx.strokeStyle = '#67635A'; ctx.lineWidth = 1 * s;
     ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx + R + 8 * s, labelY); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = '#1e293b'; ctx.font = `${fs}px Inter,sans-serif`; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#00242D'; ctx.font = `${fs}px Inter,sans-serif`; ctx.textBaseline = 'middle';
     ctx.fillText(c.value.toLocaleString('pt-BR'), cx + R + 14 * s, labelY);
   });
   ctx.restore();
@@ -345,7 +346,7 @@ function drawInset(ctx, x, y, w, h, inset, s = 1) {
   ctx.save();
   ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 1 * s;
   ctx.beginPath(); ctx.roundRect(x, y, w, h, 6 * s); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#1e293b'; ctx.font = `600 ${Math.round(12 * s)}px Inter,sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillStyle = '#00242D'; ctx.font = `600 ${Math.round(12 * s)}px Inter,sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.fillText('Localização', x + w / 2, y + 5 * s);
   const hl = inset.highlight || new Set();
   ufs.forEach(f => {
@@ -393,7 +394,7 @@ function drawLegend(ctx,x,y,w,title,items){
   const maxTextW=w-p*2;
 
   // Measure wrapped title
-  ctx.font=`bold ${titleFs}px Inter,sans-serif`;
+  ctx.font=`700 ${titleFs}px Archivo,sans-serif`;
   const titleLines=wrapText(ctx,title,maxTextW);
   const titleBlockH=titleLines.length*lineH+p*0.5;
 
@@ -415,13 +416,13 @@ function drawLegend(ctx,x,y,w,title,items){
   ctx.beginPath();ctx.roundRect(x,y,w,totH,4);ctx.fill();ctx.stroke();
 
   // Title
-  ctx.font=`bold ${titleFs}px Inter,sans-serif`;
-  ctx.fillStyle='#0f172a';
+  ctx.font=`700 ${titleFs}px Archivo,sans-serif`;
+  ctx.fillStyle='#00242D';
   ctx.textAlign='left';ctx.textBaseline='top';
   titleLines.forEach((line,li)=>ctx.fillText(line,x+p,y+p+li*lineH));
 
   // Divider
-  ctx.strokeStyle='#e2e8f0';
+  ctx.strokeStyle='#E4DFD5';
   ctx.beginPath();ctx.moveTo(x+p,y+dividerY);ctx.lineTo(x+w-p,y+dividerY);ctx.stroke();
 
   // Items
@@ -432,9 +433,10 @@ function drawLegend(ctx,x,y,w,title,items){
     const swatchTop=curY;
     ctx.fillStyle=it.color||'#ccc';
     ctx.fillRect(x+p,swatchTop,ss,ss);
+    if(it.noData) drawHatch(ctx,x+p,swatchTop,ss,ss,Math.max(3,ss/4));
     ctx.strokeStyle='rgba(0,0,0,0.1)';
     ctx.strokeRect(x+p,swatchTop,ss,ss);
-    ctx.fillStyle='#1e293b';
+    ctx.fillStyle='#00242D';
     ctx.font=`${itemFs}px Inter,sans-serif`;
     ctx.textBaseline='top';
     lines.forEach((line,li)=>ctx.fillText(line,x+itemTextX,swatchTop+li*itemLineH));
@@ -451,7 +453,7 @@ function drawAnnLegend(ctx,x,y,w,anns,vizName,incMeasurements=true){
   const maxTextW=w-p*2;
 
   // Measure wrapped title
-  ctx.font=`bold ${titleFs}px Inter,sans-serif`;
+  ctx.font=`700 ${titleFs}px Archivo,sans-serif`;
   const titleLines=wrapText(ctx,vizName||'Informações do Mapa',maxTextW);
   const titleBlockH=titleLines.length*lineH+p*0.5;
   const dividerY=titleBlockH+p;
@@ -484,13 +486,13 @@ function drawAnnLegend(ctx,x,y,w,anns,vizName,incMeasurements=true){
   ctx.beginPath();ctx.roundRect(x,y,w,totH,4);ctx.fill();ctx.stroke();
 
   // Title
-  ctx.font=`bold ${titleFs}px Inter,sans-serif`;
-  ctx.fillStyle='#0f172a';
+  ctx.font=`700 ${titleFs}px Archivo,sans-serif`;
+  ctx.fillStyle='#00242D';
   ctx.textAlign='left';ctx.textBaseline='top';
   titleLines.forEach((line,li)=>ctx.fillText(line,x+p,y+p+li*lineH));
 
   // Divider
-  ctx.strokeStyle='#e2e8f0';
+  ctx.strokeStyle='#E4DFD5';
   ctx.beginPath();ctx.moveTo(x+p,y+dividerY);ctx.lineTo(x+w-p,y+dividerY);ctx.stroke();
 
   // Annotations
@@ -508,7 +510,7 @@ function drawAnnLegend(ctx,x,y,w,anns,vizName,incMeasurements=true){
       ctx.textAlign='center';ctx.textBaseline='middle';
       ctx.fillText(String(a.number),cx2,cy2);
       ctx.textAlign='left';
-      ctx.fillStyle='#1e293b';
+      ctx.fillStyle='#00242D';
       ctx.font=`${itemFs}px Inter,sans-serif`;
       ctx.textBaseline='top';
       lines.forEach((line,li)=>ctx.fillText(line,x+p+cr*2+p,iy+li*itemLineH));
@@ -523,7 +525,7 @@ function drawAnnLegend(ctx,x,y,w,anns,vizName,incMeasurements=true){
       ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + iconW, ly);
       ctx.strokeStyle = lineColor; ctx.lineWidth = lineW; ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = '#1e293b';
+      ctx.fillStyle = '#00242D';
       ctx.font = `${itemFs}px Inter,sans-serif`;
       ctx.textAlign = 'left'; ctx.textBaseline = 'top';
       lines.forEach((line, li) => ctx.fillText(line, lx + iconW + p * 0.5, iy + li * itemLineH));
@@ -546,7 +548,7 @@ function drawAnnLegend(ctx,x,y,w,anns,vizName,incMeasurements=true){
       ctx.strokeStyle = strokeCol; ctx.lineWidth = strokeW;
       ctx.strokeRect(rx, ry, iconW, iconH);
       ctx.setLineDash([]);
-      ctx.fillStyle = '#1e293b';
+      ctx.fillStyle = '#00242D';
       ctx.font = `${itemFs}px Inter,sans-serif`;
       ctx.textAlign = 'left'; ctx.textBaseline = 'top';
       lines.forEach((line, li) => ctx.fillText(line, rx + iconW + p * 0.5, iy + li * itemLineH));
@@ -710,7 +712,7 @@ function drawCustomStudioElement(ctx, W, H, el) {
     const sw = el.strokeWidth || 3;
 
     // Shaft
-    ctx.strokeStyle = el.strokeColor || '#ef4444';
+    ctx.strokeStyle = el.strokeColor || '#B3261E';
     ctx.lineWidth = sw;
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -721,7 +723,7 @@ function drawCustomStudioElement(ctx, W, H, el) {
     // Arrowhead — size proportional to stroke width
     const angle = Math.atan2(y2 - y, x2 - x);
     const headLen = Math.max(12, sw * 4);
-    ctx.fillStyle = el.strokeColor || '#ef4444';
+    ctx.fillStyle = el.strokeColor || '#B3261E';
     ctx.beginPath();
     ctx.moveTo(x2, y2);
     ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
@@ -753,6 +755,22 @@ export function mapAttributionText(pm) {
   } catch (e) { return ''; }
 }
 
+// Título padrão da prancha (guia de identidade, seção 06): Archivo 700 em Petróleo 950,
+// alinhado à esquerda e sem caixa de fundo
+export const DEFAULT_TITLE_CFG = {
+  title: 'Título do Mapa', subtitle: '', fontFamily: 'Archivo, sans-serif',
+  titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal',
+  titleStyle: '', subtitleStyle: '', titleColor: '#00242D', subtitleColor: '#4B4740',
+  showBg: false, bgColor: '#F9F6F1', bgOpacity: 0.85, align: 'left',
+};
+
+// O canvas não espera as fontes web: carrega as da identidade antes de desenhar
+const STUDIO_FONTS = ['700 32px Archivo', '800 32px Archivo', '600 32px Archivo', '400 16px Inter', '600 16px Inter', '700 16px Inter', '800 16px Inter', '400 16px "IBM Plex Mono"'];
+export function ensureStudioFonts() {
+  if (typeof document === 'undefined' || !document.fonts?.load) return Promise.resolve();
+  return Promise.all(STUDIO_FONTS.map(f => document.fonts.load(f).catch(() => null))).then(() => undefined);
+}
+
 // Bloco de créditos (canto inferior direito): Fonte, Elaboração, Data + atribuição do mapa base
 function drawCredits(ctx, W, H, cfg, attribution) {
   const lines = [];
@@ -762,6 +780,7 @@ function drawCredits(ctx, W, H, cfg, attribution) {
     if (cfg.data?.trim()) lines.push({ text: `Data: ${cfg.data.trim()}`, bold: false });
   }
   if (attribution) lines.push({ text: `Mapa base: ${attribution}`, small: true });
+  if (cfg?.assinatura !== false) lines.push({ text: 'Feito com SisInfo', small: true });
   if (!lines.length) return;
   const fs = Math.max(11 * (H / 1080), Math.round(H * 0.014));
   const smallFs = Math.round(fs * 0.8);
@@ -782,7 +801,7 @@ function drawCredits(ctx, W, H, cfg, attribution) {
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   wrapped.forEach(l => {
     ctx.font = `${l.small ? smallFs : fs}px Inter,sans-serif`;
-    ctx.fillStyle = l.small ? '#475569' : '#1e293b';
+    ctx.fillStyle = l.small ? '#4B4740' : '#00242D';
     ctx.fillText(l.text, x + pad, cy);
     cy += lineH(l);
   });
@@ -846,7 +865,7 @@ function drawFrame(ctx, W, H, cfg, pxPerMm) {
   }
   if (cfg.line) {
     const lw = Math.max(1, (pxPerMm || W / 297) * 0.4);
-    ctx.strokeStyle = cfg.lineColor || '#1e293b';
+    ctx.strokeStyle = cfg.lineColor || '#00242D';
     ctx.lineWidth = lw;
     ctx.strokeRect(m + lw / 2, m + lw / 2, W - 2 * m - lw, H - 2 * m - lw);
   }
@@ -1059,19 +1078,14 @@ const ImageExportStudio = () => {
   const [paperCfg, setPaperCfg] = useState(null);
   // Margem (mm) e linha de moldura
   const [frameCfg, setFrameCfg] = useState({ margin: 0, line: false });
-  const [creditsCfg, setCreditsCfg] = useState(() => ({ show: true, fonte: '', autor: '', data: new Date().toLocaleDateString('pt-BR') }));
+  const [creditsCfg, setCreditsCfg] = useState(() => ({ show: true, fonte: '', autor: '', data: new Date().toLocaleDateString('pt-BR'), assinatura: true }));
   const [incMunPoints, setIncMunPoints] = useState(true);
   const [incGraticule, setIncGraticule] = useState(false);
   const [incMeasurements, setIncMeasurements] = useState(true);
   const [legendCustomTitle, setLegendCustomTitle] = useState('');
   const [annLegendCustomTitle, setAnnLegendCustomTitle] = useState('');
 
-  const [titleCfg, setTitleCfg] = useState({
-    title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif',
-    titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal',
-    titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc',
-    showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left',
-  });
+  const [titleCfg, setTitleCfg] = useState(() => ({ ...DEFAULT_TITLE_CFG }));
 
   const [overlayPos, setOverlayPos] = useState({
     north: { x: 0.02, y: 0.14 }, scale: { x: 0.02, y: 0.82 },
@@ -1089,7 +1103,7 @@ const ImageExportStudio = () => {
   const [selectedStudioElId, setSelectedStudioElId] = useState(null);
 
   // Helper to ensure input[type="color"] receives valid #rrggbb string
-  const toValidHexColor = (val, fallback = '#3b82f6') => {
+  const toValidHexColor = (val, fallback = '#015668') => {
     if (!val || typeof val !== 'string' || val === 'transparent') return fallback;
     if (val.startsWith('#')) {
       if (val.length === 7) return val;
@@ -1100,10 +1114,10 @@ const ImageExportStudio = () => {
   };
 
   const ELEMENT_DEFAULTS = {
-    text: { w: 200, h: 40, text: 'Texto de Detalhe', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ffffff', bgColor: '#0f172a', strokeColor: '#3b82f6', strokeWidth: 0, opacity: 1 },
-    rect: { w: 160, h: 100, text: '', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ffffff', bgColor: '#1e293b', strokeColor: '#3b82f6', strokeWidth: 2, borderRadius: 6, opacity: 1 },
-    circle: { w: 100, h: 100, text: '', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ffffff', bgColor: '#1e293b', strokeColor: '#3b82f6', strokeWidth: 2, opacity: 1 },
-    arrow: { w: 0, h: 0, text: '', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ef4444', bgColor: '#000000', strokeColor: '#ef4444', strokeWidth: 3, opacity: 1 },
+    text: { w: 200, h: 40, text: 'Texto de Detalhe', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ffffff', bgColor: '#00242D', strokeColor: '#015668', strokeWidth: 0, opacity: 1 },
+    rect: { w: 160, h: 100, text: '', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ffffff', bgColor: '#00242D', strokeColor: '#015668', strokeWidth: 2, borderRadius: 6, opacity: 1 },
+    circle: { w: 100, h: 100, text: '', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#ffffff', bgColor: '#00242D', strokeColor: '#015668', strokeWidth: 2, opacity: 1 },
+    arrow: { w: 0, h: 0, text: '', fontSize: 16, fontWeight: 'normal', fontStyle: '', color: '#B3261E', bgColor: '#000000', strokeColor: '#B3261E', strokeWidth: 3, opacity: 1 },
   };
 
   const addStudioElement = useCallback((type) => {
@@ -1492,7 +1506,7 @@ const ImageExportStudio = () => {
       layerVis: { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true },
       ...mainVizCfg(),
       incNorth: true, incScale: true, incLegend: true, incAnnLegend: true, incTitle: true,
-      titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
+      titleCfg: { ...DEFAULT_TITLE_CFG },
       overlayPos: { north:{x:0.02,y:0.14}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
     };
     const newIdx = exportPagesRef.current.length;
@@ -1616,6 +1630,7 @@ const ImageExportStudio = () => {
           pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', 0.8);
         }
         if (pm.getLayer('sectors-symbols-layer')) pm.setLayoutProperty('sectors-symbols-layer', 'visibility', 'visible');
+        if (pm.getLayer(HATCH_LAYER)) pm.setLayoutProperty(HATCH_LAYER, 'visibility', 'none');
       } catch (e) { console.warn('Viz apply error:', e); }
       setLegendData({ title: normalizedLabel(vizAttr, null), items: [], symbols: symbolLegendCircles(max) });
       return;
@@ -1638,6 +1653,11 @@ const ImageExportStudio = () => {
       if (pm.getLayer('sectors-point-layer')) {
         pm.setPaintProperty('sectors-point-layer', 'circle-color', colorExpr);
         pm.setFilter('sectors-point-layer', ['all', ['==', ['geometry-type'], 'Point'], inStudio]);
+      }
+      // Hachura "Sem dados" só no modo preenchido
+      if (pm.getLayer(HATCH_LAYER)) {
+        pm.setFilter(HATCH_LAYER, ['all', polyFilter, inStudio, noDataHatchFilter(attribute, baseExpr)]);
+        pm.setLayoutProperty(HATCH_LAYER, 'visibility', renderMode === 'filled' ? 'visible' : 'none');
       }
     } catch (e) { console.warn('Viz apply error:', e); }
 
@@ -1926,7 +1946,7 @@ const ImageExportStudio = () => {
         layerVis: { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true },
         ...mainVizCfg(),
         incNorth: showNorthArrow, incScale: showScaleBar, incLegend: showAttributeLegend, incAnnLegend: showAnnotationLegend, incTitle: true,
-        titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
+        titleCfg: { ...DEFAULT_TITLE_CFG },
         overlayPos: { north:{x:0.02,y:0.14}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
       }]);
       setCurrentPageIdx(0);
@@ -1978,6 +1998,7 @@ const ImageExportStudio = () => {
         canvasContextAttributes: { preserveDrawingBuffer: true }, attributionControl: false,
       });
       pm.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+      ensureHatchPattern(pm);
       pm._currentStyleUrl = normalizeBasemap(mapStyle); // a prévia começa com uma cópia do estilo do mapa principal
       previewMapRef.current = pm;
       // Use ref-based callback to avoid stale closures — ensures overlays
@@ -2064,6 +2085,14 @@ const ImageExportStudio = () => {
 
   // Redraw on any overlay change
   useEffect(() => { redrawOverlayCanvas(); }, [redrawOverlayCanvas, frameSize]);
+
+  // Fontes da identidade (Archivo, Inter) carregadas → redesenha a prévia com elas
+  useEffect(() => {
+    if (!showImageStudio) return;
+    let vivo = true;
+    ensureStudioFonts().then(() => { if (vivo) redrawOverlayCanvasRef.current?.(); });
+    return () => { vivo = false; };
+  }, [showImageStudio]);
 
   const applyTemplate = useCallback((t) => {
     setPaperCfg(t.paper ? { ...t.paper } : null);
@@ -2174,6 +2203,7 @@ const ImageExportStudio = () => {
 
       // pixelRatio = exportK: mesmo enquadramento da prévia, com targetW × targetH pixels
       hm = new maplibregl.Map({ container: hiddenDiv, style, center: [center.lng, center.lat], zoom: exportZoom, bearing, pitch, pixelRatio: exportK, maxCanvasSize: [16384, 16384], canvasContextAttributes: { preserveDrawingBuffer: true }, interactive: false, fadeDuration: 0, attributionControl: false });
+      ensureHatchPattern(hm);
       await new Promise((res, rej) => {
         const t = setTimeout(() => rej(new Error('o mapa demorou demais para carregar (verifique a internet)')), 30000);
         hm.once('idle', () => { clearTimeout(t); setTimeout(res, 1000); });
@@ -2186,6 +2216,7 @@ const ImageExportStudio = () => {
       ctx.drawImage(hm.getCanvas(), 0, 0, targetW, targetH);
 
       setProgress('Desenhando elementos...');
+      await ensureStudioFonts();
       drawOverlays(ctx, targetW, targetH, {
         incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos,
         bearing, zoom: exportZoom, lat: center.lat,
@@ -2409,7 +2440,7 @@ const ImageExportStudio = () => {
                   </label>
                   <div className="studio-input-row">
                     <label style={{ fontSize: '0.75rem', color: 'var(--texto-2)' }}>Cor</label>
-                    <input type="color" value={northArrowStyle?.color || '#1e293b'} onChange={e => setNorthArrowStyle(s => ({ ...(s || {}), color: e.target.value }))} />
+                    <input type="color" value={northArrowStyle?.color || '#00242D'} onChange={e => setNorthArrowStyle(s => ({ ...(s || {}), color: e.target.value }))} />
                   </div>
                 </div>
               )}
@@ -2451,13 +2482,14 @@ const ImageExportStudio = () => {
                   <small className="studio-credits-note">A atribuição do mapa base (ex.: © OpenStreetMap) é incluída automaticamente, como exige a licença.</small>
                 </div>
               )}
+              <label className="studio-check-row"><input type="checkbox" checked={creditsCfg.assinatura !== false} onChange={e => setCreditsCfg(c => ({ ...c, assinatura: e.target.checked }))} /><span className="studio-check-label">Assinatura “Feito com SisInfo”</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incMunPoints} onChange={e => setIncMunPoints(e.target.checked)} /><span className="studio-check-label">Pontos dos municípios</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incMeasurements} onChange={e => setIncMeasurements(e.target.checked)} /><span className="studio-check-label">Medidas nas anotações</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={incGraticule} onChange={e => setIncGraticule(e.target.checked)} /><span className="studio-check-label">Paralelos e meridianos</span></label>
               {incGraticule && (
                 <div style={{ paddingLeft: 18, marginTop: 2, marginBottom: 6 }}>
                   {/* Line controls */}
-                  <label style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, display: 'block', marginBottom: 2 }}>Linha</label>
+                  <label style={{ fontSize: '0.6rem', color: '#67635A', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, display: 'block', marginBottom: 2 }}>Linha</label>
                   <div className="studio-input-row" style={{ marginBottom: 2 }}>
                     <label>Cor</label>
                     <input type="color" value={studioRgbaToHex(graticuleStyle.lineColor)}
@@ -2480,7 +2512,7 @@ const ImageExportStudio = () => {
                     <span className="studio-range-value">{Math.round(graticuleStyle.lineOpacity * 100)}%</span>
                   </div>
                   {/* Text controls */}
-                  <label style={{ fontSize: '0.6rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, display: 'block', marginTop: 4, marginBottom: 2 }}>Texto</label>
+                  <label style={{ fontSize: '0.6rem', color: '#67635A', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, display: 'block', marginTop: 4, marginBottom: 2 }}>Texto</label>
                   <div className="studio-input-row" style={{ marginBottom: 2 }}>
                     <label>Tam.</label>
                     <input type="number" className="studio-num-input" min={6} max={18} step={1} value={graticuleStyle.fontSize}
@@ -2517,7 +2549,7 @@ const ImageExportStudio = () => {
                   </div>
                 </div>
               )}
-              <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 4, fontStyle: 'italic' }}>
+              <p style={{ fontSize: '0.75rem', color: '#67635A', marginTop: 4, fontStyle: 'italic' }}>
                 Arraste as bordas azuis no preview para reposicionar.
               </p>
               </>)}
@@ -2586,7 +2618,7 @@ const ImageExportStudio = () => {
                           <label>Fonte</label>
                           <input type="number" className="studio-num-input" min={8} max={72} step={1} value={sel.fontSize || 16}
                             onChange={e => updateStudioElement(sel.id, { fontSize: Number(e.target.value) })} style={{ width: 44 }} />
-                          <span style={{ fontSize: '0.6rem', color: '#64748b', marginLeft: 2 }}>px</span>
+                          <span style={{ fontSize: '0.6rem', color: '#67635A', marginLeft: 2 }}>px</span>
                           <button className={`studio-toolbar-btn${sel.fontWeight === 'bold' ? ' active' : ''}`}
                             onClick={() => updateStudioElement(sel.id, { fontWeight: sel.fontWeight === 'bold' ? 'normal' : 'bold' })}
                             style={{ fontWeight: 'bold', padding: '2px 6px', fontSize: '0.75rem', minWidth: 22, marginLeft: 4 }}>B</button>
@@ -2608,7 +2640,7 @@ const ImageExportStudio = () => {
                       {sel.type !== 'arrow' && (
                         <div className="studio-input-row" style={{ marginBottom: 4 }}>
                           <label>Fundo</label>
-                          <input type="color" value={toValidHexColor(sel.bgColor, '#0f172a')}
+                          <input type="color" value={toValidHexColor(sel.bgColor, '#00242D')}
                             onChange={e => updateStudioElement(sel.id, { bgColor: e.target.value })} />
                         </div>
                       )}
@@ -2616,7 +2648,7 @@ const ImageExportStudio = () => {
                       {/* Stroke color */}
                       <div className="studio-input-row" style={{ marginBottom: 4 }}>
                         <label>{sel.type === 'arrow' ? 'Cor' : 'Borda'}</label>
-                        <input type="color" value={toValidHexColor(sel.strokeColor, '#3b82f6')} onChange={e => updateStudioElement(sel.id, { strokeColor: e.target.value })} />
+                        <input type="color" value={toValidHexColor(sel.strokeColor, '#015668')} onChange={e => updateStudioElement(sel.id, { strokeColor: e.target.value })} />
                       </div>
 
                       {/* Stroke width */}
@@ -2657,7 +2689,7 @@ const ImageExportStudio = () => {
                   );
                 })()}
 
-                <p style={{ fontSize: '0.6rem', color: '#475569', marginTop: 6, fontStyle: 'italic', lineHeight: 1.3 }}>
+                <p style={{ fontSize: '0.6rem', color: '#4B4740', marginTop: 6, fontStyle: 'italic', lineHeight: 1.3 }}>
                   Arraste as bordas azuis no preview para reposicionar. Setas possuem dois pontos de arraste.
                 </p>
               </>)}
@@ -2680,7 +2712,9 @@ const ImageExportStudio = () => {
                 <div className="studio-input-row">
                   <label>Fonte</label>
                   <select className="studio-select" value={titleCfg.fontFamily} onChange={e => setTitleCfg(c => ({...c, fontFamily: e.target.value}))}>
+                    <option value="Archivo, sans-serif">Archivo (SisInfo)</option>
                     <option value="Inter, sans-serif">Inter</option>
+                    <option value="'IBM Plex Mono', monospace">IBM Plex Mono</option>
                     <option value="Arial, sans-serif">Arial</option>
                     <option value="Georgia, serif">Georgia</option>
                     <option value="Times New Roman, serif">Times New Roman</option>
@@ -2756,7 +2790,7 @@ const ImageExportStudio = () => {
                   </select>
                 </div>
                 <div style={{ marginTop: 6 }}>
-                  <label style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Camadas</label>
+                  <label style={{ fontSize: '0.75rem', color: '#67635A', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Camadas</label>
                   <div className="studio-layer-toggles">
                     {LAYER_CATEGORIES.map(cat => (
                       <label key={cat.key} className="studio-layer-item">
@@ -2768,7 +2802,7 @@ const ImageExportStudio = () => {
                   </div>
                 </div>
                 <div style={{ marginTop: 8 }}>
-                  <label style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Renderização</label>
+                  <label style={{ fontSize: '0.75rem', color: '#67635A', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Renderização</label>
                   <div className="studio-input-row" style={{ marginTop: 4 }}>
                     <label>Modo</label>
                     <select className="studio-select" value={prvRenderMode} onChange={e => setPrvRenderMode(e.target.value)}>
@@ -2854,7 +2888,7 @@ const ImageExportStudio = () => {
                   </div>
                 </>)}
                 <div style={{ marginTop: 8 }}>
-                  <label style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Filtros</label>
+                  <label style={{ fontSize: '0.75rem', color: '#67635A', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Filtros</label>
                   <div className="studio-input-row" style={{ marginTop: 4 }}>
                     <label>Região</label>
                     <select className="studio-select" value={prvFilterRegion} onChange={e => { setPrvFilterRegion(e.target.value); setPrvFilterState('all'); }}>

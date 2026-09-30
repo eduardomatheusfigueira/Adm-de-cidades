@@ -83,18 +83,22 @@ export const isNumericValues = (values) => {
 // (sem isso, to-number(null) = 0 e a falta de dado apareceria como "menor classe";
 // e um texto não numérico faria o polígono sair preto).
 const NOT_A_NUMBER = -1e300;
+// Condição (expressão MapLibre) "este município não tem valor numérico no atributo"
+export const noDataCondition = (attribute) => {
+  const value = ['get', attribute];
+  return ['any',
+    ['!', ['has', attribute]],
+    ['==', value, null],
+    ['==', value, ''],
+    ['==', ['to-number', value, NOT_A_NUMBER], NOT_A_NUMBER]];
+};
 export const withNoDataColor = (attribute, expression) => {
   if (!Array.isArray(expression) || expression[0] !== 'step') return expression;
-  const value = ['get', attribute];
-  return ['case',
-    ['any',
-      ['!', ['has', attribute]],
-      ['==', value, null],
-      ['==', value, ''],
-      ['==', ['to-number', value, NOT_A_NUMBER], NOT_A_NUMBER]],
-    NO_DATA_COLOR,
-    expression];
+  return ['case', noDataCondition(attribute), NO_DATA_COLOR, expression];
 };
+// Filtro da camada de hachura "Sem dados": só existe em escalas numéricas (step)
+export const noDataHatchFilter = (attribute, expression) =>
+  (Array.isArray(expression) && expression[0] === 'step') ? noDataCondition(attribute) : false;
 
 // Regiões: sempre as mesmas cores (guia de identidade), em qualquer recorte
 export const CORES_REGIOES = { N: '#3E5D1B', NE: '#DBAD36', CO: '#CC6349', SE: '#1288A1', S: '#A87EEB' };
