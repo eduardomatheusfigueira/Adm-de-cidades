@@ -30,6 +30,50 @@ const PRESETS = [
   { label: '4K', w: 3840, h: 2160 },
 ];
 
+// Tamanhos de papel em mm (paisagem)
+const PAPERS = [
+  { id: 'A4', label: 'A4', w: 297, h: 210 },
+  { id: 'A3', label: 'A3', w: 420, h: 297 },
+  { id: 'Letter', label: 'Carta', w: 279.4, h: 215.9 },
+];
+const paperPixels = (paperId, dpi, orientation) => {
+  const p = PAPERS.find(x => x.id === paperId) || PAPERS[0];
+  const [wmm, hmm] = orientation === 'portrait' ? [p.h, p.w] : [p.w, p.h];
+  return { w: Math.round(wmm / 25.4 * dpi), h: Math.round(hmm / 25.4 * dpi), wmm, hmm };
+};
+
+// Tamanho de "design" da prancha: a prévia e o posicionamento dos elementos usam no máximo
+// 1920 px no lado maior; resoluções maiores são o MESMO layout desenhado com mais densidade
+// (antes, 4K mostrava mais área do mapa e elementos proporcionalmente menores).
+const DESIGN_MAX = 1920;
+const designScale = (w, h) => Math.max(1, Math.max(w, h) / DESIGN_MAX);
+
+// Modelos de layout: papel, moldura, posição dos elementos (frações da prancha) e estilo do título
+const DARK_TITLE = { showBg: false, titleColor: '#111827', subtitleColor: '#374151', align: 'left' };
+const LAYOUT_TEMPLATES = [
+  {
+    id: 'academico', label: 'Acadêmico', hint: 'A4 paisagem, margem e moldura',
+    paper: { size: 'A4', dpi: 150 }, orientation: 'landscape', frame: { margin: 15, line: true },
+    title: { ...DARK_TITLE, titleSize: 28, subtitleSize: 16 },
+    pos: { title: { x: 0.045, y: 0.008 }, north: { x: 0.86, y: 0.1 }, legend: { x: 0.75, y: 0.52 }, annLegend: { x: 0.06, y: 0.42 }, scale: { x: 0.06, y: 0.79 } },
+  },
+  {
+    id: 'apresentacao', label: 'Apresentação', hint: 'HD 16:9, tela cheia',
+    paper: null, preset: 0, orientation: 'landscape', frame: { margin: 0, line: false },
+    title: { showBg: true, bgColor: '#000000', bgOpacity: 0.6, titleColor: '#ffffff', subtitleColor: '#cccccc', titleSize: 32, subtitleSize: 18, align: 'left' },
+    pos: { title: { x: 0.02, y: 0.02 }, north: { x: 0.02, y: 0.14 }, legend: { x: 0.82, y: 0.05 }, annLegend: { x: 0.8, y: 0.4 }, scale: { x: 0.02, y: 0.82 } },
+  },
+  {
+    id: 'poster', label: 'Pôster', hint: 'A3 retrato, título grande',
+    paper: { size: 'A3', dpi: 150 }, orientation: 'portrait', frame: { margin: 15, line: true },
+    title: { ...DARK_TITLE, titleSize: 44, subtitleSize: 22 },
+    pos: { title: { x: 0.05, y: 0.006 }, north: { x: 0.85, y: 0.07 }, legend: { x: 0.06, y: 0.7 }, annLegend: { x: 0.6, y: 0.7 }, scale: { x: 0.55, y: 0.86 } },
+  },
+];
+
+// Limite prático de área de canvas em celulares (iOS ≈ 16,7 megapixels)
+const MOBILE_MAX_PIXELS = 16.7e6;
+
 // ── Canvas drawing helpers ──
 function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
   const style = cfg.type || 'noun';
@@ -632,7 +676,7 @@ export function mapAttributionText(pm) {
 }
 
 // Bloco de créditos (canto inferior direito): Fonte, Elaboração, Data + atribuição do mapa base
-function drawCredits(ctx, W, H, cfg, attribution, s = 1) {
+function drawCredits(ctx, W, H, cfg, attribution) {
   const lines = [];
   if (cfg?.show) {
     if (cfg.fonte?.trim()) lines.push({ text: `Fonte dos dados: ${cfg.fonte.trim()}`, bold: false });
@@ -641,7 +685,7 @@ function drawCredits(ctx, W, H, cfg, attribution, s = 1) {
   }
   if (attribution) lines.push({ text: `Mapa base: ${attribution}`, small: true });
   if (!lines.length) return;
-  const fs = Math.max(11, Math.round(H * 0.014)) * s;
+  const fs = Math.max(11 * (H / 1080), Math.round(H * 0.014));
   const smallFs = Math.round(fs * 0.8);
   const pad = fs * 0.6;
   const maxW = W * 0.45;
@@ -655,7 +699,7 @@ function drawCredits(ctx, W, H, cfg, attribution, s = 1) {
   const boxW = Math.min(maxW, Math.max(...wrapped.map(l => { ctx.font = `${l.small ? smallFs : fs}px Inter,sans-serif`; return ctx.measureText(l.text).width; })) + pad * 2);
   const x = W - boxW - W * 0.01, y = H - boxH - H * 0.012;
   ctx.fillStyle = 'rgba(255,255,255,0.88)';
-  ctx.beginPath(); ctx.roundRect(x, y, boxW, boxH, 4 * s); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(x, y, boxW, boxH, fs * 0.3); ctx.fill();
   let cy = y + pad;
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   wrapped.forEach(l => {
@@ -671,10 +715,11 @@ function drawOverlays(ctx, W, H, opts) {
     incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle,
     overlayPos, bearing, zoom, lat, legendData, annData, vizName, scale,
     titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle,
-    elementsStack, studioElements, creditsCfg, attribution
+    elementsStack, studioElements, creditsCfg, attribution, frameCfg, pxPerMm
   } = opts;
 
   const s = scale || 1;
+  drawFrame(ctx, W, H, frameCfg, pxPerMm);
   const stack = elementsStack || ['title', 'north', 'scale', 'legend', 'annLegend'];
 
   stack.forEach(id => {
@@ -683,20 +728,72 @@ function drawOverlays(ctx, W, H, opts) {
     } else if (id === 'north' && incNorth) {
       drawNorth(ctx, overlayPos.north.x * W, overlayPos.north.y * H, OVL.NORTH * s, bearing, northArrowStyle);
     } else if (id === 'scale' && incScale) {
-      drawScale(ctx, overlayPos.scale.x * W, overlayPos.scale.y * H, OVL.SCALE_W * s, OVL.SCALE_H * s, zoom, lat);
+      // com densidade s, cada pixel de saída vale 1/s do terreno de um pixel da prévia
+      drawScale(ctx, overlayPos.scale.x * W, overlayPos.scale.y * H, OVL.SCALE_W * s, OVL.SCALE_H * s, zoom + Math.log2(s), lat);
     } else if (id === 'legend' && incLegend && legendData?.items?.length) {
       drawLegend(ctx, overlayPos.legend.x * W, overlayPos.legend.y * H, OVL.LEG_W * s, legendCustomTitle || legendData.title, legendData.items);
     } else if (id === 'annLegend' && incAnnLegend && annData?.length) {
       drawAnnLegend(ctx, overlayPos.annLegend.x * W, overlayPos.annLegend.y * H, OVL.ANN_W * s, annData, annLegendCustomTitle || vizName, incMeasurements);
     } else if (id.startsWith('studio-el-')) {
       const el = (studioElements || []).find(e => e.id === id);
-      if (el) drawCustomStudioElement(ctx, W, H, el);
+      if (el) drawCustomStudioElement(ctx, W, H, s === 1 ? el : {
+        ...el,
+        fontSize: (el.fontSize || 16) * s,
+        w: el.w ? el.w * s : el.w,
+        h: el.h ? el.h * s : el.h,
+        borderRadius: el.borderRadius != null ? el.borderRadius * s : el.borderRadius,
+        strokeWidth: el.strokeWidth != null ? el.strokeWidth * s : el.strokeWidth,
+      });
     }
   });
-  drawCredits(ctx, W, H, creditsCfg, attribution, s);
+  drawCredits(ctx, W, H, creditsCfg, attribution);
+}
+
+// Margem branca + linha de moldura (neatline) em volta da área do mapa.
+// pxPerMm converte milímetros em pixels da prancha (papel: dpi/25,4; tela: largura/297).
+function drawFrame(ctx, W, H, cfg, pxPerMm) {
+  if (!cfg || !(cfg.margin > 0 || cfg.line)) return;
+  const m = Math.round((cfg.margin || 0) * (pxPerMm || W / 297));
+  if (m > 0) {
+    ctx.fillStyle = cfg.bg || '#ffffff';
+    ctx.fillRect(0, 0, W, m); ctx.fillRect(0, H - m, W, m);
+    ctx.fillRect(0, 0, m, H); ctx.fillRect(W - m, 0, m, H);
+  }
+  if (cfg.line) {
+    const lw = Math.max(1, (pxPerMm || W / 297) * 0.4);
+    ctx.strokeStyle = cfg.lineColor || '#1e293b';
+    ctx.lineWidth = lw;
+    ctx.strokeRect(m + lw / 2, m + lw / 2, W - 2 * m - lw, H - 2 * m - lw);
+  }
 }
 
 // Draggable & Resizable overlay handle
+// Grava a resolução (DPI) no PNG (chunk pHYs), para impressão no tamanho físico correto
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+  return t;
+})();
+const crc32 = (bytes) => { let c = 0xffffffff; for (const b of bytes) c = CRC_TABLE[(c ^ b) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+async function setPngDpi(blob, dpi) {
+  try {
+    const src = new Uint8Array(await blob.arrayBuffer());
+    const ppm = Math.round(dpi / 0.0254);
+    const chunk = new Uint8Array(21);
+    const dv = new DataView(chunk.buffer);
+    dv.setUint32(0, 9);
+    chunk.set([0x70, 0x48, 0x59, 0x73], 4); // "pHYs"
+    dv.setUint32(8, ppm); dv.setUint32(12, ppm); chunk[16] = 1; // unidade: metro
+    dv.setUint32(17, crc32(chunk.subarray(4, 17)));
+    const IHDR_END = 8 + 25; // assinatura (8) + IHDR (4+4+13+4)
+    const outBytes = new Uint8Array(src.length + chunk.length);
+    outBytes.set(src.subarray(0, IHDR_END), 0);
+    outBytes.set(chunk, IHDR_END);
+    outBytes.set(src.subarray(IHDR_END), IHDR_END + chunk.length);
+    return new Blob([outBytes], { type: 'image/png' });
+  } catch (e) { return blob; }
+}
+
 // Nome de arquivo a partir do título do mapa ("Densidade — SP 2022" → "densidade_sp_2022")
 const fileSlug = (text) => String(text || '')
   .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -867,6 +964,10 @@ const ImageExportStudio = () => {
   const [incAnnLegend, setIncAnnLegend] = useState(true);
   const [incTitle, setIncTitle] = useState(true);
   // Créditos exigidos em mapas escolares/acadêmicos (IBGE/ABNT): fonte, autoria e data
+  // Papel (A4/A3/Carta + DPI) ou null para tamanhos em pixels
+  const [paperCfg, setPaperCfg] = useState(null);
+  // Margem (mm) e linha de moldura
+  const [frameCfg, setFrameCfg] = useState({ margin: 0, line: false });
   const [creditsCfg, setCreditsCfg] = useState(() => ({ show: true, fonte: '', autor: '', data: new Date().toLocaleDateString('pt-BR') }));
   const [incMunPoints, setIncMunPoints] = useState(true);
   const [incGraticule, setIncGraticule] = useState(false);
@@ -1057,6 +1158,8 @@ const ImageExportStudio = () => {
     legendCustomTitle, annLegendCustomTitle,
     titleCfg: { ...titleCfg },
     creditsCfg: { ...creditsCfg },
+    paperCfg: paperCfg ? { ...paperCfg } : null,
+    frameCfg: { ...frameCfg },
     overlayPos: JSON.parse(JSON.stringify(overlayPos)),
     mapCamera: (() => {
       const pm = previewMapRef.current;
@@ -1070,7 +1173,7 @@ const ImageExportStudio = () => {
   }), [preset, customW, customH, useCustom, orientation, format, jpegQuality,
     previewStyle, layerVis, prvRenderMode, prvFillOpacity, prvBorderWidth,
     incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule,
-    legendCustomTitle, annLegendCustomTitle, titleCfg, creditsCfg, overlayPos,
+    legendCustomTitle, annLegendCustomTitle, titleCfg, creditsCfg, paperCfg, frameCfg, overlayPos,
     prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType, studioElements, elementsStack]);
 
@@ -1105,6 +1208,8 @@ const ImageExportStudio = () => {
     setAnnLegendCustomTitle(pg.annLegendCustomTitle ?? '');
     if (pg.titleCfg) setTitleCfg({ ...pg.titleCfg });
     if (pg.creditsCfg) setCreditsCfg(prev => ({ ...prev, ...pg.creditsCfg }));
+    setPaperCfg(pg.paperCfg ?? null);
+    setFrameCfg(pg.frameCfg ? { ...pg.frameCfg } : { margin: 0, line: false });
     if (pg.overlayPos) setOverlayPos(JSON.parse(JSON.stringify(pg.overlayPos)));
     setStudioElements(pg.studioElements ? JSON.parse(JSON.stringify(pg.studioElements)) : []);
     setElementsStack(pg.elementsStack ? [...pg.elementsStack] : ['title', 'north', 'scale', 'legend', 'annLegend']);
@@ -1450,24 +1555,30 @@ const ImageExportStudio = () => {
 
   const baseW = useCustom ? customW : PRESETS[preset].w;
   const baseH = useCustom ? customH : PRESETS[preset].h;
-  const targetW = (!useCustom && orientation === 'portrait') ? baseH : baseW;
-  const targetH = (!useCustom && orientation === 'portrait') ? baseW : baseH;
+  const paperPx = paperCfg ? paperPixels(paperCfg.size, paperCfg.dpi, orientation) : null;
+  const targetW = paperPx ? paperPx.w : (!useCustom && orientation === 'portrait') ? baseH : baseW;
+  const targetH = paperPx ? paperPx.h : (!useCustom && orientation === 'portrait') ? baseW : baseH;
+  // Prancha de "design" (prévia) e fator de densidade da exportação
+  const exportK = designScale(targetW, targetH);
+  const frameW = Math.round(targetW / exportK), frameH = Math.round(targetH / exportK);
+  // pixels por mm na prancha de design (para margem da moldura)
+  const pxPerMmDesign = paperPx ? frameW / paperPx.wmm : frameW / 297;
+  const tooBigForPhone = isTouchDevice() && targetW * targetH > MOBILE_MAX_PIXELS;
 
   // Fit frame to view
   const fitToView = useCallback(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
     const ww = wrapper.clientWidth - 40, wh = wrapper.clientHeight - 40;
-    const frameW = targetW, frameH = targetH;
     const scale = Math.min(ww / frameW, wh / frameH, 1);
     setViewZoom(scale);
     setViewPan({ x: 0, y: 0 });
-  }, [targetW, targetH]);
+  }, [frameW, frameH]);
 
   // Auto-fit when resolution changes or studio opens
   useEffect(() => {
     if (showImageStudio) setTimeout(fitToView, 300);
-  }, [targetW, targetH, showImageStudio, fitToView]);
+  }, [frameW, frameH, showImageStudio, fitToView]);
 
   // Viewport scroll zoom (only when scrolling OUTSIDE the map frame)
   const handleWheel = useCallback((e) => {
@@ -1817,8 +1928,9 @@ const ImageExportStudio = () => {
       legendData, annData, vizName, scale: 1, titleCfg,
       legendCustomTitle, annLegendCustomTitle, northArrowStyle,
       elementsStack, studioElements, creditsCfg, attribution: mapAttributionText(pm),
+      frameCfg, pxPerMm: pxPerMmDesign,
     });
-  }, [creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
+  }, [creditsCfg, frameCfg, pxPerMmDesign, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
 
   // Keep ref always pointing to the latest redraw function — map event listeners
   // use this ref to avoid stale closures that cause overlay/handle desync.
@@ -1826,6 +1938,17 @@ const ImageExportStudio = () => {
 
   // Redraw on any overlay change
   useEffect(() => { redrawOverlayCanvas(); }, [redrawOverlayCanvas, frameSize]);
+
+  const applyTemplate = useCallback((t) => {
+    setPaperCfg(t.paper ? { ...t.paper } : null);
+    if (!t.paper) { setUseCustom(false); setPreset(t.preset ?? 0); }
+    setOrientation(t.orientation || 'landscape');
+    setFrameCfg({ ...t.frame });
+    setTitleCfg(prev => ({ ...prev, ...t.title }));
+    setOverlayPos(prev => ({ ...prev, ...JSON.parse(JSON.stringify(t.pos)) }));
+    setIncTitle(true); setIncNorth(true); setIncScale(true); setIncLegend(true);
+    setCreditsCfg(c => ({ ...c, show: true }));
+  }, []);
 
   const moveOverlay = useCallback((id, x, y) => {
     setOverlayPos(prev => ({ ...prev, [id]: { x, y } }));
@@ -1843,12 +1966,13 @@ const ImageExportStudio = () => {
       const exportZoom = pm.getZoom();
 
       hiddenDiv = document.createElement('div');
-      hiddenDiv.style.cssText = `position:fixed;left:-99999px;top:-99999px;width:${targetW}px;height:${targetH}px;overflow:hidden;`;
+      // O mapa oculto tem o tamanho da prancha de design e é renderizado com densidade exportK
+      hiddenDiv.style.cssText = `position:fixed;left:-99999px;top:-99999px;width:${frameW}px;height:${frameH}px;overflow:hidden;`;
       document.body.appendChild(hiddenDiv);
       setProgress('Renderizando mapa em alta resolução...');
 
-      // pixelRatio 1: o canvas sai exatamente com targetW × targetH pixels, em qualquer aparelho
-      hm = new maplibregl.Map({ container: hiddenDiv, style, center: [center.lng, center.lat], zoom: exportZoom, bearing, pitch, pixelRatio: 1, canvasContextAttributes: { preserveDrawingBuffer: true }, interactive: false, fadeDuration: 0, attributionControl: false });
+      // pixelRatio = exportK: mesmo enquadramento da prévia, com targetW × targetH pixels
+      hm = new maplibregl.Map({ container: hiddenDiv, style, center: [center.lng, center.lat], zoom: exportZoom, bearing, pitch, pixelRatio: exportK, maxCanvasSize: [16384, 16384], canvasContextAttributes: { preserveDrawingBuffer: true }, interactive: false, fadeDuration: 0, attributionControl: false });
       await new Promise((res, rej) => {
         const t = setTimeout(() => rej(new Error('o mapa demorou demais para carregar (verifique a internet)')), 30000);
         hm.once('idle', () => { clearTimeout(t); setTimeout(res, 1000); });
@@ -1864,16 +1988,34 @@ const ImageExportStudio = () => {
       drawOverlays(ctx, targetW, targetH, {
         incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos,
         bearing, zoom: exportZoom, lat: center.lat,
-        legendData, annData, vizName, scale: 1, titleCfg,
+        legendData, annData, vizName, scale: exportK, titleCfg,
         legendCustomTitle, annLegendCustomTitle, northArrowStyle,
         elementsStack, studioElements, creditsCfg, attribution: mapAttributionText(pm),
+        frameCfg, pxPerMm: pxPerMmDesign * exportK,
       });
 
       setProgress('Gerando arquivo...');
-      const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
-      const blob = await new Promise(res => out.toBlob(res, mime, format === 'jpeg' ? jpegQuality : undefined));
-      if (!blob) throw new Error('não foi possível gerar o arquivo; tente uma resolução menor');
-      const name = `${fileSlug(titleCfg?.title) || 'mapa'}_${targetW}x${targetH}.${format === 'jpeg' ? 'jpg' : 'png'}`;
+      const dpi = paperCfg?.dpi || 96;
+      let blob, mime, ext;
+      if (format === 'pdf') {
+        // PDF no tamanho do papel (ou proporcional à imagem, a 150 DPI)
+        const { jsPDF } = await import('jspdf');
+        const wmm = paperPx ? paperPx.wmm : targetW / 150 * 25.4;
+        const hmm = paperPx ? paperPx.hmm : targetH / 150 * 25.4;
+        const doc = new jsPDF({ orientation: wmm >= hmm ? 'landscape' : 'portrait', unit: 'mm', format: [wmm, hmm], compress: true });
+        doc.setProperties({ title: titleCfg?.title || 'Mapa', creator: 'SisInfo' });
+        doc.addImage(out.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, wmm, hmm, undefined, 'FAST');
+        blob = doc.output('blob'); mime = 'application/pdf'; ext = 'pdf';
+      } else {
+        mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+        ext = format === 'jpeg' ? 'jpg' : 'png';
+        blob = await new Promise(res => out.toBlob(res, mime, format === 'jpeg' ? jpegQuality : undefined));
+        if (!blob) throw new Error('não foi possível gerar o arquivo; tente uma resolução menor');
+        // DPI gravado no PNG: o Word/LibreOffice imprimem no tamanho certo do papel
+        if (format === 'png') blob = await setPngDpi(blob, dpi);
+      }
+      const sizeLabel = paperCfg ? `${paperCfg.size}_${paperCfg.dpi}dpi` : `${targetW}x${targetH}`;
+      const name = `${fileSlug(titleCfg?.title) || 'mapa'}_${sizeLabel}.${ext}`;
       const url = URL.createObjectURL(blob);
       if (isTouchDevice()) {
         // Celular: mostrar a imagem com "Compartilhar/Salvar" e "Baixar" (download automático
@@ -1897,7 +2039,7 @@ const ImageExportStudio = () => {
       if (hiddenDiv?.parentNode) hiddenDiv.parentNode.removeChild(hiddenDiv);
       setExporting(false);
     }
-  }, [targetW, targetH, format, jpegQuality, creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
+  }, [targetW, targetH, frameW, frameH, exportK, paperCfg, paperPx, frameCfg, pxPerMmDesign, format, jpegQuality, creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
 
   // Save current page state before closing
   const handleClose = useCallback(() => {
@@ -1934,16 +2076,36 @@ const ImageExportStudio = () => {
                 <span>📐 Resolução</span><span className={`studio-chevron ${openSections.res ? 'open' : ''}`}>▸</span>
               </div>
               {openSections.res && (<>
+              <div className="studio-subtitle">Papel (para imprimir ou PDF)</div>
+              <div className="studio-presets">
+                {PAPERS.map(pp => (
+                  <button key={pp.id} className={`studio-preset-btn ${paperCfg?.size === pp.id ? 'active' : ''}`}
+                    onClick={() => setPaperCfg(c => ({ size: pp.id, dpi: c?.dpi || 150 }))}>
+                    {pp.label}<br /><span style={{ fontSize: '0.65rem', opacity: 0.6 }}>{pp.w}×{pp.h} mm</span>
+                  </button>
+                ))}
+              </div>
+              {paperCfg && (
+                <div className="studio-input-row">
+                  <label>Qualidade</label>
+                  <select className="studio-select" value={paperCfg.dpi} onChange={e => setPaperCfg(c => ({ ...c, dpi: Number(e.target.value) }))}>
+                    <option value={96}>96 DPI (tela)</option>
+                    <option value={150}>150 DPI (impressão comum)</option>
+                    <option value={300}>300 DPI (alta qualidade)</option>
+                  </select>
+                </div>
+              )}
+              <div className="studio-subtitle">Tela (pixels)</div>
               <div className="studio-presets">
                 {PRESETS.map((p, i) => (
-                  <button key={p.label} className={`studio-preset-btn ${!useCustom && preset === i ? 'active' : ''}`}
-                    onClick={() => { setPreset(i); setUseCustom(false); }}>
+                  <button key={p.label} className={`studio-preset-btn ${!paperCfg && !useCustom && preset === i ? 'active' : ''}`}
+                    onClick={() => { setPaperCfg(null); setPreset(i); setUseCustom(false); }}>
                     {p.label}<br /><span style={{ fontSize: '0.65rem', opacity: 0.6 }}>{p.w}×{p.h}</span>
                   </button>
                 ))}
-                <button className={`studio-preset-btn ${useCustom ? 'active' : ''}`} onClick={() => setUseCustom(true)}>Custom</button>
+                <button className={`studio-preset-btn ${!paperCfg && useCustom ? 'active' : ''}`} onClick={() => { setPaperCfg(null); setUseCustom(true); }}>Custom</button>
               </div>
-              {!useCustom && (
+              {(paperCfg || !useCustom) && (
                 <div className="studio-orientation-row">
                   <button className={`studio-orient-btn ${orientation === 'landscape' ? 'active' : ''}`}
                     onClick={() => setOrientation('landscape')} title="Paisagem">
@@ -1955,7 +2117,7 @@ const ImageExportStudio = () => {
                   </button>
                 </div>
               )}
-              {useCustom && (
+              {!paperCfg && useCustom && (
                 <div className="studio-resolution-custom">
                   <input type="number" value={customW} onChange={e => setCustomW(Number(e.target.value))} min={800} max={8000} />
                   <span>×</span>
@@ -1963,7 +2125,14 @@ const ImageExportStudio = () => {
                   <span>px</span>
                 </div>
               )}
-              <div className="studio-dpi-info">Saída: {targetW} × {targetH} px ({(targetW*targetH/1e6).toFixed(1)} MP) — {targetW > targetH ? 'Paisagem' : 'Retrato'}</div>
+              <div className="studio-dpi-info">
+                Saída: {targetW} × {targetH} px ({(targetW*targetH/1e6).toFixed(1)} MP) — {targetW > targetH ? 'Paisagem' : 'Retrato'}
+                {paperPx && <> · {paperPx.wmm} × {paperPx.hmm} mm a {paperCfg.dpi} DPI</>}
+                {exportK > 1 && <> · mesmo layout da prévia, {exportK.toFixed(1)}× mais nítido</>}
+              </div>
+              {tooBigForPhone && (
+                <div className="studio-warn">Tamanho grande demais para exportar no celular (limite ≈ 16 MP). Use 150 DPI, um papel menor ou exporte pelo computador.</div>
+              )}
               </>)}
             </div>
 
@@ -1977,6 +2146,7 @@ const ImageExportStudio = () => {
                 <select className="studio-select" value={format} onChange={e => setFormat(e.target.value)}>
                   <option value="png">PNG (sem perda)</option>
                   <option value="jpeg">JPEG (menor)</option>
+                  <option value="pdf">PDF (para imprimir/entregar)</option>
                 </select>
               </div>
               {format === 'jpeg' && (
@@ -1986,6 +2156,32 @@ const ImageExportStudio = () => {
                   <span className="studio-range-value">{Math.round(jpegQuality*100)}%</span>
                 </div>
               )}
+              </>)}
+            </div>
+
+            <div className="studio-section">
+              <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, frame: !s.frame}))}>
+                <span>🖼️ Modelos e moldura</span><span className={`studio-chevron ${openSections.frame ? 'open' : ''}`}>▸</span>
+              </div>
+              {openSections.frame && (<>
+                <div className="studio-subtitle">Modelos prontos</div>
+                <div className="studio-templates">
+                  {LAYOUT_TEMPLATES.map(t => (
+                    <button key={t.id} type="button" className="studio-preset-btn" onClick={() => applyTemplate(t)} title={t.hint}>
+                      {t.label}<br /><span style={{ fontSize: '0.65rem', opacity: 0.6 }}>{t.hint}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="studio-range-row">
+                  <label>Margem</label>
+                  <input type="range" className="studio-range" min={0} max={30} step={1} value={frameCfg.margin}
+                    onChange={e => setFrameCfg(f => ({ ...f, margin: Number(e.target.value) }))} />
+                  <span className="studio-range-value">{frameCfg.margin} mm</span>
+                </div>
+                <label className="studio-check-row">
+                  <input type="checkbox" checked={!!frameCfg.line} onChange={e => setFrameCfg(f => ({ ...f, line: e.target.checked }))} />
+                  <span className="studio-check-label">Linha de moldura em volta do mapa</span>
+                </label>
               </>)}
             </div>
 
@@ -2498,7 +2694,7 @@ const ImageExportStudio = () => {
             onMouseDown={handleWrapperMouseDown}
             style={{ cursor: 'grab', overflow: 'hidden', position: 'relative' }}>
             <div style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%, -50%) translate(${viewPan.x}px, ${viewPan.y}px) scale(${viewZoom})`, transformOrigin: 'center center' }}>
-              <div ref={previewFrameRef} className="studio-preview-frame" style={{ width: targetW, height: targetH, position: 'relative', overflow: 'hidden', '--ui-scale': 1 / (viewZoom || 1) }}>
+              <div ref={previewFrameRef} className="studio-preview-frame" style={{ width: frameW, height: frameH, position: 'relative', overflow: 'hidden', '--ui-scale': 1 / (viewZoom || 1) }}>
                 {/* Live Mapbox map */}
                 <div ref={previewContainerRef} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }} />
                 {/* Canvas overlay */}
