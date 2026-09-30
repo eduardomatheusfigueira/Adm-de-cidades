@@ -91,3 +91,20 @@
     background-color: var(--border-color);
     border-radius: 3px;
 }
+/* Celular em retrato: a busca ocupa só o espaço entre os botões de menu
+   (Dados à esquerda, Visualização à direita), em vez de cobri-los. */
+@media (max-width: 600px) {
+    .city-search-container {
+        left: 64px;
+        right: 64px;
+        width: auto;
+        max-width: none;
+        transform: none;
+    }
+
+    .city-search-input {
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+        font-size: 16px; /* evita o zoom automático do iOS ao focar */
+    }
+}

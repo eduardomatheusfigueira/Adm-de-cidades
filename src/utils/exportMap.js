@@ -540,7 +540,6 @@ map.on('load', function() {
 
   ${hasAnnotations ? `
   map.addSource('annotations', { type: 'geojson', data: annData });
-  map.addSource('labels', { type: 'geojson', data: labelData });
   map.addLayer({ id: 'ann-fill', type: 'fill', source: 'annotations', filter: ['==', ['geometry-type'], 'Polygon'], paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.15 } });
   map.addLayer({ id: 'ann-line', type: 'line', source: 'annotations', filter: ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'Polygon']], paint: { 'line-color': ['get', 'borderColor'], 'line-width': 2.5 } });
   map.addLayer({ id: 'ann-point', type: 'circle', source: 'annotations', filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'annType'], 'point']], paint: { 'circle-radius': 14, 'circle-color': ['get', 'color'], 'circle-stroke-width': 2, 'circle-stroke-color': ['get', 'borderColor'] } });

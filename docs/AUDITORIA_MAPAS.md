@@ -811,6 +811,18 @@ Regras que evitam os defeitos conhecidos. Cada uma contorna um achado:
 
 ### Fase 0-mínima — "Dá para usar na semana que vem" (≈ 2–3 dias úteis de 1 pessoa)
 
+> **Status (implementado):** todas as tarefas F0m.1–F0m.11 foram feitas. F0m.1 foi resolvida pela migração para MapLibre (§10.1), sem token.
+> - **Classificação** (`utils/colorUtils.js`): limiares sem repetição, com menos classes quando há poucos valores distintos; `parseNumberBR` com formato decidido por coluna (vírgula decimal, ponto de milhar, "-", vazio); cor e item de legenda "Sem dados (n)"; legendas da tela, do Estúdio e do HTML geradas por uma única função (`buildLegendItems`).
+> - **Escala do PNG:** calculada pela distância real.
+> - **Sem `labelData`** no HTML exportado.
+> - **Desenho:** o toque durante o desenho não abre mais o painel da cidade, e os listeners das camadas são registrados uma única vez.
+> - **Celular:** a busca abaixo de 600 px fica entre os botões de menu.
+> - **Painel de anotações:** os botões respondem ao toque e a posição inicial cabe na tela.
+> - **Exportação:** `try/finally` e mensagens de erro em português.
+> - **Perfis:** sem visualização duplicada; o perfil salva e restaura a visualização ativa.
+> - **Erros:** ErrorBoundary global.
+> - **Extras:** polyfill de `roundRect` para Safari < 16 (A29); seta de norte fora da área do título por padrão.
+
 Só tarefas P, de alto retorno e baixo risco, somadas às orientações da §9.0:
 
 | # | Tarefa | Resolve | Onde |

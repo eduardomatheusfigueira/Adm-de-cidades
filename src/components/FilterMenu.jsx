@@ -5,16 +5,8 @@ import { AnnotationContext } from '../contexts/AnnotationContext';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { generateExportHtml } from '../utils/exportMap';
-import { getColorScale, getLegendKey } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing } from '../utils/colorUtils';
 import { getGeoJSONSourceData, resolveBasemapStyle } from '../utils/basemaps';
-
-const isValidColor = (value) => /^#([0-9A-F]{3}){1,2}$/i.test(value);
-const normalizeToHex = (color) => {
-  if (!color) return '#cccccc';
-  if (isValidColor(color)) return color;
-  try { const ctx = document.createElement('canvas').getContext('2d'); ctx.fillStyle = color; return ctx.fillStyle; }
-  catch { return '#cccccc'; }
-};
 
 const FilterMenu = ({ onImportGeometry }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,7 +34,6 @@ const FilterMenu = ({ onImportGeometry }) => {
     startDrawing,
     drawingMode,
     activeVisualizationId,
-    createVisualization,
     getActiveAnnotations,
     visualizations,
     annotations,
@@ -85,7 +76,8 @@ const FilterMenu = ({ onImportGeometry }) => {
   }, [menuRef]);
 
   const handleStartAnnotation = (type) => {
-    if (!activeVisualizationId) createVisualization();
+    // startDrawing já cria uma visualização quando não há nenhuma ativa
+    // (criar aqui também gerava uma visualização vazia duplicada).
     startDrawing(type);
     setIsOpen(false);
     setShowDrawTools(false);
@@ -109,6 +101,7 @@ const FilterMenu = ({ onImportGeometry }) => {
       // Annotations
       annotations: annotations,
       visualizationsAnnot: visualizations,
+      activeVisualizationId: activeVisualizationId,
       // Export pages
       exportPages: exportPages,
     };
@@ -201,7 +194,12 @@ const FilterMenu = ({ onImportGeometry }) => {
               const uniqueViz = [...new Map(profile.visualizationsAnnot.map(v => [v.id, v])).values()];
               setVisualizations(uniqueViz);
               if (uniqueViz.length > 0) {
-                setActiveVisualizationId(uniqueViz[0].id);
+                // Ativar a visualização salva como ativa; senão, a primeira que tem anotações
+                // (perfis antigos podem ter uma visualização vazia duplicada no início).
+                const anns = profile.annotations || [];
+                const saved = uniqueViz.find(v => v.id === profile.activeVisualizationId);
+                const withAnns = uniqueViz.find(v => anns.some(a => a.visualizationId === v.id));
+                setActiveVisualizationId((saved || withAnns || uniqueViz[0]).id);
               }
             } else {
               setVisualizations([]);
@@ -246,8 +244,8 @@ const FilterMenu = ({ onImportGeometry }) => {
       const { indicator, year, valueType } = visualizationConfig;
       values = (indicadoresData || [])
         .filter(row => row.Nome_Indicador === indicator && row.Ano_Observacao === year)
-        .map(row => { const p = parseFloat(valueType === 'position' ? row.Indice_Posicional : row.Valor); return Number.isNaN(p) ? null : p; })
-        .filter(v => v !== null);
+        .map(row => (valueType === 'position' ? row.Indice_Posicional : row.Valor))
+        .filter(v => !isNoDataMarker(v));
     } else {
       values = (filteredCsvData || []).map(row => row[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
     }
@@ -257,25 +255,8 @@ const FilterMenu = ({ onImportGeometry }) => {
     const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
     let items = [];
 
-    if (expressionType === 'match') {
-      for (let i = 2; i < scaleExpression.length - 1; i += 2) {
-        items.push({ value: `${scaleExpression[i]}`, color: normalizeToHex(scaleExpression[i + 1]) });
-      }
-    } else if (expressionType === 'step') {
-      const numericValues = values.map(v => parseFloat(v)).filter(v => !Number.isNaN(v)).sort((a, b) => a - b);
-      if (numericValues.length) {
-        const minVal = numericValues[0], maxVal = numericValues[numericValues.length - 1];
-        let prev = minVal;
-        items.push({ value: `${minVal.toLocaleString('pt-BR')} - ${maxVal.toLocaleString('pt-BR')}`, color: normalizeToHex(scaleExpression[2]) });
-        for (let i = 3; i < scaleExpression.length; i += 2) {
-          const th = Number(scaleExpression[i]), col = scaleExpression[i + 1];
-          if (Number.isNaN(th) || !col) continue;
-          items[items.length - 1].value = `${prev.toLocaleString('pt-BR')} - ${th.toLocaleString('pt-BR')}`;
-          items.push({ value: `${th.toLocaleString('pt-BR')} - ${maxVal.toLocaleString('pt-BR')}`, color: normalizeToHex(col) });
-          prev = th;
-        }
-      }
-    }
+    const missing = visualizationConfig?.type === 'indicator' ? 0 : countMissing(filteredCsvData, attribute, expressionType === 'step');
+    items = buildLegendItems(scaleExpression, values, missing).items;
 
     if (customLegend && customLegend.items && customLegend.items.length > 0) {
       title = customLegend.title || title;

@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';
-import { getColorScale, getLegendKey } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, makeNumberParser, withNoDataColor } from '../utils/colorUtils';
 import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
 import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
 
@@ -45,6 +45,8 @@ export const MapProvider = ({ children }) => {
   } = useContext(AnnotationContext);
 
   const currentStyleUrl = useRef(mapStyle);
+  const sectorHandlersBoundRef = useRef(false);
+  const drawingModeRef = useRef(drawingMode);
   const styleLoadedRef = useRef(false);
   const styleWatchdogRef = useRef(null);
 
@@ -176,6 +178,14 @@ export const MapProvider = ({ children }) => {
     }
 
     const csvDataMap = new Map(currentMapData.map(city => [String(city.Codigo_Municipio), city]));
+
+    // Formato numérico (vírgula ou ponto decimal) decidido pela coluna inteira do indicador
+    const indicatorRows = visualizationConfig?.type === 'indicator'
+      ? (indicadoresData || []).filter(r => r.Nome_Indicador === visualizationConfig.indicator && r.Ano_Observacao === visualizationConfig.year)
+      : [];
+    const toNullable = (parse) => (v) => { const n = parse(v); return Number.isNaN(n) ? null : n; };
+    const parseIndicatorValue = toNullable(makeNumberParser(indicatorRows.map(r => r.Valor)));
+    const parseIndicatorPosition = toNullable(makeNumberParser(indicatorRows.map(r => r.Indice_Posicional)));
     const finalFeatures = [];
 
     console.log(`[MapContext] Processing ${currentMapData.length} cities from CSV.`);
@@ -213,8 +223,8 @@ export const MapProvider = ({ children }) => {
             const cityIndicator = indicadoresData.find(ind =>
               String(ind.Codigo_Municipio) === cdMun && ind.Ano_Observacao === year && ind.Nome_Indicador === indicator);
             if (cityIndicator) {
-              properties.indicator_value = parseFloat(cityIndicator.Valor);
-              properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
+              properties.indicator_value = parseIndicatorValue(cityIndicator.Valor);
+              properties.indicator_position = parseIndicatorPosition(cityIndicator.Indice_Posicional);
               properties.indicator_name = indicator; properties.indicator_year = year;
               properties.visualization_value = valueType === 'value' ? properties.indicator_value : properties.indicator_position;
             } else properties.visualization_value = null;
@@ -252,8 +262,8 @@ export const MapProvider = ({ children }) => {
         const cityIndicator = indicadoresData.find(ind =>
           String(ind.Codigo_Municipio) === properties.CD_MUN && ind.Ano_Observacao === year && ind.Nome_Indicador === indicator);
         if (cityIndicator) {
-          properties.indicator_value = parseFloat(cityIndicator.Valor);
-          properties.indicator_position = parseFloat(cityIndicator.Indice_Posicional);
+          properties.indicator_value = parseIndicatorValue(cityIndicator.Valor);
+          properties.indicator_position = parseIndicatorPosition(cityIndicator.Indice_Posicional);
           properties.indicator_name = indicator; properties.indicator_year = year;
           properties.visualization_value = valueType === 'value' ? properties.indicator_value : properties.indicator_position;
         } else properties.visualization_value = null;
@@ -274,6 +284,14 @@ export const MapProvider = ({ children }) => {
     const combinedGeoJson = { type: 'FeatureCollection', features: finalFeatures };
     const attributeValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => v !== undefined && v !== null);
     const baseScaleExpression = getColorScale(currentAttributeForColoring, attributeValues);
+    if (baseScaleExpression[0] === 'step') {
+      // Grava o valor como número ("590,3" → 590.3); o que não é número vira null = "Sem dados"
+      const parseNumber = makeNumberParser(attributeValues);
+      finalFeatures.forEach(f => {
+        const n = parseNumber(f.properties[currentAttributeForColoring]);
+        f.properties[currentAttributeForColoring] = Number.isNaN(n) ? null : n;
+      });
+    }
     let colorRenderScaleExpression = baseScaleExpression;
 
     const legendKey = getLegendKey(visualizationConfig, colorAttribute);
@@ -304,6 +322,8 @@ export const MapProvider = ({ children }) => {
         }
       }
     }
+
+    colorRenderScaleExpression = withNoDataColor(currentAttributeForColoring, colorRenderScaleExpression);
 
     if (map.current.getSource('sectors')) {
       map.current.getSource('sectors').setData(combinedGeoJson);
@@ -336,11 +356,16 @@ export const MapProvider = ({ children }) => {
         }
       });
 
+      // Os listeners por camada sobrevivem à troca de mapa base; registrar só uma vez
+      if (!sectorHandlersBoundRef.current) {
+      sectorHandlersBoundRef.current = true;
       const layers = ['sectors-fill-layer', 'sectors-point-layer', 'sectors-line-layer'];
       layers.forEach(layerId => {
         map.current.on('mouseenter', layerId, () => { map.current.getCanvas().style.cursor = 'pointer'; });
         map.current.on('mouseleave', layerId, () => { map.current.getCanvas().style.cursor = ''; });
         map.current.on('click', layerId, (e) => {
+          // Durante o desenho, o toque/clique adiciona vértices — não abrir o painel da cidade
+          if (drawingModeRef.current) return;
           e.preventDefault();
           const features = map.current.queryRenderedFeatures(e.point, { layers: [layerId] });
           if (!features.length) return;
@@ -350,6 +375,7 @@ export const MapProvider = ({ children }) => {
           }
         });
       });
+      }
     }
 
     // Determine render mode from visualizationConfig
@@ -403,7 +429,6 @@ export const MapProvider = ({ children }) => {
   // ANNOTATION RENDERING & DRAWING INTERACTION
   // =============================================
 
-  const drawingModeRef = useRef(drawingMode);
   const annotationClickRef = useRef(annotationHandleMapClick);
   const annotationDblClickRef = useRef(annotationHandleDoubleClick);
   const setCursorRef = useRef(setCursorPosition);

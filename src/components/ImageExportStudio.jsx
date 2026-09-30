@@ -6,8 +6,22 @@ import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { AnnotationContext } from '../contexts/AnnotationContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale } from '../utils/colorUtils';
+import { getColorScale, isNoDataMarker, withNoDataColor, buildLegendItems, countMissing } from '../utils/colorUtils';
 import { getAnnotationMeasurement } from '../utils/geoUtils';
+
+// Safari < 16 não tem CanvasRenderingContext2D.roundRect; sem isso a exportação lança erro.
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function roundRect(x, y, w, h, r = 0) {
+    const rad = Math.min(typeof r === 'number' ? r : (Array.isArray(r) ? r[0] || 0 : 0), w / 2, h / 2);
+    this.moveTo(x + rad, y);
+    this.arcTo(x + w, y, x + w, y + h, rad);
+    this.arcTo(x + w, y + h, x, y + h, rad);
+    this.arcTo(x, y + h, x, y, rad);
+    this.arcTo(x, y, x + w, y, rad);
+    this.closePath();
+    return this;
+  };
+}
 
 const PRESETS = [
   { label: 'HD', w: 1920, h: 1080 },
@@ -194,7 +208,46 @@ function drawNorth(ctx, x, y, size, bearing, cfg = {}) {
   ctx.restore();
 }
 
-function drawScale(ctx,x,y,w,h,zoom,lat){const STEPS=[1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000],NS=5;const mpp=78271.5168*Math.cos(lat*Math.PI/180)/Math.pow(2,zoom);let best=STEPS[0];for(const s of STEPS){const px=s/mpp;if(px>=200&&px<=300){best=s;break;}if(px>300){best=s;break;}best=s;}const bW=w*0.85,sW=bW/NS,bH=h*0.2,unit=best>=1000?'km':'m',pad=w*0.075;ctx.fillStyle='rgba(255,255,255,0.92)';ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(x,y,w,h,6);ctx.fill();ctx.stroke();const bX=x+pad,bY=y+h*0.5;ctx.font=`${Math.max(8,Math.round(h*0.16))}px Inter,sans-serif`;ctx.fillStyle='#1e293b';ctx.textAlign='center';ctx.textBaseline='bottom';for(let i=0;i<=NS;i++){const d=(best/NS)*i,v=unit==='km'?d/1000:d;ctx.fillText(i===NS?`${Number.isInteger(v)?v:v.toFixed(1)} ${unit}`:`${Number.isInteger(v)?v:v.toFixed(1)}`,bX+sW*i,bY-3);}for(let i=0;i<NS;i++){ctx.fillStyle=i%2===0?'#1e293b':'#fff';ctx.fillRect(bX+sW*i,bY,sW,bH);}ctx.strokeStyle='#1e293b';ctx.lineWidth=1;ctx.strokeRect(bX,bY,bW,bH);ctx.font=`italic ${Math.max(7,Math.round(h*0.13))}px Inter,sans-serif`;ctx.fillStyle='#64748b';ctx.textAlign='center';ctx.fillText('Projeção: Web Mercator (EPSG:3857)',x+w/2,bY+bH+h*0.2);}
+// Escala gráfica: o comprimento da barra é calculado pela distância real
+// (barra = distância / metros-por-pixel). Antes a barra tinha tamanho fixo e o rótulo não
+// correspondia à distância representada.
+// MapLibre usa tiles de 512 px: metros por pixel no equador em z0 = 40075016.686 / 512.
+export function pickScaleDistance(maxBarPx, zoom, lat) {
+  const mpp = 78271.5168 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom);
+  const maxMeters = maxBarPx * mpp;
+  // Maior valor "redondo" (1, 2 ou 5 × 10^n) que cabe na largura disponível
+  const pow = Math.pow(10, Math.floor(Math.log10(maxMeters)));
+  const best = [5, 2, 1].map(m => m * pow).find(v => v <= maxMeters) || pow;
+  return { meters: best, barPx: best / mpp, mpp };
+}
+
+function formatScaleNumber(v) {
+  return v.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+}
+
+function drawScale(ctx, x, y, w, h, zoom, lat) {
+  const NS = 4;
+  const pad = w * 0.075;
+  const { meters, barPx } = pickScaleDistance(w - pad * 2, zoom, lat);
+  const unit = meters >= 1000 ? 'km' : 'm';
+  const div = unit === 'km' ? 1000 : 1;
+  const sW = barPx / NS, bH = h * 0.2;
+  ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, 6); ctx.fill(); ctx.stroke();
+  const bX = x + pad, bY = y + h * 0.5;
+  ctx.font = `${Math.max(8, Math.round(h * 0.16))}px Inter,sans-serif`;
+  ctx.fillStyle = '#1e293b'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  for (let i = 0; i <= NS; i++) {
+    const v = (meters / NS) * i / div;
+    const label = i === NS ? `${formatScaleNumber(v)} ${unit}` : formatScaleNumber(v);
+    ctx.fillText(label, bX + sW * i, bY - 3);
+  }
+  for (let i = 0; i < NS; i++) { ctx.fillStyle = i % 2 === 0 ? '#1e293b' : '#fff'; ctx.fillRect(bX + sW * i, bY, sW, bH); }
+  ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1; ctx.strokeRect(bX, bY, barPx, bH);
+  ctx.font = `italic ${Math.max(7, Math.round(h * 0.13))}px Inter,sans-serif`;
+  ctx.fillStyle = '#64748b'; ctx.textAlign = 'center';
+  ctx.fillText('Projeção: Web Mercator (EPSG:3857)', x + w / 2, bY + bH + h * 0.2);
+}
 
 // Word-wrap helper: splits text into lines that fit within maxWidth pixels.
 // Returns an array of strings.
@@ -747,7 +800,7 @@ const ImageExportStudio = () => {
   });
 
   const [overlayPos, setOverlayPos] = useState({
-    north: { x: 0.02, y: 0.05 }, scale: { x: 0.02, y: 0.82 },
+    north: { x: 0.02, y: 0.14 }, scale: { x: 0.02, y: 0.82 },
     legend: { x: 0.82, y: 0.05 }, annLegend: { x: 0.80, y: 0.35 },
     title: { x: 0.02, y: 0.02 },
   });
@@ -1143,7 +1196,7 @@ const ImageExportStudio = () => {
       prvFilterRegion: 'all', prvFilterState: 'all', prvFilterCityType: 'all',
       incNorth: true, incScale: true, incLegend: true, incAnnLegend: true, incTitle: true,
       titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
-      overlayPos: { north:{x:0.02,y:0.05}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
+      overlayPos: { north:{x:0.02,y:0.14}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
     };
     const newIdx = exportPagesRef.current.length;
     setCurrentPageIdx(newIdx);
@@ -1206,27 +1259,17 @@ const ImageExportStudio = () => {
       attribute = 'visualization_value';
       values = (indicadoresData || [])
         .filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr)
-        .map(r => { const p = parseFloat(vizVT === 'position' ? r.Indice_Posicional : r.Valor); return isNaN(p) ? null : p; })
-        .filter(v => v !== null);
+        .map(r => (vizVT === 'position' ? r.Indice_Posicional : r.Valor))
+        .filter(v => !isNoDataMarker(v));
       colorExpr = getColorScale(attribute, values);
     } else {
       attribute = vizAttr || 'Sigla_Regiao';
       values = filtered.map(r => r[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
       colorExpr = getColorScale(attribute, values);
     }
-    // 3. Fix step expression if thresholds are not strictly ascending
-    if (colorExpr && colorExpr[0] === 'step') {
-      const fixed = [colorExpr[0], colorExpr[1], colorExpr[2]];
-      let lastThreshold = -Infinity;
-      for (let i = 3; i < colorExpr.length; i += 2) {
-        const th = colorExpr[i];
-        if (th > lastThreshold) {
-          fixed.push(th, colorExpr[i + 1]);
-          lastThreshold = th;
-        }
-      }
-      colorExpr = fixed;
-    }
+    // 3. Classificação sem limiares repetidos (getColorScale) + cor "Sem dados" para nulos/texto
+    const baseExpr = colorExpr;
+    colorExpr = withNoDataColor(attribute, colorExpr);
 
     // 4. Apply to preview map
     try {
@@ -1244,26 +1287,8 @@ const ImageExportStudio = () => {
     } catch(e) { console.warn('Viz apply error:', e); }
 
     // 4. Update legend data for overlay
-    const expr = colorExpr;
-    const exprType = expr?.[0];
-    const items = [];
-    if (exprType === 'match') {
-      for (let i = 2; i < expr.length - 1; i += 2) {
-        items.push({ color: expr[i + 1], value: `${expr[i]}` });
-      }
-    } else if (exprType === 'step') {
-      const nums = values.map(v => parseFloat(v)).filter(v => !isNaN(v)).sort((a, b) => a - b);
-      if (nums.length) {
-        let prev = nums[0];
-        items.push({ color: expr[2], value: `${nums[0].toLocaleString('pt-BR')}` });
-        for (let i = 3; i < expr.length; i += 2) {
-          const th = Number(expr[i]);
-          items[items.length - 1].value = `${prev.toLocaleString('pt-BR')} - ${th.toLocaleString('pt-BR')}`;
-          items.push({ color: expr[i + 1], value: `${th.toLocaleString('pt-BR')} - ${nums[nums.length-1].toLocaleString('pt-BR')}` });
-          prev = th;
-        }
-      }
-    }
+    const missing = vizType === 'indicator' ? 0 : countMissing(filtered, attribute, baseExpr?.[0] === 'step');
+    const { items } = buildLegendItems(baseExpr, values, missing);
     const title = vizType === 'indicator' ? `${vizInd} (${vizYr})` : `Atributo: ${attribute}`;
     setLegendData({ title, items });
   }, [csvData, indicadoresData, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
@@ -1529,7 +1554,7 @@ const ImageExportStudio = () => {
         prvFilterRegion: 'all', prvFilterState: 'all', prvFilterCityType: 'all',
         incNorth: showNorthArrow, incScale: showScaleBar, incLegend: showAttributeLegend, incAnnLegend: showAnnotationLegend, incTitle: true,
         titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
-        overlayPos: { north:{x:0.02,y:0.05}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
+        overlayPos: { north:{x:0.02,y:0.14}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
       }]);
       setCurrentPageIdx(0);
     }
@@ -1667,23 +1692,29 @@ const ImageExportStudio = () => {
     const pm = previewMapRef.current;
     if (!pm) return;
     setExporting(true); setProgress('Preparando...');
+    let hm = null;
+    let hiddenDiv = null;
     try {
       const style = pm.getStyle(), center = pm.getCenter(), bearing = pm.getBearing(), pitch = pm.getPitch();
       // Frame is already at targetW dimensions, so use zoom directly
       const exportZoom = pm.getZoom();
 
-      const hiddenDiv = document.createElement('div');
+      hiddenDiv = document.createElement('div');
       hiddenDiv.style.cssText = `position:fixed;left:-99999px;top:-99999px;width:${targetW}px;height:${targetH}px;overflow:hidden;`;
       document.body.appendChild(hiddenDiv);
       setProgress('Renderizando mapa em alta resolução...');
 
       // pixelRatio 1: o canvas sai exatamente com targetW × targetH pixels, em qualquer aparelho
-      const hm = new maplibregl.Map({ container: hiddenDiv, style, center: [center.lng, center.lat], zoom: exportZoom, bearing, pitch, pixelRatio: 1, canvasContextAttributes: { preserveDrawingBuffer: true }, interactive: false, fadeDuration: 0, attributionControl: false });
-      await new Promise((res, rej) => { const t = setTimeout(() => rej(new Error('Timeout')), 30000); hm.once('idle', () => { clearTimeout(t); setTimeout(res, 2000); }); });
+      hm = new maplibregl.Map({ container: hiddenDiv, style, center: [center.lng, center.lat], zoom: exportZoom, bearing, pitch, pixelRatio: 1, canvasContextAttributes: { preserveDrawingBuffer: true }, interactive: false, fadeDuration: 0, attributionControl: false });
+      await new Promise((res, rej) => {
+        const t = setTimeout(() => rej(new Error('o mapa demorou demais para carregar (verifique a internet)')), 30000);
+        hm.once('idle', () => { clearTimeout(t); setTimeout(res, 1000); });
+      });
 
       setProgress('Capturando imagem...');
       const out = document.createElement('canvas'); out.width = targetW; out.height = targetH;
       const ctx = out.getContext('2d');
+      if (!ctx) throw new Error('o aparelho não conseguiu criar uma imagem desse tamanho; tente uma resolução menor');
       ctx.drawImage(hm.getCanvas(), 0, 0, targetW, targetH);
 
       setProgress('Desenhando elementos...');
@@ -1696,19 +1727,25 @@ const ImageExportStudio = () => {
       });
 
       setProgress('Gerando arquivo...');
-      const mime = format==='jpeg'?'image/jpeg':'image/png';
-      out.toBlob((blob) => {
-        if (!blob) { setProgress('Erro.'); setExporting(false); return; }
-        const url = URL.createObjectURL(blob), a = document.createElement('a');
-        a.href = url; a.download = `mapa_export_${targetW}x${targetH}.${format}`;
-        document.body.appendChild(a); a.click(); a.remove();
-        // Revogar só depois: no iOS/Android o download ainda está lendo o blob neste momento
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-        hm.remove(); document.body.removeChild(hiddenDiv);
-        setExporting(false); setProgress('✅ Imagem exportada com sucesso!');
-        setTimeout(() => setProgress(''), 3000);
-      }, mime, format==='jpeg'?jpegQuality:undefined);
-    } catch (err) { console.error('Export error:', err); setProgress(`Erro: ${err.message}`); setExporting(false); }
+      const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const blob = await new Promise(res => out.toBlob(res, mime, format === 'jpeg' ? jpegQuality : undefined));
+      if (!blob) throw new Error('não foi possível gerar o arquivo; tente uma resolução menor');
+      const url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = `mapa_export_${targetW}x${targetH}.${format}`;
+      document.body.appendChild(a); a.click(); a.remove();
+      // Revogar só depois: no iOS/Android o download ainda está lendo o blob neste momento
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      setProgress('✅ Imagem exportada com sucesso!');
+      setTimeout(() => setProgress(''), 3000);
+    } catch (err) {
+      console.error('Export error:', err);
+      setProgress(`Erro: ${err.message}`);
+    } finally {
+      // Sempre liberar o mapa oculto (contexto WebGL) e o contêiner, mesmo em caso de erro
+      try { hm?.remove(); } catch (e) { /* ignore */ }
+      if (hiddenDiv?.parentNode) hiddenDiv.parentNode.removeChild(hiddenDiv);
+      setExporting(false);
+    }
   }, [targetW, targetH, format, jpegQuality, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
 
   // Save current page state before closing
