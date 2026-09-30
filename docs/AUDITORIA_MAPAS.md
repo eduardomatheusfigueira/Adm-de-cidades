@@ -901,13 +901,19 @@ Objetivo: o aluno faz um mapa temático **correto** e o entrega pelo computador 
 >   - Vitest (28 testes);
 >   - CI no GitHub Actions;
 >   - code-splitting (bundle inicial de 2,17 MB para 1,55 MB).
+> - **Setembro de 2026 (continuação):**
+>   - identidade visual SisInfo no app, no Estúdio e na imagem exportada (hachura "Sem dados", Archivo, assinatura);
+>   - planilhas Excel (.xlsx) em "Juntar minha tabela", com cabeçalho abaixo de títulos e escolha de aba;
+>   - importador de Shapefile (.zip ou solto, reprojetado pelo .prj), KML/KMZ, TopoJSON e GeoJSON como **camadas de referência** (cor, rótulo, ocultar) ou limites de municípios;
+>   - ordem fixa das camadas do app (anotações não ficam mais por baixo do mapa temático);
+>   - gratícula em graus e minutos e coordenadas na moldura do Estúdio;
+>   - MapLibre 6.11 + Vite 5 (alerta crítico GHSA-jrc7-96c5-q579), estilos só do OpenFreeMap, `npm audit` sem vulnerabilidades;
+>   - código morto removido; "Linha do Tempo" arquivada em `arquivo/` e protótipos em `docs/prototipos/`;
+>   - teste de fumaça no navegador (computador e celular) no CI (`npm run smoke`); 58 testes Vitest.
 > - **Pendentes:**
->   - barra inferior e bottom sheets mobile-first;
->   - importador de SHP/KML/TopoJSON e formato largo;
 >   - esquema de projeto validado (zod) e lista de projetos;
 >   - dividir `ImageExportStudio.jsx`;
->   - gratícula em graus-minutos-segundos na moldura;
->   - remover código morto da raiz.
+>   - legenda das camadas de referência na prancha.
 
 - **Migração para MapLibre GL** + OpenFreeMap/CARTO + satélite com atribuição; `pixelRatio` nativo; HTML sem token (§10). Arquivos: `MapContext`, `ImageExportStudio`, `VisualizationMenu`, `exportMap`, `package.json`.
 - **Prancha real**: A4/A3/Carta, retrato/paisagem, margens em mm, DPI 96/150/300, quadro do mapa com moldura, 3–5 modelos acadêmicos, PDF (jsPDF) com várias páginas. Resolve M8, M55, M85.

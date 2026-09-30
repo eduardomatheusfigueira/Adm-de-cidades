@@ -280,68 +280,6 @@ ${newCount} novos adicionados.`);
   }, []);
 
 
-  const handleSaveProfile = useCallback(() => {
-    const profileData = {
-      municipios: csvData,
-      indicadores: indicadoresData,
-      geometrias: geojsonData // Opcional: salvar geometrias também
-    };
-    const jsonProfile = JSON.stringify(profileData);
-    const blob = new Blob([jsonProfile], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const filename = prompt('Salvar perfil como:', 'city_profile.json');
-    if (filename) {
-      const downloadLink = document.createElement('a');
-      downloadLink.href = url;
-      downloadLink.download = filename;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-      URL.revokeObjectURL(url);
-    } else {
-      URL.revokeObjectURL(url);
-    }
-  }, [csvData, indicadoresData, geojsonData]);
-
-  const handleLoadProfile = useCallback(() => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        if (file.size > MAX_FILE_SIZE) {
-          alert(`O arquivo ${file.name} excede o limite máximo permitido de 50MB.`);
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const profile = JSON.parse(e.target.result);
-            if (profile.municipios) {
-              setCsvData(profile.municipios);
-              setFilteredCsvData(profile.municipios); // Reset filtered data
-              const profileHeaders = Object.keys(profile.municipios[0] || {});
-              setCsvHeaders(mergeHeaders([], profileHeaders));
-            }
-            if (profile.indicadores) {
-              setIndicadoresData(profile.indicadores);
-            }
-            if (profile.geometrias) { // Carregar geometrias se existirem no perfil
-              setGeojsonData(profile.geometrias);
-            }
-            alert('Perfil carregado com sucesso!');
-            // A chamada loadMapData será feita em App.jsx/MapContext.
-          } catch (error) {
-            console.error('[DataContext] Erro ao carregar o perfil:', error);
-            alert('Erro ao carregar o arquivo de perfil.');
-          }
-        };
-        reader.readAsText(file);
-      }
-    };
-    input.click();
-  }, []);
 
   // Função para atualizar filteredCsvData, antes parte de handleFiltersApplied em App.jsx
   // O segundo argumento (selectedColorAttribute) será gerenciado pelo UIContext.
@@ -455,8 +393,6 @@ ${newCount} novos adicionados.`);
     joinTable,
     ensureGeometryForUfs, // carrega a malha embutida das UFs indicadas (usado ao abrir perfis)
     processGeometryImportInternal, // A ser chamada por UIContext após modal
-    handleSaveProfile,
-    handleLoadProfile,
     parseCSVData // Exportar se App.jsx ainda precisar dela para algo temporário
   };
 

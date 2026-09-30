@@ -41,7 +41,7 @@ A interface do mapa deve ser **fluida e flutuante**. O mapa (Mapbox) dominará 1
 4.  **Bottom Sheet (Perfil da Cidade):** A `CityInfoBottomBar` será transformada em um *Bottom Sheet* estilo mobile/Google Maps. Ela entra na tela de baixo para cima (`translate-y`), exibindo cartões de KPIs (População, Renda, Score) organizados em um *grid* responsivo (4 colunas), gráficos minimalistas e uma tabela de comparação (Métrica vs. Média Local).
 
 **Visão Alvo (Print Screen):**
-![Inteligência Espacial - Mapa](screenshots/map.png)
+![Inteligência Espacial - Mapa](docs/prototipos/screenshots/map.png)
 
 ---
 
@@ -59,7 +59,7 @@ Criação de uma "Página de Documento" estruturada como um relatório impresso 
 5.  **Tabela Analítica e Rodapé Institucional:** Tabelas formatadas com estilo estrito (bordas horizontais simples) e um rodapé contendo espaços para "Assinaturas Digitais", conferindo ar oficial ao documento.
 
 **Visão Alvo (Print Screen):**
-![Gerador de Relatórios](screenshots/reports.png)
+![Gerador de Relatórios](docs/prototipos/screenshots/reports.png)
 
 ---
 
@@ -75,7 +75,7 @@ Evoluir de um simples "lista de links" para um **DataStack Metadados** profissio
 3.  **Cartões de Bases (Cards):** Grade (`grid-cols-2`) exibindo as demais bases. Os cartões usarão ícones grandes (`payments`, `school`, `medical_services`) representativos do tema, com um *hover state* sutil revelando bordas com a cor `primary`.
 
 **Visão Alvo (Print Screen):**
-![Catálogo de Bases](screenshots/catalog.png)
+![Catálogo de Bases](docs/prototipos/screenshots/catalog.png)
 
 ---
 
@@ -92,7 +92,7 @@ Criação de uma interface de "Wiki/Knowledge Base" embutida no sistema.
     *   **Coluna Direita (Table of Contents - TOC):** "Nesta Página" flutuante (Table of contents dinâmica baseada nos h2/h3) acompanhada de um *card* CTA para o "Suporte Técnico".
 
 **Visão Alvo (Print Screen):**
-![Wiki Documentação](screenshots/wiki.png)
+![Wiki Documentação](docs/prototipos/screenshots/wiki.png)
 
 ---
 
@@ -110,7 +110,7 @@ Um módulo dedicado de *Analytics* robusto para a visão transversal e gerencial
 5.  **Micro-interações:** Uso extensivo de barras de progresso (ex: "Comparativo por Pilar de Gestão") para facilitar a leitura visual de percentuais em tabelas (estilo *Bullet Charts*).
 
 **Visão Alvo (Print Screen):**
-![Dashboard Analítico](screenshots/dashboard.png)
+![Dashboard Analítico](docs/prototipos/screenshots/dashboard.png)
 
 ---
 
@@ -139,13 +139,13 @@ O *City Editor* e o *Módulo ETL* serão promovidos a um painel de administraç�
    * Isso permitirá ao administrador de dados corrigir pequenos erros nos GeoJSONs do IBGE ou subir malhas personalizadas (KML/GeoJSON).
 
 **Visão Alvo: Importação em Lote (ETL)**
-![City Editor - Importação ETL](screenshots/editor_import.png)
+![City Editor - Importação ETL](docs/prototipos/screenshots/editor_import.png)
 
 **Visão Alvo: Gestão de Indicadores e Séries Temporais**
-![City Editor - Indicadores](screenshots/editor_indicators.png)
+![City Editor - Indicadores](docs/prototipos/screenshots/editor_indicators.png)
 
 **Visão Alvo: Workspace de Geometrias**
-![City Editor - Geometria](screenshots/editor_geometry.png)
+![City Editor - Geometria](docs/prototipos/screenshots/editor_geometry.png)
 
 ---
 

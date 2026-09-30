@@ -82,57 +82,6 @@ function AppContent() {
   const [showGeoImport, setShowGeoImport] = useState(false);
   const handleImportGeometryInApp = () => setShowGeoImport(true);
 
-  const handleCityUpdateInApp = (updatedCity) => {
-    if (!updatedCity || !updatedCity.properties) return;
-
-    setIndicadoresData(prevIndicadores => {
-      let tempIndicadores = [...prevIndicadores];
-      if (updatedCity.newIndicator) {
-        tempIndicadores = [...tempIndicadores, updatedCity.newIndicator];
-      }
-      if (updatedCity.deletedIndicator) {
-        tempIndicadores = tempIndicadores.filter(indicator =>
-          !(indicator.Nome_Indicador === updatedCity.deletedIndicator.Nome_Indicador &&
-            indicator.Ano_Observacao === updatedCity.deletedIndicator.Ano_Observacao &&
-            indicator.Codigo_Municipio === updatedCity.deletedIndicator.Codigo_Municipio)
-        );
-      }
-      delete updatedCity.newIndicator;
-      delete updatedCity.deletedIndicator;
-      return tempIndicadores;
-    });
-
-    setGeojsonData(prevGeojsonData => {
-      const updatedFeatures = prevGeojsonData.features.map(feature =>
-        (feature.properties.CD_MUN || feature.properties.Codigo_Municipio) === updatedCity.properties.CD_MUN
-          ? updatedCity
-          : feature
-      );
-      return { ...prevGeojsonData, features: updatedFeatures };
-    });
-
-    setSelectedCityInfo(null);
-  };
-
-  const handleCityDeleteInApp = (cityToDelete) => {
-    if (!cityToDelete || !cityToDelete.properties) return;
-    const cityCodeToDelete = cityToDelete.properties.CD_MUN || cityToDelete.properties.Codigo_Municipio;
-
-    setGeojsonData(prevGeojsonData => ({
-      ...prevGeojsonData,
-      features: prevGeojsonData.features.filter(feature =>
-        (feature.properties.CD_MUN || feature.properties.Codigo_Municipio) !== cityCodeToDelete
-      )
-    }));
-
-    const updatedCsv = csvData.filter(city => city.Codigo_Municipio !== cityCodeToDelete);
-    setCsvData(updatedCsv);
-    setFilteredCsvData(updatedCsv);
-
-    setSelectedCityInfo(null);
-    alert(`Cidade ${cityToDelete.properties.NAME || cityToDelete.properties.Nome_Municipio} excluída com sucesso!`);
-  };
-
   const handleCitySelectBottomBarInApp = (selectedCityData) => {
     if (selectedCityData) {
       const cityCoords = {
@@ -238,7 +187,8 @@ function AppContent() {
       {/* Modals and Overlays */}
       {showGeoImport && <GeoImportDialog onClose={() => setShowGeoImport(false)} />}
 
-      {dataWizardMode && <DataWizard mode={dataWizardMode} onClose={() => setDataWizardMode(null)} />}
+      {dataWizardMode && <DataWizard mode={dataWizardMode} onClose={() => setDataWizardMode(null)}
+        onShowMap={() => { if (window.innerWidth <= 768) setPainelAberto(false); }} />}
 
       <AutoSave />
       <InAppBrowserNotice />

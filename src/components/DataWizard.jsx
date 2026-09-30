@@ -16,7 +16,9 @@ const kb = (bytes) => bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)
 
 // Assistente de dados: "Mapa do Brasil (IBGE)" e "Juntar minha tabela".
 // mode: 'malha' | 'tabela'
-export default function DataWizard({ mode, onClose }) {
+// onShowMap: chamado quando o assistente termina e o aluno deve ver o mapa (no celular, o
+// painel lateral é recolhido para o mapa aparecer)
+export default function DataWizard({ mode, onClose, onShowMap }) {
   const { loadBaseMap, joinTable } = useContext(DataContext);
   const { handleVisualizationConfigChange, setActiveEnvironment } = useContext(UIContext);
   const [tab, setTab] = useState(mode);
@@ -44,7 +46,7 @@ export default function DataWizard({ mode, onClose }) {
       const r = await loadBaseMap([...selected]);
       setDone(`Pronto: ${r.municipios} municípios carregados.`);
       setActiveEnvironment?.('map');
-      setTimeout(onClose, 900);
+      setTimeout(() => { onShowMap?.(); onClose(); }, 900);
     } catch (e) { setError(`Erro ao carregar a malha: ${e.message}`); }
     setBusy(false);
   };
@@ -89,6 +91,7 @@ export default function DataWizard({ mode, onClose }) {
   const applyColor = () => {
     if (colorBy) handleVisualizationConfigChange({ type: 'attribute', attribute: colorBy, renderMode: 'filled', fillOpacity: 0.85, borderWidth: 2 });
     setActiveEnvironment?.('map');
+    onShowMap?.();
     onClose();
   };
 

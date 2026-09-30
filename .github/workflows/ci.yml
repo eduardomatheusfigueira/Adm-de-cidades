@@ -21,3 +21,7 @@ jobs:
         run: npm test
       - name: Build
         run: npm run build
+      - name: Navegador para o teste de fumaça
+        run: npx playwright install --with-deps chromium
+      - name: Teste de fumaça (computador e celular)
+        run: npm run smoke

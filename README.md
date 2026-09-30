@@ -27,10 +27,8 @@ O projeto adota uma arquitetura baseada em componentes funcionais do React, gere
 *   **Visualizações Múltiplas**: Gráficos e tabelas interativas utilizando Recharts para exibir:
     *   **RankingView**: Tabelas ordenáveis e gráficos de barras com o ranking dos municípios.
     *   **TimeSeriesView**: Gráficos de linha mostrando a evolução temporal de indicadores selecionados.
-    *   **IndicatorComparisonBarChart**: Gráfico de barras horizontais comparando o desempenho relativo dos indicadores de uma cidade.
-    *   **RadarChart**: Análise multivariada de indicadores de uma ou mais cidades.
 
-### 3. Perfil Detalhado do Município (`CityInfoBottomBar.jsx`, `CityProfileSummary.jsx`)
+### 3. Perfil Detalhado do Município (`CityInfoBottomBar.jsx`)
 *   Ao clicar em um município no mapa, uma barra inferior expansível é exibida contendo um dossiê com os dados gerais e os indicadores específicos daquela cidade, separados por abas (Overview, Indicadores, Séries Temporais, Comparação).
 
 ### 4. Pipeline de Processamento de Dados (Módulo ETL - `ETLEnvironment.jsx`)
@@ -41,11 +39,12 @@ O projeto adota uma arquitetura baseada em componentes funcionais do React, gere
 *   Painel acessível na tela inicial (`SisInfo`) documentando e catalogando bases de dados brasileiras e internacionais, fornecendo URLs (ou links gerados via Google Search) para obtenção dos arquivos originais.
 *   Inclui as especificações técnicas e de formato aceitos pelo sistema para arquivos CSV e GeoJSON.
 
-## Funcionalidades Parciais e Resquícios no Código
+## Importação de dados do aluno
 
-Durante a evolução do projeto, algumas funcionalidades foram planejadas ou parcialmente desenvolvidas, cujos códigos ainda residem no projeto:
+*   **Juntar minha tabela**: planilha Excel (`.xlsx`) ou CSV com uma coluna de código IBGE (7 dígitos, ou 6 como no DATASUS). Títulos e notas acima do cabeçalho são ignorados; números como `1.234,5` são aceitos.
+*   **Camadas de referência** (painel do mapa → Visualização → Adicionar camada): Shapefile (`.zip` ou `.shp` + `.dbf` + `.prj`, reprojetado pelo `.prj`), KML/KMZ (Google Earth, My Maps), TopoJSON e GeoJSON, desenhados por cima do mapa temático com cor e rótulo próprios. Vão para o Estúdio, a imagem exportada, o HTML interativo e o perfil salvo. O mesmo diálogo também importa **limites de municípios** ligados pelo código IBGE.
 
-*   **Edição Direta de Dados (`CityEditor.jsx`)**: Existe um componente robusto com interface (abas) para edição direta de geometrias, atributos gerais e adição/remoção de indicadores de uma cidade específica. Esta funcionalidade é referenciada como "em desenvolvimento", e embora o componente exista e pareça lidar com o estado temporário das edições, a persistência no backend/arquivo estático não ocorre em ambiente de produção (rodando *client-side* puro). Há botões como "Salvar", "Excluir Cidade" e lógicas de atualização de estado no `App.jsx` (`handleCityUpdateInApp`, `handleCityDeleteInApp`), mas sem persistência em disco na versão empacotada.
+O código da antiga "Linha do Tempo" (arquivos `.ts`) está em `arquivo/linha-do-tempo/`, e os protótipos HTML da interface em `docs/prototipos/`.
 
 ## Malhas do IBGE embutidas
 
@@ -77,6 +76,7 @@ Perfis que usam a malha embutida guardam só a lista de estados (arquivos pequen
 * `npm test` — testes (Vitest)
 * `npm run lint` — ESLint (erros reais: variáveis não definidas, hooks)
 * `npm run build` — build de produção em `dist/`
+* `npm run smoke` — teste de fumaça no navegador (depois do build): junta uma tabela, exporta PNG no Estúdio e retoma o trabalho salvo, no computador e num celular de 390 px. Com um Chromium já instalado: `CHROMIUM_PATH=/caminho/do/chromium npm run smoke`
 
 ## Tecnologias e Dependências Técnicas
 
@@ -86,7 +86,7 @@ As principais tecnologias declaradas no `package.json` são:
 *   **MapLibre GL JS (`maplibre-gl`)**: Biblioteca open source (BSD-3) de renderização WebGL do mapa interativo. Os mapas base vêm do [OpenFreeMap](https://openfreemap.org) (gratuito, sem conta) e do Esri World Imagery (satélite); há também fundos 100% locais que funcionam sem internet. A lista fica em `src/utils/basemaps.js`.
 *   **D3.js (`d3`)**: Utilizado especificamente pelas suas funções de escala (ex: `scaleLinear`, `scaleQuantile`) e formatação de cores (`colorUtils.js`) para geração dos mapas de calor.
 *   **Recharts (`recharts`)**: Biblioteca de componentes React baseada em D3 para a construção dos gráficos interativos nos painéis de análise.
-*   **Turf.js (`@turf/turf`)**: Biblioteca de análise geoespacial avançada em JavaScript (disponível no projeto para uso futuro/análise de geometrias).
+*   **shpjs, @tmcw/togeojson e read-excel-file**: leitura de Shapefile, KML/KMZ e planilhas `.xlsx` no navegador (carregadas só quando usadas).
 *   **Papa Parse (`papaparse`)**: Biblioteca para parsing performático de arquivos CSV na camada cliente.
 *   **React Select (`react-select`)**: Componentes de select/dropdown customizados e avançados.
 
