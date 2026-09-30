@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { Suspense, lazy, useContext, useEffect } from 'react';
 import FilterMenu from './components/FilterMenu';
 import VisualizationMenu from './components/VisualizationMenu';
 import Legend from './components/Legend';
@@ -7,17 +7,25 @@ import AnnotationLegend from './components/AnnotationLegend';
 import NorthArrow from './components/NorthArrow';
 import ScaleBar from './components/ScaleBar';
 import Graticule from './components/Graticule';
-import ImageExportStudio from './components/ImageExportStudio';
 import './index.css';
 
-import DataVisualizationEnvironment from './components/DataVisualizationEnvironment';
-import CityInfoBottomBar from './components/CityInfoBottomBar';
-import ETLEnvironment from './components/ETLEnvironment';
 import CitySearch from './components/CitySearch';
 import DataSourceInfo from './components/DataSourceInfo';
 import MainLayout from './components/MainLayout';
 import AutoSave from './components/AutoSave';
 import InAppBrowserNotice from './components/InAppBrowserNotice';
+
+// Carregados só quando usados (o app abre mais rápido, principalmente no celular)
+const ImageExportStudio = lazy(() => import('./components/ImageExportStudio'));
+const DataVisualizationEnvironment = lazy(() => import('./components/DataVisualizationEnvironment'));
+const ETLEnvironment = lazy(() => import('./components/ETLEnvironment'));
+const CityInfoBottomBar = lazy(() => import('./components/CityInfoBottomBar'));
+
+const LazyFallback = () => (
+  <div className="map-loading" style={{ position: 'fixed', zIndex: 3000 }}>
+    <div className="loading-spinner"></div><p>Carregando…</p>
+  </div>
+);
 
 import { DataProvider, DataContext } from './contexts/DataContext';
 import { MapProvider, MapContext } from './contexts/MapContext';
@@ -202,7 +210,9 @@ function AppContent() {
           {mapLoaded && <NorthArrow />}
           {mapLoaded && <ScaleBar />}
           {mapLoaded && <Graticule />}
-          {mapLoaded && <ImageExportStudio />}
+          {mapLoaded && showImageStudio && (
+            <Suspense fallback={<LazyFallback />}><ImageExportStudio /></Suspense>
+          )}
 
           {/* Small discrete toggle buttons - bottom-right, above map controls */}
           {mapLoaded && (!showAttributeLegend || !showAnnotationLegend || !showNorthArrow || !showScaleBar || !showGraticule) && (
@@ -282,9 +292,9 @@ function AppContent() {
       </div>
 
       {/* Other Environments */}
-      {activeEnvironment === 'data' && <DataVisualizationEnvironment />}
+      {activeEnvironment === 'data' && <Suspense fallback={<LazyFallback />}><DataVisualizationEnvironment /></Suspense>}
       {activeEnvironment === 'dataSourceInfo' && <DataSourceInfo />}
-      {activeEnvironment === 'etl' && <ETLEnvironment />}
+      {activeEnvironment === 'etl' && <Suspense fallback={<LazyFallback />}><ETLEnvironment /></Suspense>}
 
       {/* Modals and Overlays */}
       {showGeometryImportModal && (
@@ -316,6 +326,7 @@ function AppContent() {
       <InAppBrowserNotice />
 
       {selectedCityInfo && (
+        <Suspense fallback={null}>
         <CityInfoBottomBar
           cityInfo={selectedCityInfo}
           onClose={() => setSelectedCityInfo(null)}
@@ -323,6 +334,7 @@ function AppContent() {
           onCitySelect={handleCitySelectBottomBarInApp}
           indicadoresData={indicadoresData}
         />
+        </Suspense>
       )}
     </MainLayout>
   );

@@ -1,4 +1,6 @@
-import * as d3 from 'd3';
+import {
+  ascending, color as d3color, scaleOrdinal,
+} from 'd3';
 import * as ss from 'simple-statistics';
 import { numericColors, categoricalColors } from './palettes';
 
@@ -131,7 +133,7 @@ export const getColorScale = (attribute, values, options = {}) => {
   }
 
   if (attribute !== 'Nome_Municipio' && isNumericValues(filled)) {
-    const numericValues = filled.map(makeNumberParser(filled)).sort(d3.ascending);
+    const numericValues = filled.map(makeNumberParser(filled)).sort(ascending);
     const min = numericValues[0], max = numericValues[numericValues.length - 1];
 
     // Limiares sem repetição e dentro do intervalo dos dados: com poucos municípios ou muitos
@@ -157,7 +159,7 @@ export const getColorScale = (attribute, values, options = {}) => {
     // Categorical Data Handling
     const uniqueValues = [...new Set(filled.map(v => `${v}`))].sort(); // ordem estável das cores
     const colorRange = categoricalColors(opts.categoricalPalette || 'Category10', uniqueValues.length);
-    const colorScale = d3.scaleOrdinal().domain(uniqueValues).range(colorRange);
+    const colorScale = scaleOrdinal().domain(uniqueValues).range(colorRange);
 
     const matchExpression = ['match', ['to-string', ['get', attribute]]];
     uniqueValues.forEach(value => {
@@ -168,9 +170,9 @@ export const getColorScale = (attribute, values, options = {}) => {
   }
 };
 
-const toHex = (color) => {
-  const c = d3.color(color);
-  return c ? c.formatHex() : color;
+const toHex = (value) => {
+  const c = d3color(value);
+  return c ? c.formatHex() : value;
 };
 
 // Itens da legenda correspondentes exatamente à expressão gerada por getColorScale.
