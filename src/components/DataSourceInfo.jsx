@@ -31,7 +31,7 @@ const WelcomeSection = ({ onNavigate, onEnvironment, onOpenWizard }) => (
             <MapIcon size={20} strokeWidth={1.75} aria-hidden="true" /> Abrir o mapa
           </button>
           <button type="button" className="btn btn-secondary btn-lg" onClick={() => onOpenWizard('tabela')}>
-            <Upload size={20} strokeWidth={1.75} aria-hidden="true" /> Juntar minha tabela (CSV)
+            <Upload size={20} strokeWidth={1.75} aria-hidden="true" /> Juntar minha tabela (Excel ou CSV)
           </button>
         </div>
         <p className="inicio-nota">

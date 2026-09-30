@@ -338,7 +338,7 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDataWizardMode('malha')}>Trocar</button>
         </div>
         <button type="button" className="painel-juntar" onClick={() => setDataWizardMode('tabela')}>
-          <Upload size={17} strokeWidth={1.75} aria-hidden="true" /> Juntar minha tabela (CSV)
+          <Upload size={17} strokeWidth={1.75} aria-hidden="true" /> Juntar minha tabela (Excel ou CSV)
         </button>
         <details className="painel-avancado">
           <summary>Importação avançada</summary>

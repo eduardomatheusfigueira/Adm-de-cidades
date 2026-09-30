@@ -61,11 +61,18 @@ export default function DataWizard({ mode, onClose }) {
     if (!file) return;
     setError(''); setReport(null);
     if (file.size > 50 * 1024 * 1024) { setError('O arquivo passa de 50 MB.'); return; }
+    await lerArquivo(file);
+  };
+
+  // (Re)lê o arquivo; em planilhas com várias abas, `aba` escolhe qual
+  const lerArquivo = async (file, aba) => {
+    setBusy(true);
     try {
-      const t = await readTableFile(file);
-      setTable({ ...t, name: file.name });
+      const t = await readTableFile(file, aba);
+      setTable({ ...t, name: file.name, file });
       setCodeColumn(guessCodeColumn(t.headers, t.rows) || '');
     } catch (err) { setError(err.message); setTable(null); }
+    setBusy(false);
   };
 
   const doJoin = async () => {
@@ -179,13 +186,14 @@ export default function DataWizard({ mode, onClose }) {
               {!table && (
                 <>
                   <label className="data-wizard-soltar">
-                    <input type="file" accept=".csv,.txt,text/csv" onChange={onFile} className="sr-only" />
+                    <input type="file" accept=".csv,.txt,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={onFile} className="sr-only" />
                     <FileUp size={30} strokeWidth={1.5} aria-hidden="true" />
-                    <span><strong>Escolha um arquivo CSV</strong></span>
+                    <span><strong>Escolha uma planilha (.xlsx) ou um arquivo CSV</strong></span>
                     <span className="data-wizard-soltar-sub">Uma coluna com o código IBGE do município (7 dígitos, ou 6 como no DATASUS) e as colunas com os seus dados.</span>
                   </label>
                   <ul className="data-wizard-dicas">
-                    <li><Check size={15} strokeWidth={2} aria-hidden="true" /> Separador <code>;</code> ou <code>,</code></li>
+                    <li><Check size={15} strokeWidth={2} aria-hidden="true" /> Excel (.xlsx) ou CSV com separador <code>;</code> ou <code>,</code></li>
+                    <li><Check size={15} strokeWidth={2} aria-hidden="true" /> Título e notas acima do cabeçalho são ignorados</li>
                     <li><Check size={15} strokeWidth={2} aria-hidden="true" /> Números como <code>1.234,5</code> ou <code>1234.5</code></li>
                     <li><Check size={15} strokeWidth={2} aria-hidden="true" /> Os municípios e seus limites entram no mapa automaticamente</li>
                   </ul>
@@ -198,13 +206,24 @@ export default function DataWizard({ mode, onClose }) {
                     <span className="data-wizard-arquivo-icone"><Table size={20} strokeWidth={1.75} aria-hidden="true" /></span>
                     <div>
                       <strong>{table.name}</strong>
-                      <span>{table.rows.length.toLocaleString('pt-BR')} linhas · {table.headers.length} colunas · separador “{table.delimiter === '\t' ? 'tab' : table.delimiter}” · {table.encoding}</span>
+                      <span>{table.rows.length.toLocaleString('pt-BR')} linhas · {table.headers.length} colunas · {table.sheets
+                        ? <>planilha Excel{table.headerRow > 1 ? ` · cabeçalho na linha ${table.headerRow}` : ''}</>
+                        : <>separador “{table.delimiter === '\t' ? 'tab' : table.delimiter}” · {table.encoding}</>}</span>
                     </div>
                     <label className="btn btn-ghost btn-sm data-wizard-trocar">
                       Trocar arquivo
-                      <input type="file" accept=".csv,.txt,text/csv" onChange={onFile} className="sr-only" />
+                      <input type="file" accept=".csv,.txt,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={onFile} className="sr-only" />
                     </label>
                   </div>
+
+                  {table.sheets?.length > 1 && (
+                    <div className="campo">
+                      <label htmlFor="dw-aba">Aba da planilha</label>
+                      <select id="dw-aba" className="selecao" value={table.sheet} disabled={busy} onChange={e => lerArquivo(table.file, e.target.value)}>
+                        {table.sheets.map(n => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </div>
+                  )}
 
                   <div className="campo">
                     <label htmlFor="dw-code">Coluna com o código IBGE</label>

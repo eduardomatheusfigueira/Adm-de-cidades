@@ -24,7 +24,7 @@ const SemIndicadores = ({ visao, onJuntar, onImportar }) => (
     <p>Esta visão usa indicadores (valores por município e ano). Ainda não há nenhum carregado.</p>
     <div className="indicadores-vazio-acoes">
       <button type="button" className="btn btn-primary" onClick={onJuntar}>
-        <Upload size={17} strokeWidth={1.75} aria-hidden="true" /> Juntar minha tabela (CSV)
+        <Upload size={17} strokeWidth={1.75} aria-hidden="true" /> Juntar minha tabela (Excel ou CSV)
       </button>
       <button type="button" className="btn btn-secondary" onClick={onImportar}>Importar arquivo de indicadores</button>
     </div>

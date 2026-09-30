@@ -1,4 +1,5 @@
-// Leitura de tabelas (CSV) enviadas pelos alunos, com detecção de separador e de codificação.
+// Leitura de tabelas (CSV ou planilha .xlsx) enviadas pelos alunos, com detecção de separador,
+// de codificação e da linha de cabeçalho.
 import Papa from 'papaparse';
 import { normalizeMunCode } from './malhas';
 
@@ -11,10 +12,65 @@ const decodeText = (buffer) => {
   }
 };
 
-export async function readTableFile(file) {
+// Célula de planilha → texto no formato que o resto do app já entende (o mesmo de um CSV
+// brasileiro): 22.516 → "22,516", 3550308 → "3550308", datas → "dd/mm/aaaa"
+export const cellToText = (v) => {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'number') {
+    if (!Number.isFinite(v)) return '';
+    return v.toLocaleString('pt-BR', { useGrouping: false, maximumFractionDigits: 12 });
+  }
+  if (v instanceof Date) {
+    if (Number.isNaN(v.getTime())) return '';
+    const d = String(v.getUTCDate()).padStart(2, '0'), m = String(v.getUTCMonth() + 1).padStart(2, '0');
+    return `${d}/${m}/${v.getUTCFullYear()}`;
+  }
+  if (typeof v === 'boolean') return v ? 'Sim' : 'Não';
+  return String(v).trim();
+};
+
+// Linhas (arrays) de uma planilha → { headers, rows }. Planilhas do IBGE e do DATASUS costumam
+// ter título e notas acima do cabeçalho: ele é a primeira linha "cheia" entre as primeiras 30.
+export function sheetRowsToTable(data) {
+  const text = (data || []).map(r => (r || []).map(cellToText));
+  const filled = (r) => r.filter(c => c !== '').length;
+  const maxFilled = Math.max(0, ...text.slice(0, 30).map(filled));
+  const headerIdx = text.findIndex((r, i) => i < 30 && filled(r) >= Math.max(2, Math.ceil(maxFilled * 0.6)));
+  if (headerIdx < 0) return { headers: [], rows: [] };
+  const seen = new Map();
+  const headers = text[headerIdx].map((h, i) => {
+    let name = h || `Coluna ${i + 1}`;
+    const n = seen.get(name) || 0;
+    seen.set(name, n + 1);
+    if (n) name = `${name} (${n + 1})`;
+    return name;
+  });
+  const rows = text.slice(headerIdx + 1)
+    .filter(r => filled(r) > 0)
+    .map(r => Object.fromEntries(headers.map((h, i) => [h, r[i] ?? ''])));
+  return { headers, rows, headerRow: headerIdx + 1 };
+}
+
+async function readSpreadsheet(file, sheetName) {
+  const { default: readXlsxFile } = await import('read-excel-file/browser');
+  let sheets;
+  try { sheets = await readXlsxFile(file); }
+  catch (e) { throw new Error('Não consegui ler a planilha. Confira se o arquivo é .xlsx e não está protegido por senha.'); }
+  const names = sheets.map(s => s.sheet);
+  const chosen = sheets.find(s => s.sheet === sheetName)
+    || sheets.find(s => sheetRowsToTable(s.data).rows.length > 0)
+    || sheets[0];
+  const { headers, rows, headerRow } = sheetRowsToTable(chosen?.data);
+  if (!headers.length || !rows.length) throw new Error(`A aba “${chosen?.sheet ?? ''}” não tem linhas de dados.`);
+  return { headers, rows, delimiter: null, encoding: 'Excel', sheets: names, sheet: chosen.sheet, headerRow };
+}
+
+// Lê CSV/TXT ou planilha .xlsx. `sheetName` escolhe a aba (planilhas com várias abas).
+export async function readTableFile(file, sheetName) {
   const name = file.name || '';
-  if (/\.(xlsx?|ods)$/i.test(name)) {
-    throw new Error('Planilhas do Excel/LibreOffice precisam ser salvas como CSV antes (Arquivo → Salvar como → CSV).');
+  if (/\.xlsx$/i.test(name)) return readSpreadsheet(file, sheetName);
+  if (/\.(xls|ods|numbers)$/i.test(name)) {
+    throw new Error('Este formato de planilha não é lido diretamente. Salve como .xlsx (Excel) ou CSV (Arquivo → Salvar como) e envie de novo.');
   }
   const { text, encoding } = decodeText(await file.arrayBuffer());
   const parsed = Papa.parse(text.replace(/^\uFEFF/, ''), {
