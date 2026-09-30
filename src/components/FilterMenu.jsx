@@ -5,7 +5,7 @@ import { AnnotationContext } from '../contexts/AnnotationContext';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { generateExportHtml } from '../utils/exportMap';
-import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing, toNumericIfPossible } from '../utils/colorUtils';
 import { getGeoJSONSourceData, resolveBasemapStyle } from '../utils/basemaps';
 
 const FilterMenu = ({ onImportGeometry }) => {
@@ -250,6 +250,9 @@ const FilterMenu = ({ onImportGeometry }) => {
       values = (filteredCsvData || []).map(row => row[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
     }
 
+    if (visualizationConfig?.type !== 'indicator') {
+      values = toNumericIfPossible(values, (csvData || []).map(row => row[attribute]).filter(v => !isNoDataMarker(v)));
+    }
     const scaleExpression = getColorScale(attribute, values);
     const expressionType = scaleExpression?.[0];
     const customLegend = legendKey ? legendConfigByKey[legendKey] : null;

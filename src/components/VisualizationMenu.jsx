@@ -3,7 +3,7 @@ import '../styles/VisualizationMenu.css';
 import { DataContext } from '../contexts/DataContext';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext'; // Importado UIContext
-import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, isStyleReady } from '../utils/basemaps';
+import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, isStyleReady, isAppLayer } from '../utils/basemaps';
 
 const VisualizationMenu = ({
   onFiltersApplied // Esta prop ainda é passada por AppContent para coordenar DataContext e UIContext
@@ -56,13 +56,7 @@ const VisualizationMenu = ({
 
   const MAP_LAYER_CATEGORIES = BASEMAP_LAYER_CATEGORIES;
 
-  // Our own layer IDs that should never be toggled
-  const OWN_LAYER_IDS = useMemo(() => new Set([
-    'sectors-fill-layer', 'sectors-line-layer', 'sectors-point-layer',
-    'annotations-fill-layer', 'annotations-line-solid', 'annotations-line-dashed',
-    'annotations-line-dotted', 'annotations-point-layer', 'annotations-point-labels',
-    'annotations-vertex-layer', 'graticule-lines', 'graticule-labels',
-  ]), []);
+
 
   const toggleMapLayerCategory = useCallback((categoryKey) => {
     if (!map?.current || !mapLoaded || !isStyleReady(map.current)) return;
@@ -75,7 +69,7 @@ const VisualizationMenu = ({
 
     const allLayers = map.current.getStyle().layers || [];
     allLayers.forEach(layer => {
-      if (OWN_LAYER_IDS.has(layer.id)) return;
+      if (isAppLayer(layer.id)) return;
       if (category.match(layer)) {
         try {
           map.current.setLayoutProperty(layer.id, 'visibility', visibility);
@@ -84,7 +78,7 @@ const VisualizationMenu = ({
     });
 
     setMapLayerVisibility(prev => ({ ...prev, [categoryKey]: newVisible }));
-  }, [map, mapLoaded, mapLayerVisibility, MAP_LAYER_CATEGORIES, OWN_LAYER_IDS]);
+  }, [map, mapLoaded, mapLayerVisibility, MAP_LAYER_CATEGORIES]);
 
   // Reset visibility state when map style changes (all layers reset to visible)
   useEffect(() => {

@@ -41,14 +41,30 @@ export const parseNumberBR = (value, decimalComma = false) => {
   return Number.isFinite(n) ? n : NaN;
 };
 
-// A coluna usa vírgula decimal? (então pontos são separadores de milhar em toda a coluna)
-export const usesDecimalComma = (values) =>
-  (values || []).some(v => typeof v === 'string' && /^\s*[-+]?[\d.]*,\d+\s*$/.test(v));
+// Na coluna, o ponto é separador de milhar (formato brasileiro)? Sim quando algum valor usa
+// vírgula decimal ("1.000,5"), tem mais de um ponto ("1.234.567") ou quando todos os valores
+// com ponto têm exatamente 3 dígitos depois dele e não começam com 0 ("22.516", "845.300").
+export const usesDecimalComma = (values) => {
+  const strs = (values || []).filter(v => typeof v === 'string').map(v => v.trim());
+  if (strs.some(v => /^[-+]?[\d.]*,\d+$/.test(v))) return true;
+  if (strs.some(v => /^[-+]?\d{1,3}(\.\d{3}){2,}$/.test(v))) return true;
+  const dotted = strs.filter(v => /^[-+]?\d+\.\d+$/.test(v));
+  return dotted.length > 0 && dotted.every(v => /^[-+]?[1-9]\d{0,2}\.\d{3}$/.test(v));
+};
 
 // Parser de números para uma coluna inteira, com o formato decidido pelo conjunto de valores.
+// Passe a coluna completa (não só os municípios filtrados) para decidir com mais evidência.
 export const makeNumberParser = (values) => {
   const decimalComma = usesDecimalComma(values);
   return (v) => parseNumberBR(v, decimalComma);
+};
+
+// Converte uma coluna em números quando ela é numérica (formato decidido pela coluna completa
+// `allValues`); caso contrário devolve os valores como estão.
+export const toNumericIfPossible = (values, allValues = values) => {
+  if (!isNumericValues(allValues)) return values;
+  const parse = makeNumberParser(allValues);
+  return values.map(v => { const n = parse(v); return Number.isNaN(n) ? null : n; }).filter(v => v !== null);
 };
 
 // Um conjunto de valores é numérico quando todos os valores preenchidos
@@ -206,3 +222,28 @@ export const countMissing = (rows, attribute, numeric) =>
     if (isNoDataMarker(v)) return true;
     return numeric && Number.isNaN(parseNumberBR(v));
   }).length;
+
+// Aplica as cores de uma legenda editada pelo usuário à expressão gerada por getColorScale.
+// A ordem dos itens corresponde à ordem das classes; o item "Sem dados" (último) é ignorado.
+export const applyCustomLegendColors = (expression, customLegend) => {
+  const items = customLegend?.items;
+  if (!Array.isArray(expression) || !items?.length) return expression;
+  const out = [...expression];
+  if (out[0] === 'match') {
+    // cores nos índices 3, 5, 7... (o último elemento é a cor padrão)
+    items.forEach((item, i) => {
+      const idx = 3 + i * 2;
+      if (idx < out.length - 1 && !item.noData) out[idx] = item.color;
+    });
+  } else if (out[0] === 'step') {
+    // cor inicial no índice 2, depois 4, 6, 8...
+    items.forEach((item, i) => {
+      if (item.noData) return;
+      const idx = i === 0 ? 2 : 4 + (i - 1) * 2;
+      if (idx < out.length) out[idx] = item.color;
+    });
+    // classe única: o limiar sentinela repete a cor da classe
+    if (out.length === 5 && out[3] === STEP_SENTINEL) out[4] = out[2];
+  }
+  return out;
+};

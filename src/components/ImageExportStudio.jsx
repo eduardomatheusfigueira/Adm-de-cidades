@@ -1,12 +1,12 @@
 import React, { useState, useContext, useCallback, useRef, useEffect, useMemo } from 'react';
 import maplibregl from 'maplibre-gl';
-import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, getFontStack, getGeoJSONSourceData, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
+import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, getFontStack, getGeoJSONSourceData, normalizeBasemap, resolveBasemapStyle, isStyleReady, isAppLayer } from '../utils/basemaps';
 import '../styles/ImageStudio.css';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext';
 import { AnnotationContext } from '../contexts/AnnotationContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale, isNoDataMarker, withNoDataColor, buildLegendItems, countMissing } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, isNumericValues, makeNumberParser, withNoDataColor, buildLegendItems, applyCustomLegendColors } from '../utils/colorUtils';
 import { getAnnotationMeasurement } from '../utils/geoUtils';
 
 // Safari < 16 não tem CanvasRenderingContext2D.roundRect; sem isso a exportação lança erro.
@@ -717,7 +717,6 @@ const LAYER_CATEGORIES = BASEMAP_LAYER_CATEGORIES
   .filter(c => c.key !== 'pois')
   .map(c => ({ ...c, label: { labels: 'Rótulos', roads: 'Ruas', admin: 'Limites', landuse: 'Vegetação' }[c.key] || c.label }));
 
-const OWN_LAYERS = new Set(['sectors-fill-layer','sectors-line-layer','sectors-point-layer','annotations-fill-layer','annotations-line-solid','annotations-line-dashed','annotations-line-dotted','annotations-point-layer','annotations-point-labels','annotations-vertex-layer','graticule-lines','graticule-labels']);
 
 // Helpers for graticule line color (rgba string ↔ hex)
 function studioRgbaToHex(rgba) {
@@ -734,7 +733,7 @@ function studioHexToRgba(hex, alpha) {
 
 const ImageExportStudio = () => {
   const { map, mapLoaded, mapStyle } = useContext(MapContext);
-  const { showImageStudio, setShowImageStudio, showAttributeLegend, showAnnotationLegend, showNorthArrow, showScaleBar, showGraticule, graticuleStyle, setGraticuleStyle, northArrowStyle, setNorthArrowStyle, exportPages, setExportPages, colorAttribute } = useContext(UIContext);
+  const { showImageStudio, setShowImageStudio, showAttributeLegend, showAnnotationLegend, showNorthArrow, showScaleBar, showGraticule, graticuleStyle, setGraticuleStyle, northArrowStyle, setNorthArrowStyle, exportPages, setExportPages, colorAttribute, visualizationConfig, legendConfigByKey } = useContext(UIContext);
   const { getActiveAnnotations, visualizations, activeVisualizationId } = useContext(AnnotationContext);
   const { csvData, csvHeaders, indicadoresData } = useContext(DataContext);
 
@@ -928,6 +927,23 @@ const ImageExportStudio = () => {
   const wrapperRef = useRef(null);
   const redrawOverlayCanvasRef = useRef(null);
   const rafIdRef = useRef(null);
+  // Visualização atual do mapa principal, no formato de página do Estúdio
+  const mainVizCfg = useCallback(() => {
+    const vc = visualizationConfig;
+    const isInd = vc?.type === 'indicator';
+    return {
+      prvVizType: isInd ? 'indicator' : 'attribute',
+      prvVizAttribute: (!isInd && vc?.attribute) || colorAttribute || 'Sigla_Regiao',
+      prvVizIndicator: isInd ? (vc.indicator || '') : '',
+      prvVizYear: isInd ? (vc.year || '') : '',
+      prvVizValueType: isInd ? (vc.valueType || 'value') : 'value',
+      prvRenderMode: vc?.renderMode || 'filled',
+      prvFillOpacity: vc?.fillOpacity ?? 0.6,
+      prvBorderWidth: vc?.borderWidth || 2,
+      prvFilterRegion: 'all', prvFilterState: 'all', prvFilterCityType: 'all',
+    };
+  }, [visualizationConfig, colorAttribute]);
+
   const [frameSize, setFrameSize] = useState({ w: 800, h: 450 });
 
   // Viewport zoom/pan (workspace navigation)
@@ -1034,7 +1050,7 @@ const ImageExportStudio = () => {
       LAYER_CATEGORIES.forEach(cat => {
         const vis = newLayerVis[cat.key] ? 'visible' : 'none';
         allLayers.forEach(l => {
-          if (!OWN_LAYERS.has(l.id) && cat.match(l)) {
+          if (!isAppLayer(l.id) && cat.match(l)) {
             try { pm.setLayoutProperty(l.id, 'visibility', vis); } catch(e) {}
           }
         });
@@ -1106,7 +1122,7 @@ const ImageExportStudio = () => {
       const savedLayers = [];
       const ownSourceIds = new Set();
       (curStyle?.layers || []).forEach(l => {
-        if (OWN_LAYERS.has(l.id)) {
+        if (isAppLayer(l.id)) {
           savedLayers.push(JSON.parse(JSON.stringify(l)));
           if (l.source) ownSourceIds.add(l.source);
         }
@@ -1191,9 +1207,7 @@ const ImageExportStudio = () => {
       orientation: 'landscape', format: 'png', jpegQuality: 0.92,
       previewStyle: mapStyle || '',
       layerVis: { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true },
-      prvRenderMode: 'filled', prvFillOpacity: 0.6, prvBorderWidth: 2,
-      prvVizType: 'attribute', prvVizAttribute: 'Sigla_Regiao', prvVizIndicator: '', prvVizYear: '', prvVizValueType: 'value',
-      prvFilterRegion: 'all', prvFilterState: 'all', prvFilterCityType: 'all',
+      ...mainVizCfg(),
       incNorth: true, incScale: true, incLegend: true, incAnnLegend: true, incTitle: true,
       titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
       overlayPos: { north:{x:0.02,y:0.14}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
@@ -1203,7 +1217,7 @@ const ImageExportStudio = () => {
     pageIdxRef.current = newIdx;
     setExportPages(prev => { const n = [...prev, defaultPage]; exportPagesRef.current = n; return n; });
     loadPage(defaultPage);
-  }, [saveCurrentPage, setExportPages, loadPage, mapStyle]);
+  }, [saveCurrentPage, setExportPages, loadPage, mapStyle, mainVizCfg]);
 
   const deletePage = useCallback((idx) => {
     if (exportPagesRef.current.length <= 1) return;
@@ -1244,54 +1258,92 @@ const ImageExportStudio = () => {
     const fRegion = cfg?.prvFilterRegion ?? prvFilterRegion;
     const fState = cfg?.prvFilterState ?? prvFilterState;
     const fCity = cfg?.prvFilterCityType ?? prvFilterCityType;
-    const renderMode = cfg?.prvRenderMode ?? prvRenderMode;
 
-    // 1. Filter data
+    // 1. Municípios que passam nos filtros do Estúdio
+    const isCapital = (c) => String(c.Capital).trim().toLowerCase() === 'true';
     let filtered = [...csvData];
-    if (fCity === 'capital') filtered = filtered.filter(c => c.Capital === 'true');
-    else if (fCity === 'non-capital') filtered = filtered.filter(c => c.Capital !== 'true');
+    if (fCity === 'capital') filtered = filtered.filter(isCapital);
+    else if (fCity === 'non-capital') filtered = filtered.filter(c => !isCapital(c));
     if (fRegion !== 'all') filtered = filtered.filter(c => c.Sigla_Regiao === fRegion);
     if (fState !== 'all') filtered = filtered.filter(c => c.Sigla_Estado === fState);
+    const inFilter = new Set(filtered.map(c => String(c.Codigo_Municipio)));
 
-    // 2. Compute color expression
-    let attribute, values, colorExpr;
-    if (vizType === 'indicator' && vizInd && vizYr) {
-      attribute = 'visualization_value';
-      values = (indicadoresData || [])
-        .filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr)
-        .map(r => (vizVT === 'position' ? r.Indice_Posicional : r.Valor))
-        .filter(v => !isNoDataMarker(v));
-      colorExpr = getColorScale(attribute, values);
+    // 2. Valor de cada município para a variável escolhida no Estúdio (recalculado aqui,
+    //    em vez de reaproveitar a variável do mapa principal)
+    const useIndicator = vizType === 'indicator' && vizInd && vizYr;
+    const rawByCode = new Map();
+    if (useIndicator) {
+      (indicadoresData || [])
+        .filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr && inFilter.has(String(r.Codigo_Municipio)))
+        .forEach(r => rawByCode.set(String(r.Codigo_Municipio), vizVT === 'position' ? r.Indice_Posicional : r.Valor));
     } else {
-      attribute = vizAttr || 'Sigla_Regiao';
-      values = filtered.map(r => r[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
-      colorExpr = getColorScale(attribute, values);
+      filtered.forEach(r => rawByCode.set(String(r.Codigo_Municipio), r[vizAttr || 'Sigla_Regiao']));
     }
-    // 3. Classificação sem limiares repetidos (getColorScale) + cor "Sem dados" para nulos/texto
-    const baseExpr = colorExpr;
-    colorExpr = withNoDataColor(attribute, colorExpr);
+    const rawValues = [...rawByCode.values()].filter(v => !isNoDataMarker(v));
+    // Formato numérico decidido pela coluna completa (não só pelos municípios filtrados)
+    const fullColumn = (useIndicator
+      ? (indicadoresData || []).filter(r => r.Nome_Indicador === vizInd && r.Ano_Observacao === vizYr).map(r => (vizVT === 'position' ? r.Indice_Posicional : r.Valor))
+      : csvData.map(r => r[vizAttr || 'Sigla_Regiao'])).filter(v => !isNoDataMarker(v));
+    const numeric = (vizAttr !== 'Nome_Municipio' || useIndicator) && isNumericValues(rawValues);
+    const parseNumber = makeNumberParser(fullColumn);
+    const values = numeric ? rawValues.map(parseNumber).filter(n => !Number.isNaN(n)) : rawValues;
+    const missing = filtered.length - values.length;
 
-    // 4. Apply to preview map
+    // 3. Expressão de cor + cores da legenda editada no mapa principal (mesma chave de legenda)
+    const attribute = 'studio_value';
+    const legendKey = getLegendKey(
+      useIndicator ? { type: 'indicator', indicator: vizInd, year: vizYr, valueType: vizVT } : { type: 'attribute', attribute: vizAttr },
+      vizAttr,
+    );
+    const customLegend = legendKey ? legendConfigByKey?.[legendKey] : null;
+    const baseExpr = getColorScale(attribute, values);
+    const colorExpr = withNoDataColor(attribute, applyCustomLegendColors(baseExpr, customLegend));
+
+    // 4. Grava o valor e a pertença ao filtro em cada feição da prévia
     try {
-      if (colorExpr) {
-        if (pm.getLayer('sectors-fill-layer')) {
-          pm.setPaintProperty('sectors-fill-layer', 'fill-color', colorExpr);
-          // Always match outline to fill — in border mode fill-opacity is 0 so this is invisible anyway
-          pm.setPaintProperty('sectors-fill-layer', 'fill-outline-color', colorExpr);
-        }
-        // Always sync line-color so switching modes shows correct colors immediately
-        if (pm.getLayer('sectors-line-layer')) {
-          pm.setPaintProperty('sectors-line-layer', 'line-color', colorExpr);
-        }
+      const src = pm.getSource('sectors');
+      const data = getGeoJSONSourceData(src);
+      if (src && data?.features) {
+        const features = data.features.map(f => {
+          const code = String(f.properties?.CD_MUN ?? f.properties?.Codigo_Municipio ?? '');
+          const raw = rawByCode.get(code);
+          let v = isNoDataMarker(raw) ? null : raw;
+          if (v !== null && numeric) { const n = parseNumber(v); v = Number.isNaN(n) ? null : n; }
+          else if (v !== null) v = `${v}`;
+          return { ...f, properties: { ...f.properties, studio_value: v, studio_in: inFilter.has(code) } };
+        });
+        src.setData({ type: 'FeatureCollection', features });
       }
-    } catch(e) { console.warn('Viz apply error:', e); }
+    } catch (e) { console.warn('Studio data update error:', e); }
 
-    // 4. Update legend data for overlay
-    const missing = vizType === 'indicator' ? 0 : countMissing(filtered, attribute, baseExpr?.[0] === 'step');
-    const { items } = buildLegendItems(baseExpr, values, missing);
-    const title = vizType === 'indicator' ? `${vizInd} (${vizYr})` : `Atributo: ${attribute}`;
-    setLegendData({ title, items });
-  }, [csvData, indicadoresData, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
+    // 5. Cores em polígonos, contornos e pontos; filtros escondem de fato os demais municípios
+    const polyFilter = ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']];
+    const inStudio = ['==', ['get', 'studio_in'], true];
+    try {
+      if (pm.getLayer('sectors-fill-layer')) {
+        pm.setPaintProperty('sectors-fill-layer', 'fill-color', colorExpr);
+        // Always match outline to fill — in border mode fill-opacity is 0 so this is invisible anyway
+        pm.setPaintProperty('sectors-fill-layer', 'fill-outline-color', colorExpr);
+        pm.setFilter('sectors-fill-layer', ['all', polyFilter, inStudio]);
+      }
+      if (pm.getLayer('sectors-line-layer')) {
+        pm.setPaintProperty('sectors-line-layer', 'line-color', colorExpr);
+        pm.setFilter('sectors-line-layer', ['all', polyFilter, inStudio]);
+      }
+      if (pm.getLayer('sectors-point-layer')) {
+        pm.setPaintProperty('sectors-point-layer', 'circle-color', colorExpr);
+        pm.setFilter('sectors-point-layer', ['all', ['==', ['geometry-type'], 'Point'], inStudio]);
+      }
+    } catch (e) { console.warn('Viz apply error:', e); }
+
+    // 6. Legenda da prévia/exportação — a mesma do mapa principal quando a variável é a mesma
+    const { items: autoItems } = buildLegendItems(baseExpr, values, missing);
+    const items = customLegend?.items?.length
+      ? [...customLegend.items.filter(it => !it.noData), ...autoItems.filter(it => it.noData)]
+      : autoItems;
+    const defaultTitle = useIndicator ? `Indicador: ${vizInd} (${vizYr})` : `Atributo: ${vizAttr}`;
+    setLegendData({ title: customLegend?.title || defaultTitle, items });
+  }, [csvData, indicadoresData, legendConfigByKey, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType]);
 
   // Always keep ref pointing to latest version so loadPage (with [] deps) can call it
@@ -1388,7 +1440,7 @@ const ImageExportStudio = () => {
       const ownSourceIds = new Set();
       // Find all own layers and their source IDs
       (currentStyle.layers || []).forEach(l => {
-        if (OWN_LAYERS.has(l.id)) {
+        if (isAppLayer(l.id)) {
           savedLayers.push(JSON.parse(JSON.stringify(l)));
           if (l.source) ownSourceIds.add(l.source);
         }
@@ -1427,7 +1479,7 @@ const ImageExportStudio = () => {
           LAYER_CATEGORIES.forEach(cat => {
             if (!layerVis[cat.key]) {
               allLayers.forEach(l => {
-                if (!OWN_LAYERS.has(l.id) && cat.match(l)) {
+                if (!isAppLayer(l.id) && cat.match(l)) {
                   try { pm.setLayoutProperty(l.id, 'visibility', 'none'); } catch(e) {}
                 }
               });
@@ -1454,7 +1506,7 @@ const ImageExportStudio = () => {
     const visibility = newVis ? 'visible' : 'none';
     const allLayers = pm.getStyle().layers || [];
     allLayers.forEach(l => {
-      if (!OWN_LAYERS.has(l.id) && cat.match(l)) {
+      if (!isAppLayer(l.id) && cat.match(l)) {
         try { pm.setLayoutProperty(l.id, 'visibility', visibility); } catch(e) {}
       }
     });
@@ -1549,14 +1601,17 @@ const ImageExportStudio = () => {
       setExportPages([{ name: 'Página 1', preset: 0, customW: 3840, customH: 2160, useCustom: false,
         orientation: 'landscape', format: 'png', jpegQuality: 0.92, previewStyle: normalizeBasemap(mapStyle),
         layerVis: { labels:true,roads:true,buildings:true,admin:true,water:true,landuse:true },
-        prvRenderMode: 'filled', prvFillOpacity: 0.6, prvBorderWidth: 2,
-        prvVizType: 'attribute', prvVizAttribute: colorAttribute || 'Sigla_Regiao', prvVizIndicator: '', prvVizYear: '', prvVizValueType: 'value',
-        prvFilterRegion: 'all', prvFilterState: 'all', prvFilterCityType: 'all',
+        ...mainVizCfg(),
         incNorth: showNorthArrow, incScale: showScaleBar, incLegend: showAttributeLegend, incAnnLegend: showAnnotationLegend, incTitle: true,
         titleCfg: { title: 'Título do Mapa', subtitle: '', fontFamily: 'Inter, sans-serif', titleSize: 32, subtitleSize: 18, titleWeight: 'bold', subtitleWeight: 'normal', titleStyle: '', subtitleStyle: 'italic', titleColor: '#ffffff', subtitleColor: '#cccccc', showBg: true, bgColor: '#000000', bgOpacity: 0.6, align: 'left' },
         overlayPos: { north:{x:0.02,y:0.14}, scale:{x:0.02,y:0.82}, legend:{x:0.82,y:0.05}, annLegend:{x:0.80,y:0.35}, title:{x:0.02,y:0.02} },
       }]);
       setCurrentPageIdx(0);
+      // A primeira página começa com a mesma variável, cores e modo do mapa principal
+      const m = mainVizCfg();
+      setPrvVizType(m.prvVizType); setPrvVizAttribute(m.prvVizAttribute); setPrvVizIndicator(m.prvVizIndicator);
+      setPrvVizYear(m.prvVizYear); setPrvVizValueType(m.prvVizValueType);
+      setPrvRenderMode(m.prvRenderMode); setPrvFillOpacity(m.prvFillOpacity); setPrvBorderWidth(m.prvBorderWidth);
     }
 
     // Read legend
@@ -1624,7 +1679,7 @@ const ImageExportStudio = () => {
           prvFilterRegion: savedPage.prvFilterRegion ?? 'all',
           prvFilterState: savedPage.prvFilterState ?? 'all',
           prvFilterCityType: savedPage.prvFilterCityType ?? 'all',
-        } : null;
+        } : mainVizCfg();
         // If the saved page has a different style, switch to it
         // handlePreviewStyleChange handles saving/re-adding custom layers
         if (savedStyle && normalizeBasemap(savedStyle) !== normalizeBasemap(mapStyle)) {
@@ -1651,7 +1706,9 @@ const ImageExportStudio = () => {
     if (w === 0 || h === 0) return;
     // Skip full redraw if no overlays are visible
     const anyVisible = incNorth || incScale || incLegend || incAnnLegend || incTitle || studioElements.length > 0;
-    const dpr = window.devicePixelRatio || 1;
+    // A moldura já está na resolução final (e aparece reduzida na tela): multiplicar pelo
+    // devicePixelRatio criaria um canvas 4–9× maior e estouraria a memória do celular.
+    const dpr = 1;
     const targetCW = Math.round(w * dpr);
     const targetCH = Math.round(h * dpr);
     // Only resize canvas when dimensions actually changed (resizing clears context state)
@@ -2241,6 +2298,18 @@ const ImageExportStudio = () => {
                 <span>🎨 Visualização e Filtros</span><span className={`studio-chevron ${openSections.vizFilter ? 'open' : ''}`}>▸</span>
               </div>
               {openSections.vizFilter && (<>
+                <button type="button" className="studio-toolbar-btn" style={{ width: '100%', marginBottom: 8, minHeight: 36 }}
+                  title="Usa a mesma variável, cores e modo de exibição do mapa principal"
+                  onClick={() => {
+                    const m = mainVizCfg();
+                    setPrvVizType(m.prvVizType); setPrvVizAttribute(m.prvVizAttribute); setPrvVizIndicator(m.prvVizIndicator);
+                    setPrvVizYear(m.prvVizYear); setPrvVizValueType(m.prvVizValueType);
+                    setPrvRenderMode(m.prvRenderMode); setPrvFillOpacity(m.prvFillOpacity); setPrvBorderWidth(m.prvBorderWidth);
+                    setPrvFilterRegion('all'); setPrvFilterState('all'); setPrvFilterCityType('all');
+                    applyPreviewVisualization(m);
+                  }}>
+                  ↺ Igual ao mapa principal
+                </button>
                 <div className="studio-input-row">
                   <label>Tipo</label>
                   <select className="studio-select" value={prvVizType} onChange={e => { setPrvVizType(e.target.value); }}>

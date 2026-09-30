@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';
-import { getColorScale, getLegendKey, makeNumberParser, withNoDataColor } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, makeNumberParser, withNoDataColor, applyCustomLegendColors, isNoDataMarker, isNumericValues } from '../utils/colorUtils';
 import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
 import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
 
@@ -26,7 +26,7 @@ export const MapProvider = ({ children }) => {
   // (municípios, anotações, gratícula) sejam recriadas após toda troca de mapa base.
   const [styleVersion, setStyleVersion] = useState(0);
 
-  const { geojsonData, indicadoresData, filteredCsvData } = useContext(DataContext);
+  const { geojsonData, indicadoresData, filteredCsvData, csvData } = useContext(DataContext);
   // Consumindo diretamente do UIContext, sem valores padrão aqui
   const { colorAttribute, visualizationConfig, activeEnvironment, setSelectedCityInfo, legendConfigByKey, showGraticule, graticuleStyle, showMeasurements } = useContext(UIContext);
 
@@ -282,46 +282,27 @@ export const MapProvider = ({ children }) => {
     }
 
     const combinedGeoJson = { type: 'FeatureCollection', features: finalFeatures };
-    const attributeValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => v !== undefined && v !== null);
-    const baseScaleExpression = getColorScale(currentAttributeForColoring, attributeValues);
-    if (baseScaleExpression[0] === 'step') {
-      // Grava o valor como número ("590,3" → 590.3); o que não é número vira null = "Sem dados"
-      const parseNumber = makeNumberParser(attributeValues);
+    // Coluna numérica: grava o valor como número ("590,3" → 590.3, "22.516" → 22516), com o
+    // formato decidido pela coluna completa; o que não é número vira null = "Sem dados"
+    const rawValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => !isNoDataMarker(v));
+    if (currentAttributeForColoring !== 'Nome_Municipio' && isNumericValues(rawValues)) {
+      const fullColumn = currentAttributeForColoring === 'visualization_value'
+        ? rawValues
+        : (csvData || []).map(r => r[currentAttributeForColoring]).filter(v => !isNoDataMarker(v));
+      const parseNumber = makeNumberParser(fullColumn);
       finalFeatures.forEach(f => {
         const n = parseNumber(f.properties[currentAttributeForColoring]);
         f.properties[currentAttributeForColoring] = Number.isNaN(n) ? null : n;
       });
     }
+    const attributeValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => v !== undefined && v !== null);
+    const baseScaleExpression = getColorScale(currentAttributeForColoring, attributeValues);
     let colorRenderScaleExpression = baseScaleExpression;
 
     const legendKey = getLegendKey(visualizationConfig, colorAttribute);
     const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
 
-    if (customLegend && customLegend.items && customLegend.items.length > 0) {
-      colorRenderScaleExpression = [...baseScaleExpression]; // shallow copy
-      const expressionType = colorRenderScaleExpression[0];
-      
-      if (expressionType === 'match') {
-        // items correspond to indices 3, 5, 7...
-        for (let i = 0; i < customLegend.items.length; i++) {
-          const colorIndex = 3 + i * 2;
-          if (colorIndex < colorRenderScaleExpression.length) {
-            colorRenderScaleExpression[colorIndex] = customLegend.items[i].color;
-          }
-        }
-      } else if (expressionType === 'step') {
-        // items correspond to index 2, then 4, 6, 8...
-        if (customLegend.items.length > 0) {
-          colorRenderScaleExpression[2] = customLegend.items[0].color;
-        }
-        for (let i = 1; i < customLegend.items.length; i++) {
-          const colorIndex = 4 + (i - 1) * 2;
-          if (colorIndex < colorRenderScaleExpression.length) {
-            colorRenderScaleExpression[colorIndex] = customLegend.items[i].color;
-          }
-        }
-      }
-    }
+    colorRenderScaleExpression = applyCustomLegendColors(baseScaleExpression, customLegend);
 
     colorRenderScaleExpression = withNoDataColor(currentAttributeForColoring, colorRenderScaleExpression);
 

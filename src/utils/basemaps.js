@@ -172,3 +172,8 @@ export const getGeoJSONSourceData = (source) => {
 // (map.isStyleLoaded() do MapLibre também espera todos os tiles do mapa base carregarem,
 // o que atrasaria — ou impediria, com rede lenta — o desenho das camadas do app.)
 export const isStyleReady = (map) => !!(map && map.style && map.style._loaded);
+
+// Camadas criadas pelo app (e não pelo mapa base): municípios, anotações, medidas,
+// gratícula e pré-visualização do desenho. Identificadas por prefixo para não esquecer nenhuma.
+const APP_LAYER_PREFIXES = ['sectors-', 'annotations-', 'graticule-', 'preview', 'prev-'];
+export const isAppLayer = (id) => APP_LAYER_PREFIXES.some(p => String(id).startsWith(p));

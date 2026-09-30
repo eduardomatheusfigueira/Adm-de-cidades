@@ -3,7 +3,7 @@ import { Rnd } from 'react-rnd';
 import '../styles/Legend.css';
 import { UIContext } from '../contexts/UIContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing, toNumericIfPossible } from '../utils/colorUtils';
 
 const isValidColor = (value) => /^#([0-9A-F]{3}){1,2}$/i.test(value);
 
@@ -17,7 +17,7 @@ const Legend = () => {
     showAttributeLegend,
     setShowAttributeLegend
   } = useContext(UIContext);
-  const { filteredCsvData, indicadoresData } = useContext(DataContext);
+  const { filteredCsvData, csvData, indicadoresData } = useContext(DataContext);
 
   const legendKey = useMemo(
     () => getLegendKey(visualizationConfig, colorAttribute),
@@ -55,6 +55,10 @@ const Legend = () => {
         .filter((value) => value !== undefined && value !== null && `${value}`.trim() !== '');
     }
 
+    // Números lidos com o formato decidido pela coluna completa (não só os filtrados)
+    if (visualizationConfig?.type !== 'indicator') {
+      values = toNumericIfPossible(values, (csvData || []).map((row) => row[attribute]).filter((v) => !isNoDataMarker(v)));
+    }
     const scaleExpression = getColorScale(attribute, values);
     // Indicadores sem linha para o município também são "sem dados", mas a contagem
     // aqui considera só os registros existentes do atributo/indicador.
@@ -63,7 +67,7 @@ const Legend = () => {
       : countMissing(filteredCsvData, attribute, scaleExpression?.[0] === 'step');
     const { type, items } = buildLegendItems(scaleExpression, values, missing);
     return { title, items, type };
-  }, [legendKey, colorAttribute, visualizationConfig, filteredCsvData, indicadoresData]);
+  }, [legendKey, colorAttribute, visualizationConfig, filteredCsvData, csvData, indicadoresData]);
 
   const customLegend = legendKey ? legendConfigByKey[legendKey] : null;
 
