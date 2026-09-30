@@ -1,0 +1,249 @@
+{
+ "fonte": "IBGE — perímetros municipais via github.com/tbrugz/geodata-br (CC0); lista de municípios via github.com/kelvins/municipios-brasileiros (MIT)",
+ "simplificacao": "6%",
+ "ufs": [
+  {
+   "uf": "AC",
+   "codigo_uf": "12",
+   "nome": "Acre",
+   "regiao": "N",
+   "municipios": 22,
+   "arquivo": "municipios-12.json",
+   "bytes": 7177
+  },
+  {
+   "uf": "AL",
+   "codigo_uf": "27",
+   "nome": "Alagoas",
+   "regiao": "NE",
+   "municipios": 102,
+   "arquivo": "municipios-27.json",
+   "bytes": 22844
+  },
+  {
+   "uf": "AM",
+   "codigo_uf": "13",
+   "nome": "Amazonas",
+   "regiao": "N",
+   "municipios": 62,
+   "arquivo": "municipios-13.json",
+   "bytes": 33812
+  },
+  {
+   "uf": "AP",
+   "codigo_uf": "16",
+   "nome": "Amapá",
+   "regiao": "N",
+   "municipios": 16,
+   "arquivo": "municipios-16.json",
+   "bytes": 6000
+  },
+  {
+   "uf": "BA",
+   "codigo_uf": "29",
+   "nome": "Bahia",
+   "regiao": "NE",
+   "municipios": 417,
+   "arquivo": "municipios-29.json",
+   "bytes": 101288
+  },
+  {
+   "uf": "CE",
+   "codigo_uf": "23",
+   "nome": "Ceará",
+   "regiao": "NE",
+   "municipios": 184,
+   "arquivo": "municipios-23.json",
+   "bytes": 44542
+  },
+  {
+   "uf": "DF",
+   "codigo_uf": "53",
+   "nome": "Distrito Federal",
+   "regiao": "CO",
+   "municipios": 1,
+   "arquivo": "municipios-53.json",
+   "bytes": 934
+  },
+  {
+   "uf": "ES",
+   "codigo_uf": "32",
+   "nome": "Espírito Santo",
+   "regiao": "SE",
+   "municipios": 78,
+   "arquivo": "municipios-32.json",
+   "bytes": 22223
+  },
+  {
+   "uf": "GO",
+   "codigo_uf": "52",
+   "nome": "Goiás",
+   "regiao": "CO",
+   "municipios": 246,
+   "arquivo": "municipios-52.json",
+   "bytes": 72017
+  },
+  {
+   "uf": "MA",
+   "codigo_uf": "21",
+   "nome": "Maranhão",
+   "regiao": "NE",
+   "municipios": 217,
+   "arquivo": "municipios-21.json",
+   "bytes": 69857
+  },
+  {
+   "uf": "MG",
+   "codigo_uf": "31",
+   "nome": "Minas Gerais",
+   "regiao": "SE",
+   "municipios": 853,
+   "arquivo": "municipios-31.json",
+   "bytes": 213385
+  },
+  {
+   "uf": "MS",
+   "codigo_uf": "50",
+   "nome": "Mato Grosso do Sul",
+   "regiao": "CO",
+   "municipios": 78,
+   "arquivo": "municipios-50.json",
+   "bytes": 24367
+  },
+  {
+   "uf": "MT",
+   "codigo_uf": "51",
+   "nome": "Mato Grosso",
+   "regiao": "CO",
+   "municipios": 141,
+   "arquivo": "municipios-51.json",
+   "bytes": 45320
+  },
+  {
+   "uf": "PA",
+   "codigo_uf": "15",
+   "nome": "Pará",
+   "regiao": "N",
+   "municipios": 143,
+   "arquivo": "municipios-15.json",
+   "bytes": 51279
+  },
+  {
+   "uf": "PB",
+   "codigo_uf": "25",
+   "nome": "Paraíba",
+   "regiao": "NE",
+   "municipios": 223,
+   "arquivo": "municipios-25.json",
+   "bytes": 50662
+  },
+  {
+   "uf": "PE",
+   "codigo_uf": "26",
+   "nome": "Pernambuco",
+   "regiao": "NE",
+   "municipios": 185,
+   "arquivo": "municipios-26.json",
+   "bytes": 66335
+  },
+  {
+   "uf": "PI",
+   "codigo_uf": "22",
+   "nome": "Piauí",
+   "regiao": "NE",
+   "municipios": 223,
+   "arquivo": "municipios-22.json",
+   "bytes": 52904
+  },
+  {
+   "uf": "PR",
+   "codigo_uf": "41",
+   "nome": "Paraná",
+   "regiao": "S",
+   "municipios": 399,
+   "arquivo": "municipios-41.json",
+   "bytes": 100483
+  },
+  {
+   "uf": "RJ",
+   "codigo_uf": "33",
+   "nome": "Rio de Janeiro",
+   "regiao": "SE",
+   "municipios": 92,
+   "arquivo": "municipios-33.json",
+   "bytes": 33124
+  },
+  {
+   "uf": "RN",
+   "codigo_uf": "24",
+   "nome": "Rio Grande do Norte",
+   "regiao": "NE",
+   "municipios": 167,
+   "arquivo": "municipios-24.json",
+   "bytes": 37252
+  },
+  {
+   "uf": "RO",
+   "codigo_uf": "11",
+   "nome": "Rondônia",
+   "regiao": "N",
+   "municipios": 52,
+   "arquivo": "municipios-11.json",
+   "bytes": 15945
+  },
+  {
+   "uf": "RR",
+   "codigo_uf": "14",
+   "nome": "Roraima",
+   "regiao": "N",
+   "municipios": 15,
+   "arquivo": "municipios-14.json",
+   "bytes": 6130
+  },
+  {
+   "uf": "RS",
+   "codigo_uf": "43",
+   "nome": "Rio Grande do Sul",
+   "regiao": "S",
+   "municipios": 496,
+   "arquivo": "municipios-43.json",
+   "bytes": 123032
+  },
+  {
+   "uf": "SC",
+   "codigo_uf": "42",
+   "nome": "Santa Catarina",
+   "regiao": "S",
+   "municipios": 293,
+   "arquivo": "municipios-42.json",
+   "bytes": 70955
+  },
+  {
+   "uf": "SE",
+   "codigo_uf": "28",
+   "nome": "Sergipe",
+   "regiao": "NE",
+   "municipios": 75,
+   "arquivo": "municipios-28.json",
+   "bytes": 17489
+  },
+  {
+   "uf": "SP",
+   "codigo_uf": "35",
+   "nome": "São Paulo",
+   "regiao": "SE",
+   "municipios": 645,
+   "arquivo": "municipios-35.json",
+   "bytes": 162108
+  },
+  {
+   "uf": "TO",
+   "codigo_uf": "17",
+   "nome": "Tocantins",
+   "regiao": "N",
+   "municipios": 139,
+   "arquivo": "municipios-17.json",
+   "bytes": 38530
+  }
+ ]
+}

@@ -189,6 +189,7 @@ export const MapProvider = ({ children }) => {
     const parseIndicatorValue = toNullable(makeNumberParser(indicatorRows.map(r => r.Valor)));
     const parseIndicatorPosition = toNullable(makeNumberParser(indicatorRows.map(r => r.Indice_Posicional)));
     const finalFeatures = [];
+    const polygonCodes = new Set();
 
     console.log(`[MapContext] Processing ${currentMapData.length} cities from CSV.`);
 
@@ -214,7 +215,7 @@ export const MapProvider = ({ children }) => {
           const properties = {
             ...feature.properties, ...cityData, CD_MUN: cdMun, NAME: cityData.Nome_Municipio,
             LEVEL: 'Municípios', AREA: parseFloat(cityData.Area_Municipio),
-            CAPITAL: cityData.Capital === 'true', ESTADO: cityData.Sigla_Estado,
+            CAPITAL: String(cityData.Capital).trim().toLowerCase() === 'true', ESTADO: cityData.Sigla_Estado,
             ALTITUDE: parseFloat(cityData.Altitude_Municipio), LONGITUDE: lon, LATITUDE: lat,
             REGIAO: cityData.Sigla_Regiao,
             custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`
@@ -233,6 +234,7 @@ export const MapProvider = ({ children }) => {
           } else if (currentAttributeForColoring !== 'visualization_value') delete properties.visualization_value;
 
           finalFeatures.push({ ...feature, properties });
+          polygonCodes.add(cdMun);
           // csvDataMap.delete(cdMun); // Keep to generate point
         }
       });
@@ -250,10 +252,13 @@ export const MapProvider = ({ children }) => {
 
       bounds.extend([lon, lat]);
       hasValidBounds = true;
+      // Municípios com polígono não ganham um ponto por cima (poluía o mapa temático);
+      // o ponto só aparece para quem não tem limite carregado
+      if (polygonCodes.has(String(cityData.Codigo_Municipio))) return;
 
       const properties = {
         CD_MUN: String(cityData.Codigo_Municipio), NAME: cityData.Nome_Municipio, LEVEL: 'Municípios',
-        AREA: parseFloat(cityData.Area_Municipio), CAPITAL: cityData.Capital === 'true',
+        AREA: parseFloat(cityData.Area_Municipio), CAPITAL: String(cityData.Capital).trim().toLowerCase() === 'true',
         ESTADO: cityData.Sigla_Estado, ALTITUDE: parseFloat(cityData.Altitude_Municipio),
         LONGITUDE: lon, LATITUDE: lat, REGIAO: cityData.Sigla_Regiao, ...cityData,
         custom_description: `Dados CSV: ${cityData.Nome_Municipio}, Estado: ${cityData.Sigla_Estado}`

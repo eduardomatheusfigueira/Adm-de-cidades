@@ -47,6 +47,18 @@ Durante a evolução do projeto, algumas funcionalidades foram planejadas ou par
 
 *   **Edição Direta de Dados (`CityEditor.jsx`)**: Existe um componente robusto com interface (abas) para edição direta de geometrias, atributos gerais e adição/remoção de indicadores de uma cidade específica. Esta funcionalidade é referenciada como "em desenvolvimento", e embora o componente exista e pareça lidar com o estado temporário das edições, a persistência no backend/arquivo estático não ocorre em ambiente de produção (rodando *client-side* puro). Há botões como "Salvar", "Excluir Cidade" e lógicas de atualização de estado no `App.jsx` (`handleCityUpdateInApp`, `handleCityDeleteInApp`), mas sem persistência em disco na versão empacotada.
 
+## Malhas do IBGE embutidas
+
+O app já traz os limites dos 5.564 municípios com malha (IBGE, simplificados) e a lista dos 5.571
+municípios em `public/data/`, então os alunos podem começar em **Dados → Mapa do Brasil (IBGE)**
+ou em **Dados → Juntar minha tabela (CSV)** sem baixar arquivos de geometria.
+
+* Fontes: perímetros municipais do IBGE via [geodata-br](https://github.com/tbrugz/geodata-br) (CC0) e lista de
+  municípios via [municipios-brasileiros](https://github.com/kelvins/municipios-brasileiros) (MIT).
+* Para regenerar: `npm run build:malhas` (precisa de internet).
+* Limitação conhecida: sete municípios criados depois de 2010 (ex.: Pescaria Brava/SC, Boa Esperança do Norte/MT)
+  não têm polígono nessa malha; aparecem como ponto.
+
 ## Tecnologias e Dependências Técnicas
 
 As principais tecnologias declaradas no `package.json` são:

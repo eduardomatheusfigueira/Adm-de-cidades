@@ -8,11 +8,14 @@ import { generateExportHtml } from '../utils/exportMap';
 import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing, toNumericIfPossible } from '../utils/colorUtils';
 import { getGeoJSONSourceData, resolveBasemapStyle } from '../utils/basemaps';
 import { useProjectState } from '../hooks/useProjectState';
+import DataWizard from './DataWizard';
 
 const FilterMenu = ({ onImportGeometry }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showDrawTools, setShowDrawTools] = useState(false);
   const menuRef = useRef(null);
+  // Assistente de dados aberto: 'malha' | 'tabela' | null
+  const [wizard, setWizard] = useState(null);
 
   // --- Data Context ---
   const {
@@ -267,9 +270,14 @@ const FilterMenu = ({ onImportGeometry }) => {
         <div className="filter-section">
           <h3>Dados</h3>
           <div className="filter-actions import-export-buttons">
-            <button className="control-button import-button" onClick={handleImportIndicators}>Importar Indicadores</button>
-            <button className="control-button import-button" onClick={handleImportMunicipios}>Importar Municípios</button>
-            <button className="control-button import-geometry-button" onClick={onImportGeometry}>Importar Geometria</button>
+            <button className="control-button import-button" onClick={() => { setWizard('malha'); setIsOpen(false); }}>🗺️ Mapa do Brasil (IBGE)</button>
+            <button className="control-button import-button" onClick={() => { setWizard('tabela'); setIsOpen(false); }}>📊 Juntar minha tabela (CSV)</button>
+            <details className="advanced-imports">
+              <summary>Formatos avançados</summary>
+              <button className="control-button import-button" onClick={handleImportIndicators}>Importar Indicadores</button>
+              <button className="control-button import-button" onClick={handleImportMunicipios}>Importar Municípios</button>
+              <button className="control-button import-geometry-button" onClick={onImportGeometry}>Importar Geometria</button>
+            </details>
           </div>
         </div>
 
@@ -325,6 +333,7 @@ const FilterMenu = ({ onImportGeometry }) => {
           </div>
         </div>
       </div>
+      {wizard && <DataWizard mode={wizard} onClose={() => setWizard(null)} />}
     </div>
   );
 };

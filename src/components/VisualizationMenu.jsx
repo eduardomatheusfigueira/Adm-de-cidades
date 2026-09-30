@@ -4,6 +4,7 @@ import { DataContext } from '../contexts/DataContext';
 import { MapContext } from '../contexts/MapContext';
 import { UIContext } from '../contexts/UIContext'; // Importado UIContext
 import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, isStyleReady, isAppLayer } from '../utils/basemaps';
+import { isNumericValues } from '../utils/colorUtils';
 
 const VisualizationMenu = ({
   onFiltersApplied // Esta prop ainda é passada por AppContent para coordenar DataContext e UIContext
@@ -179,7 +180,7 @@ const VisualizationMenu = ({
 
       if (values.length === 0) return false;
 
-      return values.every((value) => !Number.isNaN(parseFloat(value)));
+      return isNumericValues(values);
     };
 
     const categorical = [];

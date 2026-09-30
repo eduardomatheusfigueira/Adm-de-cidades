@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useMemo, useCallback } from 'react';
 import Papa from 'papaparse';
+import { loadBaseMunicipios, loadMunicipiosGeometry, normalizeMunCode } from '../utils/malhas';
 
 // Importa dados CSV como strings raw
 import municipiosCsvDataRaw from '../../data/municipios.csv?raw';
@@ -345,6 +346,89 @@ ${newCount} novos adicionados.`);
 
   // Função para atualizar filteredCsvData, antes parte de handleFiltersApplied em App.jsx
   // O segundo argumento (selectedColorAttribute) será gerenciado pelo UIContext.
+  // ------------------------------------------------------------------
+  // Malha do IBGE embutida e junção de tabelas pelo código do município
+  // ------------------------------------------------------------------
+
+  // Enquanto o aluno não trouxe dados, a tabela embutida de exemplo é substituída (não somada)
+  const isInitialData = csvData === initialCsvData;
+
+  // Acrescenta geometrias (sem duplicar municípios já carregados)
+  const mergeGeometries = useCallback((features) => {
+    const codes = new Set(features.map(f => String(f.properties.CD_MUN)));
+    setGeojsonData(prev => ({
+      type: 'FeatureCollection',
+      features: [...(prev?.features || []).filter(f => !codes.has(String(f.properties?.CD_MUN))), ...features],
+    }));
+  }, []);
+
+  // UFs que já têm geometria carregada (lidas do estado atual, que pode ter vindo de um perfil)
+  const geojsonRef = React.useRef(geojsonData);
+  geojsonRef.current = geojsonData;
+  const ensureGeometryForUfs = useCallback(async (codigosUf) => {
+    const present = new Set((geojsonRef.current?.features || []).map(f => String(f.properties?.CD_MUN ?? '').slice(0, 2)));
+    const missing = codigosUf.filter(c => !present.has(c));
+    if (!missing.length) return 0;
+    const features = await loadMunicipiosGeometry(missing);
+    mergeGeometries(features);
+    return features.length;
+  }, [mergeGeometries]);
+
+  const replaceRows = useCallback((rows, extraHeaders = []) => {
+    setCsvData(rows);
+    setFilteredCsvData(rows);
+    setCsvHeaders(prev => mergeHeaders(isInitialData ? REQUIRED_MUNICIPIOS_COLUMNS : prev, [...REQUIRED_MUNICIPIOS_COLUMNS, ...extraHeaders]));
+  }, [isInitialData]);
+
+  // Carrega a malha e a tabela base dos municípios das UFs pedidas (códigos IBGE de 2 dígitos)
+  const loadBaseMap = useCallback(async (codigosUf) => {
+    const [base] = await Promise.all([loadBaseMunicipios(), ensureGeometryForUfs(codigosUf)]);
+    const wanted = new Set(codigosUf);
+    const baseRows = base.filter(r => wanted.has(String(r.Codigo_Municipio).slice(0, 2)));
+    const current = isInitialData ? [] : csvData;
+    const have = new Set(current.map(r => String(r.Codigo_Municipio)));
+    const rows = [...current, ...baseRows.filter(r => !have.has(String(r.Codigo_Municipio))).map(r => ({ ...r }))];
+    replaceRows(rows);
+    return { municipios: baseRows.length };
+  }, [csvData, isInitialData, ensureGeometryForUfs, replaceRows]);
+
+  // Junta as colunas de uma tabela do aluno aos municípios, pelo código IBGE (7 ou 6 dígitos).
+  // Municípios ainda não carregados entram automaticamente (com a malha da UF deles).
+  const joinTable = useCallback(async ({ rows, headers, codeColumn }) => {
+    const base = await loadBaseMunicipios();
+    const by7 = new Map(base.map(r => [String(r.Codigo_Municipio), r]));
+    const by6 = new Map(base.map(r => [String(r.Codigo_Municipio).slice(0, 6), r]));
+    const newColumns = headers.filter(h => h !== codeColumn && !REQUIRED_MUNICIPIOS_COLUMNS.includes(h));
+
+    const valuesByCode = new Map();
+    const unmatched = [];
+    rows.forEach(r => {
+      const { code7, code6 } = normalizeMunCode(r[codeColumn]);
+      const baseRow = (code7 && by7.get(code7)) || (code6 && by6.get(code6));
+      if (!baseRow) { if (`${r[codeColumn] ?? ''}`.trim()) unmatched.push(r[codeColumn]); return; }
+      const values = {};
+      newColumns.forEach(c => { values[c] = r[c] ?? ''; });
+      valuesByCode.set(String(baseRow.Codigo_Municipio), values);
+    });
+
+    const current = isInitialData ? [] : csvData;
+    const have = new Set(current.map(r => String(r.Codigo_Municipio)));
+    const updated = current.map(r => {
+      const v = valuesByCode.get(String(r.Codigo_Municipio));
+      return v ? { ...r, ...v } : r;
+    });
+    const added = [];
+    valuesByCode.forEach((v, code) => {
+      if (!have.has(code)) added.push({ ...by7.get(code), ...v });
+    });
+    const allRows = [...updated, ...added];
+    replaceRows(allRows, newColumns);
+
+    const ufs = [...new Set(allRows.map(r => String(r.Codigo_Municipio).slice(0, 2)))];
+    await ensureGeometryForUfs(ufs);
+    return { total: rows.length, matched: valuesByCode.size, unmatched, newColumns, added: added.length };
+  }, [csvData, isInitialData, ensureGeometryForUfs, replaceRows]);
+
   const applyFiltersToCsvData = useCallback((newFilteredData) => {
     console.log("[DataContext] Aplicando filtros, novo filteredCsvData:", newFilteredData.length);
     setFilteredCsvData(newFilteredData);
@@ -368,6 +452,8 @@ ${newCount} novos adicionados.`);
     setGeojsonData, // Para handleCityUpdate, por exemplo
     handleImportIndicators,
     handleImportMunicipios,
+    loadBaseMap,
+    joinTable,
     processGeometryImportInternal, // A ser chamada por UIContext após modal
     handleSaveProfile,
     handleLoadProfile,
