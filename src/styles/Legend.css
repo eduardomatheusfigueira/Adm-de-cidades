@@ -205,3 +205,8 @@
   margin-top: 4px;
   font-family: var(--font-body);
 }
+
+/* Hachura "Sem dados" (guia de identidade): #E4DFD5 com traços #CCC7BC a 45° */
+.legend-color-sem-dados {
+  background-image: repeating-linear-gradient(-45deg, transparent 0 2.5px, #CCC7BC 2.5px 4px);
+}

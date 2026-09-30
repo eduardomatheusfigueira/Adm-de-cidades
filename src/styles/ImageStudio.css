@@ -400,7 +400,7 @@
   font-size: 0.72rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   border: 1px solid rgba(0,0,0,0.08);
-  color: #1e293b;
+  color: #00242D;
   min-width: 120px;
 }
 
@@ -409,8 +409,8 @@
   font-size: 0.76rem;
   margin-bottom: 6px;
   padding-bottom: 4px;
-  border-bottom: 1px solid #e2e8f0;
-  color: #0f172a;
+  border-bottom: 1px solid #E4DFD5;
+  color: #00242D;
 }
 
 .studio-overlay-legend-item {
@@ -455,7 +455,7 @@
 
 .studio-overlay-source-text {
   background: rgba(255, 255, 255, 0.85);
-  color: #475569;
+  color: #4B4740;
   padding: 4px 12px;
   border-radius: 4px;
   font-size: 0.65rem;
@@ -484,14 +484,14 @@
 .studio-scale-label {
   font-size: 0.65rem;
   font-weight: 600;
-  color: #1e293b;
+  color: #00242D;
 }
 
 .studio-scale-line {
   height: 6px;
-  border-left: 2px solid #1e293b;
-  border-right: 2px solid #1e293b;
-  border-bottom: 2px solid #1e293b;
+  border-left: 2px solid #00242D;
+  border-right: 2px solid #00242D;
+  border-bottom: 2px solid #00242D;
 }
 
 /* ---- BOTTOM ACTION BAR ---- */

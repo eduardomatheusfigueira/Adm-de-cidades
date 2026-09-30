@@ -60,7 +60,7 @@ const NorthArrow = () => {
             position: 'relative',
             backgroundColor: showBg ? 'var(--surface-color, #ffffff)' : 'transparent',
             borderRadius: showBg ? '12px' : '0',
-            border: showBg ? '1px solid var(--border-color, #e2e8f0)' : 'none',
+            border: showBg ? '1px solid var(--border-color, #E4DFD5)' : 'none',
             boxShadow: showBg ? '0 4px 16px rgba(0,0,0,0.12)' : 'none',
             padding: showBg ? '10px' : '2px',
             boxSizing: 'border-box',
@@ -141,8 +141,8 @@ const NorthArrow = () => {
                   );
                 })}
                 <polygon points="100,46 91,114 100,106" fill="currentColor" stroke="currentColor" strokeWidth="1" />
-                <polygon points="100,46 109,114 100,106" fill={showBg ? '#cbd5e1' : 'rgba(255,255,255,0.75)'} stroke="currentColor" strokeWidth="1" />
-                <polygon points="100,182 91,114 100,122" fill={showBg ? '#94a3b8' : 'rgba(255,255,255,0.4)'} stroke="currentColor" strokeWidth="1" />
+                <polygon points="100,46 109,114 100,106" fill={showBg ? '#CCC7BC' : 'rgba(255,255,255,0.75)'} stroke="currentColor" strokeWidth="1" />
+                <polygon points="100,182 91,114 100,122" fill={showBg ? '#A39E93' : 'rgba(255,255,255,0.4)'} stroke="currentColor" strokeWidth="1" />
                 <polygon points="100,182 109,114 100,122" fill="currentColor" opacity="0.4" stroke="currentColor" strokeWidth="1" />
                 <circle cx="100" cy="114" r="4.5" fill="currentColor" stroke="#ffffff" strokeWidth="1.2" />
                 <circle cx="100" cy="16" r="13" fill="currentColor" />
@@ -165,17 +165,17 @@ const NorthArrow = () => {
                 <text x="100" y="16" textAnchor="middle" dominantBaseline="middle" fill="currentColor" fontSize="18" fontWeight="900" fontFamily="Inter, sans-serif">N</text>
                 <g opacity="0.6">
                   <polygon points="100,112 134,78 100,98" fill="currentColor" />
-                  <polygon points="100,112 134,78 112,112" fill={showBg ? '#cbd5e1' : 'rgba(255,255,255,0.6)'} />
-                  <polygon points="100,112 66,78 100,98" fill={showBg ? '#cbd5e1' : 'rgba(255,255,255,0.6)'} />
+                  <polygon points="100,112 134,78 112,112" fill={showBg ? '#CCC7BC' : 'rgba(255,255,255,0.6)'} />
+                  <polygon points="100,112 66,78 100,98" fill={showBg ? '#CCC7BC' : 'rgba(255,255,255,0.6)'} />
                   <polygon points="100,112 66,78 88,112" fill="currentColor" />
-                  <polygon points="100,112 134,146 100,126" fill={showBg ? '#cbd5e1' : 'rgba(255,255,255,0.6)'} />
+                  <polygon points="100,112 134,146 100,126" fill={showBg ? '#CCC7BC' : 'rgba(255,255,255,0.6)'} />
                   <polygon points="100,112 134,146 112,112" fill="currentColor" />
                   <polygon points="100,112 66,146 100,126" fill="currentColor" />
-                  <polygon points="100,112 66,146 88,112" fill={showBg ? '#cbd5e1' : 'rgba(255,255,255,0.6)'} />
+                  <polygon points="100,112 66,146 88,112" fill={showBg ? '#CCC7BC' : 'rgba(255,255,255,0.6)'} />
                 </g>
                 <polygon points="100,42 100,112 84,112" fill="currentColor" />
                 <polygon points="100,42 100,112 116,112" fill={showBg ? '#ffffff' : 'rgba(255,255,255,0.85)'} stroke="currentColor" strokeWidth="1" />
-                <polygon points="100,182 100,112 84,112" fill={showBg ? '#94a3b8' : 'rgba(255,255,255,0.5)'} stroke="currentColor" strokeWidth="1" />
+                <polygon points="100,182 100,112 84,112" fill={showBg ? '#A39E93' : 'rgba(255,255,255,0.5)'} stroke="currentColor" strokeWidth="1" />
                 <polygon points="100,182 100,112 116,112" fill="currentColor" />
                 <polygon points="170,112 100,112 100,96" fill="currentColor" />
                 <polygon points="170,112 100,112 100,128" fill={showBg ? '#ffffff' : 'rgba(255,255,255,0.85)'} stroke="currentColor" strokeWidth="1" />

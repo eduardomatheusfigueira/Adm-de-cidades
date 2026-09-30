@@ -3,7 +3,8 @@ import maplibregl from 'maplibre-gl';
 import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';
-import { getColorScale, getLegendKey, withNoDataColor, applyCustomLegendColors, makeVizValueGetter, makeNumberParser } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, withNoDataColor, noDataHatchFilter, applyCustomLegendColors, makeVizValueGetter, makeNumberParser } from '../utils/colorUtils';
+import { HATCH_ID, HATCH_LAYER, ensureHatchPattern } from '../utils/hatch';
 import { SYMBOL_COLOR, NEUTRAL_FILL, symbolRadiusExpression } from '../utils/proportional';
 import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
 import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
@@ -417,6 +418,21 @@ export const MapProvider = ({ children }) => {
       map.current.setLayoutProperty('sectors-label-layer', 'visibility', visualizationConfig?.labels ? 'visible' : 'none');
     }
 
+    // Hachura "Sem dados" (guia de identidade) sobre os municípios sem valor numérico
+    ensureHatchPattern(map.current);
+    const polyOnly = ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']];
+    const hatchFilter = ['all', polyOnly, noDataHatchFilter(colorProp, baseScaleExpression)];
+    if (!map.current.getLayer(HATCH_LAYER)) {
+      map.current.addLayer({
+        id: HATCH_LAYER, type: 'fill', source: 'sectors', filter: hatchFilter,
+        paint: { 'fill-pattern': HATCH_ID },
+      }, map.current.getLayer('sectors-line-layer') ? 'sectors-line-layer' : undefined);
+    } else {
+      map.current.setFilter(HATCH_LAYER, hatchFilter);
+    }
+    const hatchVisible = (visualizationConfig?.renderMode || 'filled') === 'filled';
+    map.current.setLayoutProperty(HATCH_LAYER, 'visibility', hatchVisible ? 'visible' : 'none');
+
     // Determine render mode from visualizationConfig
     const renderMode = visualizationConfig?.renderMode || 'filled';
     const borderWidth = visualizationConfig?.borderWidth || 2;
@@ -770,7 +786,7 @@ export const MapProvider = ({ children }) => {
       if ((drawingMode === 'line' || drawingMode === 'measure_line') && previewCoords.length >= 2) {
         features.push({
           type: 'Feature',
-          properties: { id: 'preview', annType: 'preview', color: '#2563eb', borderColor: '#2563eb', lineStyle: 'dashed' },
+          properties: { id: 'preview', annType: 'preview', color: '#015668', borderColor: '#015668', lineStyle: 'dashed' },
           geometry: { type: 'LineString', coordinates: previewCoords },
         });
 
@@ -792,14 +808,14 @@ export const MapProvider = ({ children }) => {
         const closedPreview = [...previewCoords, previewCoords[0]];
         features.push({
           type: 'Feature',
-          properties: { id: 'preview', annType: 'preview', color: '#10b981', borderColor: '#059669', lineStyle: 'dashed' },
+          properties: { id: 'preview', annType: 'preview', color: '#2B7A4B', borderColor: '#1F5C38', lineStyle: 'dashed' },
           geometry: { type: 'Polygon', coordinates: [closedPreview] },
         });
       }
       if (previewCoords.length >= 2) {
         features.push({
           type: 'Feature',
-          properties: { id: 'preview-line', annType: 'preview', color: '#94A3B8', borderColor: '#64748B' },
+          properties: { id: 'preview-line', annType: 'preview', color: '#A39E93', borderColor: '#67635A' },
           geometry: { type: 'LineString', coordinates: previewCoords },
         });
       }
@@ -810,7 +826,7 @@ export const MapProvider = ({ children }) => {
       tempCoordinates.forEach((coord, i) => {
         features.push({
           type: 'Feature',
-          properties: { id: `temp-vertex-${i}`, annType: 'vertex', color: '#64748B', borderColor: '#ffffff' },
+          properties: { id: `temp-vertex-${i}`, annType: 'vertex', color: '#67635A', borderColor: '#ffffff' },
           geometry: { type: 'Point', coordinates: coord },
         });
       });
@@ -930,7 +946,7 @@ export const MapProvider = ({ children }) => {
           'text-keep-upright': false,
         },
         paint: {
-          'text-color': '#2563eb',
+          'text-color': '#015668',
           'text-halo-color': '#ffffff',
           'text-halo-width': 1.5,
         },
@@ -943,7 +959,7 @@ export const MapProvider = ({ children }) => {
         filter: ['==', ['get', 'annType'], 'meas-mid-node'],
         paint: {
           'circle-radius': 3.5,
-          'circle-color': '#2563eb',
+          'circle-color': '#015668',
           'circle-stroke-width': 1.5,
           'circle-stroke-color': '#ffffff',
         },
@@ -956,7 +972,7 @@ export const MapProvider = ({ children }) => {
         filter: ['==', ['get', 'annType'], 'meas-end-node'],
         paint: {
           'circle-radius': 5.5,
-          'circle-color': '#ef4444',
+          'circle-color': '#B3261E',
           'circle-stroke-width': 2,
           'circle-stroke-color': '#ffffff',
         },
@@ -980,7 +996,7 @@ export const MapProvider = ({ children }) => {
           'text-keep-upright': true,
         },
         paint: {
-          'text-color': '#1e293b',
+          'text-color': '#00242D',
           'text-halo-color': '#ffffff',
           'text-halo-width': 3.5,
         },
@@ -1002,7 +1018,7 @@ export const MapProvider = ({ children }) => {
           'text-allow-overlap': true,
         },
         paint: {
-          'text-color': '#0f172a',
+          'text-color': '#00242D',
           'text-halo-color': '#ffffff',
           'text-halo-width': 3.5,
         },
@@ -1023,7 +1039,7 @@ export const MapProvider = ({ children }) => {
           'text-allow-overlap': true,
         },
         paint: {
-          'text-color': '#0f172a',
+          'text-color': '#00242D',
           'text-halo-color': '#ffffff',
           'text-halo-width': 3.5,
         },
@@ -1037,7 +1053,7 @@ export const MapProvider = ({ children }) => {
         filter: ['==', ['get', 'annType'], 'vertex'],
         paint: {
           'circle-radius': 4,
-          'circle-color': '#64748B',
+          'circle-color': '#67635A',
           'circle-stroke-width': 1.5,
           'circle-stroke-color': '#ffffff',
         },
