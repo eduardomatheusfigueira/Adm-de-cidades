@@ -8,7 +8,8 @@ import { AnnotationContext } from '../contexts/AnnotationContext';
 import { DataContext } from '../contexts/DataContext';
 import { getColorScale, getLegendKey, isNoDataMarker, isNumericValues, makeNumberParser, withNoDataColor, buildLegendItems, applyCustomLegendColors } from '../utils/colorUtils';
 import { getAnnotationMeasurement } from '../utils/geoUtils';
-import { pickScaleDistance } from '../utils/scale';
+import { pickScaleDistance, metersPerPixel } from '../utils/scale';
+import { loadUfsGeometry } from '../utils/malhas';
 
 // Safari < 16 não tem CanvasRenderingContext2D.roundRect; sem isso a exportação lança erro.
 if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
@@ -53,21 +54,21 @@ const DARK_TITLE = { showBg: false, titleColor: '#111827', subtitleColor: '#3741
 const LAYOUT_TEMPLATES = [
   {
     id: 'academico', label: 'Acadêmico', hint: 'A4 paisagem, margem e moldura',
-    paper: { size: 'A4', dpi: 150 }, orientation: 'landscape', frame: { margin: 15, line: true },
+    paper: { size: 'A4', dpi: 150 }, orientation: 'landscape', frame: { margin: 15, line: true }, inset: true,
     title: { ...DARK_TITLE, titleSize: 28, subtitleSize: 16 },
-    pos: { title: { x: 0.045, y: 0.008 }, north: { x: 0.86, y: 0.1 }, legend: { x: 0.75, y: 0.52 }, annLegend: { x: 0.06, y: 0.42 }, scale: { x: 0.06, y: 0.79 } },
+    pos: { title: { x: 0.045, y: 0.008 }, north: { x: 0.86, y: 0.1 }, legend: { x: 0.75, y: 0.52 }, annLegend: { x: 0.06, y: 0.5 }, scale: { x: 0.06, y: 0.79 }, inset: { x: 0.06, y: 0.1 } },
   },
   {
     id: 'apresentacao', label: 'Apresentação', hint: 'HD 16:9, tela cheia',
     paper: null, preset: 0, orientation: 'landscape', frame: { margin: 0, line: false },
     title: { showBg: true, bgColor: '#000000', bgOpacity: 0.6, titleColor: '#ffffff', subtitleColor: '#cccccc', titleSize: 32, subtitleSize: 18, align: 'left' },
-    pos: { title: { x: 0.02, y: 0.02 }, north: { x: 0.02, y: 0.14 }, legend: { x: 0.82, y: 0.05 }, annLegend: { x: 0.8, y: 0.4 }, scale: { x: 0.02, y: 0.82 } },
+    pos: { title: { x: 0.02, y: 0.02 }, north: { x: 0.02, y: 0.14 }, legend: { x: 0.82, y: 0.05 }, annLegend: { x: 0.8, y: 0.4 }, scale: { x: 0.02, y: 0.82 }, inset: { x: 0.86, y: 0.55 } },
   },
   {
     id: 'poster', label: 'Pôster', hint: 'A3 retrato, título grande',
-    paper: { size: 'A3', dpi: 150 }, orientation: 'portrait', frame: { margin: 15, line: true },
+    paper: { size: 'A3', dpi: 150 }, orientation: 'portrait', frame: { margin: 15, line: true }, inset: true,
     title: { ...DARK_TITLE, titleSize: 44, subtitleSize: 22 },
-    pos: { title: { x: 0.05, y: 0.006 }, north: { x: 0.85, y: 0.07 }, legend: { x: 0.06, y: 0.7 }, annLegend: { x: 0.6, y: 0.7 }, scale: { x: 0.55, y: 0.86 } },
+    pos: { title: { x: 0.05, y: 0.006 }, north: { x: 0.85, y: 0.07 }, legend: { x: 0.06, y: 0.7 }, annLegend: { x: 0.6, y: 0.7 }, scale: { x: 0.55, y: 0.86 }, inset: { x: 0.06, y: 0.08 } },
   },
 ];
 
@@ -263,7 +264,7 @@ function formatScaleNumber(v) {
   return v.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 }
 
-function drawScale(ctx, x, y, w, h, zoom, lat) {
+function drawScale(ctx, x, y, w, h, zoom, lat, numericScale) {
   const pad = w * 0.075;
   const { meters, barPx } = pickScaleDistance(w - pad * 2, zoom, lat);
   // Divisões com números redondos: 5 → 5×1, 2 → 4×0,5, 1 → 5×0,2
@@ -285,7 +286,51 @@ function drawScale(ctx, x, y, w, h, zoom, lat) {
   ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1; ctx.strokeRect(bX, bY, barPx, bH);
   ctx.font = `italic ${Math.max(7, Math.round(h * 0.13))}px Inter,sans-serif`;
   ctx.fillStyle = '#64748b'; ctx.textAlign = 'center';
-  ctx.fillText('Projeção: Web Mercator (EPSG:3857)', x + w / 2, bY + bH + h * 0.2);
+  ctx.fillText(numericScale ? `Escala 1:${numericScale.toLocaleString('pt-BR')} · Web Mercator (EPSG:3857)` : 'Projeção: Web Mercator (EPSG:3857)', x + w / 2, bY + bH + h * 0.2);
+}
+
+// Escala numérica (1:N) para impressão em papel: metros no terreno por metro no papel,
+// arredondada a 2 algarismos significativos (válida no centro do mapa, em Web Mercator)
+export function numericScaleFor(zoom, lat, mmPerDesignPx) {
+  if (!mmPerDesignPx) return null;
+  const n = metersPerPixel(zoom, lat) * 1000 / mmPerDesignPx;
+  const pow = Math.pow(10, Math.floor(Math.log10(n)) - 1);
+  return Math.round(n / pow) * pow;
+}
+
+// Mapa de localização: estados do Brasil, UFs com dados em destaque e retângulo da área do mapa
+function drawInset(ctx, x, y, w, h, inset, s = 1) {
+  const ufs = inset?.ufs?.features;
+  if (!ufs?.length) return;
+  // Mercator em graus (mesma unidade da longitude)
+  const merc = (lat) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI / 180) / 2)) * 180 / Math.PI;
+  const [minX, minY, maxX, maxY] = [-74.2, merc(-34), -34.6, merc(5.4)];
+  const pad = 8 * s, titleH = 18 * s;
+  const sc = Math.min((w - pad * 2) / (maxX - minX), (h - pad * 2 - titleH) / (maxY - minY));
+  const ox = x + (w - (maxX - minX) * sc) / 2, oy = y + titleH + pad;
+  const px = (lon) => ox + (lon - minX) * sc;
+  const py = (lat) => oy + (maxY - merc(lat)) * sc;
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 1 * s;
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, 6 * s); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#1e293b'; ctx.font = `600 ${Math.round(12 * s)}px Inter,sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('Localização', x + w / 2, y + 5 * s);
+  const hl = inset.highlight || new Set();
+  ufs.forEach(f => {
+    const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+    ctx.beginPath();
+    polys.forEach(rings => rings.forEach(ring => ring.forEach(([lon, lat], i) => (i ? ctx.lineTo(px(lon), py(lat)) : ctx.moveTo(px(lon), py(lat))))));
+    ctx.fillStyle = hl.has(f.properties.SIGLA_UF) ? '#fca5a5' : '#e5e7eb';
+    ctx.fill('evenodd');
+    ctx.strokeStyle = '#9ca3af'; ctx.lineWidth = 0.6 * s; ctx.stroke();
+  });
+  const b = inset.bounds;
+  if (b) {
+    const rx = px(Math.max(b[0], minX)), ry = py(Math.min(b[3], 5.4));
+    const rw = Math.max(3 * s, px(Math.min(b[2], maxX)) - rx), rh = Math.max(3 * s, py(Math.max(b[1], -34)) - ry);
+    ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1.8 * s; ctx.strokeRect(rx, ry, rw, rh);
+  }
+  ctx.restore();
 }
 
 // Word-wrap helper: splits text into lines that fit within maxWidth pixels.
@@ -513,7 +558,8 @@ function drawTitle(ctx, x, y, cfg) {
 }
 
 // Fixed overlay sizes in pixels (designed for readable output)
-const OVL = { NORTH: 120, SCALE_W: 400, SCALE_H: 80, LEG_W: 280, ANN_W: 340, TITLE_W: 500 };
+const OVL = { NORTH: 120, SCALE_W: 400, SCALE_H: 80, LEG_W: 280, ANN_W: 340, TITLE_W: 500, INSET_W: 220, INSET_H: 230 };
+const INSET_DEFAULT_POS = { x: 0.8, y: 0.5 };
 
 // ── Custom studio element drawing ──
 function drawCustomStudioElement(ctx, W, H, el) {
@@ -715,7 +761,8 @@ function drawOverlays(ctx, W, H, opts) {
     incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle,
     overlayPos, bearing, zoom, lat, legendData, annData, vizName, scale,
     titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle,
-    elementsStack, studioElements, creditsCfg, attribution, frameCfg, pxPerMm
+    elementsStack, studioElements, creditsCfg, attribution, frameCfg, pxPerMm,
+    mmPerDesignPx, incInset, inset
   } = opts;
 
   const s = scale || 1;
@@ -729,7 +776,7 @@ function drawOverlays(ctx, W, H, opts) {
       drawNorth(ctx, overlayPos.north.x * W, overlayPos.north.y * H, OVL.NORTH * s, bearing, northArrowStyle);
     } else if (id === 'scale' && incScale) {
       // com densidade s, cada pixel de saída vale 1/s do terreno de um pixel da prévia
-      drawScale(ctx, overlayPos.scale.x * W, overlayPos.scale.y * H, OVL.SCALE_W * s, OVL.SCALE_H * s, zoom + Math.log2(s), lat);
+      drawScale(ctx, overlayPos.scale.x * W, overlayPos.scale.y * H, OVL.SCALE_W * s, OVL.SCALE_H * s, zoom + Math.log2(s), lat, numericScaleFor(zoom, lat, mmPerDesignPx));
     } else if (id === 'legend' && incLegend && legendData?.items?.length) {
       drawLegend(ctx, overlayPos.legend.x * W, overlayPos.legend.y * H, OVL.LEG_W * s, legendCustomTitle || legendData.title, legendData.items);
     } else if (id === 'annLegend' && incAnnLegend && annData?.length) {
@@ -746,6 +793,10 @@ function drawOverlays(ctx, W, H, opts) {
       });
     }
   });
+  if (incInset && inset) {
+    const p = overlayPos.inset || INSET_DEFAULT_POS;
+    drawInset(ctx, p.x * W, p.y * H, OVL.INSET_W * s, OVL.INSET_H * s, inset, s);
+  }
   drawCredits(ctx, W, H, creditsCfg, attribution);
 }
 
@@ -963,6 +1014,12 @@ const ImageExportStudio = () => {
   const [incLegend, setIncLegend] = useState(true);
   const [incAnnLegend, setIncAnnLegend] = useState(true);
   const [incTitle, setIncTitle] = useState(true);
+  const [incInset, setIncInset] = useState(false);
+  // Contornos dos estados para o mapa de localização (carregados quando o elemento é ligado)
+  const [ufsGeo, setUfsGeo] = useState(null);
+  useEffect(() => {
+    if (incInset && !ufsGeo) loadUfsGeometry().then(setUfsGeo).catch(e => console.warn('Mapa de localização:', e));
+  }, [incInset, ufsGeo]);
   // Créditos exigidos em mapas escolares/acadêmicos (IBGE/ABNT): fonte, autoria e data
   // Papel (A4/A3/Carta + DPI) ou null para tamanhos em pixels
   const [paperCfg, setPaperCfg] = useState(null);
@@ -1154,7 +1211,7 @@ const ImageExportStudio = () => {
     previewStyle,
     layerVis: { ...layerVis },
     prvRenderMode, prvFillOpacity, prvBorderWidth,
-    incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule,
+    incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule, incInset,
     legendCustomTitle, annLegendCustomTitle,
     titleCfg: { ...titleCfg },
     creditsCfg: { ...creditsCfg },
@@ -1173,7 +1230,7 @@ const ImageExportStudio = () => {
   }), [preset, customW, customH, useCustom, orientation, format, jpegQuality,
     previewStyle, layerVis, prvRenderMode, prvFillOpacity, prvBorderWidth,
     incNorth, incScale, incLegend, incAnnLegend, incTitle, incMunPoints, incGraticule,
-    legendCustomTitle, annLegendCustomTitle, titleCfg, creditsCfg, paperCfg, frameCfg, overlayPos,
+    legendCustomTitle, annLegendCustomTitle, titleCfg, creditsCfg, paperCfg, frameCfg, incInset, overlayPos,
     prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType, studioElements, elementsStack]);
 
@@ -1209,11 +1266,13 @@ const ImageExportStudio = () => {
     if (pg.titleCfg) setTitleCfg({ ...pg.titleCfg });
     if (pg.creditsCfg) setCreditsCfg(prev => ({ ...prev, ...pg.creditsCfg }));
     setPaperCfg(pg.paperCfg ?? null);
+    setIncInset(!!pg.incInset);
     setFrameCfg(pg.frameCfg ? { ...pg.frameCfg } : { margin: 0, line: false });
     if (pg.overlayPos) setOverlayPos(JSON.parse(JSON.stringify(pg.overlayPos)));
     setStudioElements(pg.studioElements ? JSON.parse(JSON.stringify(pg.studioElements)) : []);
     setElementsStack(pg.elementsStack ? [...pg.elementsStack] : ['title', 'north', 'scale', 'legend', 'annLegend']);
     setSelectedStudioElId(null);
+    historyRef.current = { past: [], future: [], last: null, skip: false };
 
     // Build viz config from page data to pass directly (avoids stale state)
     const vizCfg = {
@@ -1564,6 +1623,15 @@ const ImageExportStudio = () => {
   // pixels por mm na prancha de design (para margem da moldura)
   const pxPerMmDesign = paperPx ? frameW / paperPx.wmm : frameW / 297;
   const tooBigForPhone = isTouchDevice() && targetW * targetH > MOBILE_MAX_PIXELS;
+  const mmPerDesignPx = paperPx ? paperPx.wmm / frameW : null;
+  // UFs com dados (destacadas no mapa de localização)
+  const insetHighlight = useMemo(() => new Set((csvData || []).map(r => r.Sigla_Estado).filter(Boolean)), [csvData]);
+  const insetFor = (pm) => {
+    if (!incInset || !ufsGeo) return null;
+    let bounds = null;
+    try { const b = pm.getBounds(); bounds = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]; } catch (e) { /* ignore */ }
+    return { ufs: ufsGeo, highlight: insetHighlight, bounds };
+  };
 
   // Fit frame to view
   const fitToView = useCallback(() => {
@@ -1928,9 +1996,9 @@ const ImageExportStudio = () => {
       legendData, annData, vizName, scale: 1, titleCfg,
       legendCustomTitle, annLegendCustomTitle, northArrowStyle,
       elementsStack, studioElements, creditsCfg, attribution: mapAttributionText(pm),
-      frameCfg, pxPerMm: pxPerMmDesign,
+      frameCfg, pxPerMm: pxPerMmDesign, mmPerDesignPx, incInset, inset: insetFor(pm),
     });
-  }, [creditsCfg, frameCfg, pxPerMmDesign, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
+  }, [creditsCfg, frameCfg, pxPerMmDesign, mmPerDesignPx, incInset, ufsGeo, insetHighlight, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, targetW, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, studioElements, elementsStack]);
 
   // Keep ref always pointing to the latest redraw function — map event listeners
   // use this ref to avoid stale closures that cause overlay/handle desync.
@@ -1948,7 +2016,82 @@ const ImageExportStudio = () => {
     setOverlayPos(prev => ({ ...prev, ...JSON.parse(JSON.stringify(t.pos)) }));
     setIncTitle(true); setIncNorth(true); setIncScale(true); setIncLegend(true);
     setCreditsCfg(c => ({ ...c, show: true }));
+    setIncInset(!!t.inset);
   }, []);
+
+  // ── Desfazer / refazer (layout da prancha) ──
+  const historyRef = useRef({ past: [], future: [], last: null, skip: false });
+  const [historyTick, setHistoryTick] = useState(0);
+  // Durante um arraste, o histórico espera o dedo/mouse soltar (uma entrada por movimento)
+  const pointerDownRef = useRef(false);
+  const [pointerUpTick, setPointerUpTick] = useState(0);
+  useEffect(() => {
+    if (!showImageStudio) return undefined;
+    const down = () => { pointerDownRef.current = true; };
+    const up = () => { if (pointerDownRef.current) { pointerDownRef.current = false; setPointerUpTick(x => x + 1); } };
+    window.addEventListener('pointerdown', down, true);
+    window.addEventListener('pointerup', up, true);
+    window.addEventListener('pointercancel', up, true);
+    return () => {
+      window.removeEventListener('pointerdown', down, true);
+      window.removeEventListener('pointerup', up, true);
+      window.removeEventListener('pointercancel', up, true);
+    };
+  }, [showImageStudio]);
+  const layoutSnapshot = JSON.stringify({ overlayPos, titleCfg, studioElements, elementsStack, creditsCfg, frameCfg });
+  useEffect(() => {
+    if (!showImageStudio) return undefined;
+    const t = setTimeout(() => {
+      const h = historyRef.current;
+      if (pointerDownRef.current) return; // ainda arrastando
+      if (h.skip) { h.skip = false; h.last = layoutSnapshot; return; }
+      if (h.last && h.last !== layoutSnapshot) {
+        h.past.push(h.last);
+        if (h.past.length > 60) h.past.shift();
+        h.future = [];
+        setHistoryTick(x => x + 1);
+      }
+      h.last = layoutSnapshot;
+    }, 350);
+    return () => clearTimeout(t);
+  }, [layoutSnapshot, showImageStudio, pointerUpTick]);
+
+  const applyLayoutSnapshot = useCallback((snap) => {
+    const v = JSON.parse(snap);
+    historyRef.current.skip = true;
+    setOverlayPos(v.overlayPos); setTitleCfg(v.titleCfg); setStudioElements(v.studioElements);
+    setElementsStack(v.elementsStack); setCreditsCfg(v.creditsCfg); setFrameCfg(v.frameCfg);
+  }, []);
+  const undoLayout = useCallback(() => {
+    const h = historyRef.current;
+    if (!h.past.length) return;
+    const prev = h.past.pop();
+    if (h.last) h.future.push(h.last);
+    h.last = prev;
+    applyLayoutSnapshot(prev);
+    setHistoryTick(x => x + 1);
+  }, [applyLayoutSnapshot]);
+  const redoLayout = useCallback(() => {
+    const h = historyRef.current;
+    if (!h.future.length) return;
+    const next = h.future.pop();
+    if (h.last) h.past.push(h.last);
+    h.last = next;
+    applyLayoutSnapshot(next);
+    setHistoryTick(x => x + 1);
+  }, [applyLayoutSnapshot]);
+  // Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y (fora de campos de texto)
+  useEffect(() => {
+    if (!showImageStudio) return undefined;
+    const onKey = (e) => {
+      if (!(e.ctrlKey || e.metaKey) || /INPUT|TEXTAREA|SELECT/.test(e.target?.tagName)) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); undoLayout(); }
+      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redoLayout(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showImageStudio, undoLayout, redoLayout]);
 
   const moveOverlay = useCallback((id, x, y) => {
     setOverlayPos(prev => ({ ...prev, [id]: { x, y } }));
@@ -1991,7 +2134,7 @@ const ImageExportStudio = () => {
         legendData, annData, vizName, scale: exportK, titleCfg,
         legendCustomTitle, annLegendCustomTitle, northArrowStyle,
         elementsStack, studioElements, creditsCfg, attribution: mapAttributionText(pm),
-        frameCfg, pxPerMm: pxPerMmDesign * exportK,
+        frameCfg, pxPerMm: pxPerMmDesign * exportK, mmPerDesignPx, incInset, inset: insetFor(pm),
       });
 
       setProgress('Gerando arquivo...');
@@ -2039,7 +2182,7 @@ const ImageExportStudio = () => {
       if (hiddenDiv?.parentNode) hiddenDiv.parentNode.removeChild(hiddenDiv);
       setExporting(false);
     }
-  }, [targetW, targetH, frameW, frameH, exportK, paperCfg, paperPx, frameCfg, pxPerMmDesign, format, jpegQuality, creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
+  }, [targetW, targetH, frameW, frameH, exportK, paperCfg, paperPx, frameCfg, pxPerMmDesign, mmPerDesignPx, incInset, ufsGeo, insetHighlight, format, jpegQuality, creditsCfg, incNorth, incScale, incLegend, incAnnLegend, incMeasurements, incTitle, overlayPos, legendData, annData, vizName, setShowImageStudio, titleCfg, legendCustomTitle, annLegendCustomTitle, northArrowStyle, elementsStack, studioElements]);
 
   // Save current page state before closing
   const handleClose = useCallback(() => {
@@ -2240,6 +2383,7 @@ const ImageExportStudio = () => {
                 </div>
               )}
               <label className="studio-check-row"><input type="checkbox" checked={incTitle} onChange={e => setIncTitle(e.target.checked)} /><span className="studio-check-label">🏷️ Título</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incInset} onChange={e => setIncInset(e.target.checked)} /><span className="studio-check-label">🗺️ Mapa de localização</span></label>
               <label className="studio-check-row"><input type="checkbox" checked={creditsCfg.show} onChange={e => setCreditsCfg(c => ({ ...c, show: e.target.checked }))} /><span className="studio-check-label">📝 Fonte, elaboração e data</span></label>
               {creditsCfg.show && (
                 <div className="studio-credits-fields">
@@ -2687,6 +2831,8 @@ const ImageExportStudio = () => {
             <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
               <button className="studio-toolbar-btn" onClick={() => setViewZoom(z => Math.min(z * 1.3, 3))} title="Zoom in">🔍+</button>
               <button className="studio-toolbar-btn" onClick={() => setViewZoom(z => Math.max(z * 0.7, 0.05))} title="Zoom out">🔍−</button>
+              <button className="studio-toolbar-btn" onClick={undoLayout} disabled={!historyRef.current.past.length} title="Desfazer (Ctrl+Z)" data-history={historyTick}>↶</button>
+              <button className="studio-toolbar-btn" onClick={redoLayout} disabled={!historyRef.current.future.length} title="Refazer (Ctrl+Shift+Z)">↷</button>
               <button className="studio-toolbar-btn" onClick={fitToView} title="Ajustar à tela">⊞ Fit</button>
             </div>
           </div>
@@ -2706,6 +2852,7 @@ const ImageExportStudio = () => {
                     <DragHandle id="north" pos={overlayPos.north} onMove={moveOverlay} visible={incNorth} isSelected={selectedStudioElId === 'north'} onSelect={() => setSelectedStudioElId('north')} size={{ w: OVL.NORTH, h: OVL.NORTH }} />
                     <DragHandle id="scale" pos={overlayPos.scale} onMove={moveOverlay} visible={incScale} isSelected={selectedStudioElId === 'scale'} onSelect={() => setSelectedStudioElId('scale')} size={{ w: OVL.SCALE_W, h: OVL.SCALE_H }} />
                     <DragHandle id="legend" pos={overlayPos.legend} onMove={moveOverlay} visible={incLegend && legendData?.items?.length > 0} isSelected={selectedStudioElId === 'legend'} onSelect={() => setSelectedStudioElId('legend')} size={{ w: OVL.LEG_W, h: Math.max(30, (legendData?.items?.length||1)*OVL.LEG_W*0.1+OVL.LEG_W*0.2) }} />
+                    <DragHandle id="inset" pos={overlayPos.inset || INSET_DEFAULT_POS} onMove={moveOverlay} visible={incInset && !!ufsGeo} isSelected={selectedStudioElId === 'inset'} onSelect={() => setSelectedStudioElId('inset')} size={{ w: OVL.INSET_W, h: OVL.INSET_H }} />
                     <DragHandle id="annLegend" pos={overlayPos.annLegend} onMove={moveOverlay} visible={incAnnLegend && annData.length > 0} isSelected={selectedStudioElId === 'annLegend'} onSelect={() => setSelectedStudioElId('annLegend')} size={{ w: OVL.ANN_W, h: Math.max(30, annData.length*OVL.ANN_W*0.1+OVL.ANN_W*0.15) }} />
                     {studioElements.filter(el => el.visible !== false).map(el => {
                       const isSel = selectedStudioElId === el.id;
