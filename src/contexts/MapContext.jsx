@@ -46,6 +46,7 @@ export const MapProvider = ({ children }) => {
 
   const currentStyleUrl = useRef(mapStyle);
   const sectorHandlersBoundRef = useRef(false);
+  const lastFittedDataRef = useRef({ csv: null, geo: null });
   const drawingModeRef = useRef(drawingMode);
   const styleLoadedRef = useRef(false);
   const styleWatchdogRef = useRef(null);
@@ -275,10 +276,12 @@ export const MapProvider = ({ children }) => {
     console.log(`[MapContext] Generated ${finalFeatures.length} features (${pointsGenerated} points).`);
 
     // Fit bounds if we have valid data and it's the first load or explicit update
-    if (hasValidBounds && map.current) {
-      // Only fit bounds if we haven't manually moved significantly? 
-      // For now, let's fit bounds on data load to ensure visibility as requested.
+    // Reenquadrar só quando o conjunto de municípios/geometrias muda — não ao trocar cores,
+    // opacidade ou mapa base (o aluno perderia o enquadramento que escolheu).
+    const dataChanged = lastFittedDataRef.current.csv !== currentMapData || lastFittedDataRef.current.geo !== geojsonData;
+    if (hasValidBounds && map.current && dataChanged) {
       map.current.fitBounds(bounds, { padding: 50, maxZoom: 14 });
+      lastFittedDataRef.current = { csv: currentMapData, geo: geojsonData };
     }
 
     const combinedGeoJson = { type: 'FeatureCollection', features: finalFeatures };

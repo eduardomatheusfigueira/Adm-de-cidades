@@ -7,6 +7,7 @@ import { UIContext } from '../contexts/UIContext';
 import { generateExportHtml } from '../utils/exportMap';
 import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing, toNumericIfPossible } from '../utils/colorUtils';
 import { getGeoJSONSourceData, resolveBasemapStyle } from '../utils/basemaps';
+import { useProjectState } from '../hooks/useProjectState';
 
 const FilterMenu = ({ onImportGeometry }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -45,6 +46,8 @@ const FilterMenu = ({ onImportGeometry }) => {
     setCurrentColor,
     setActiveVisualizationId,
   } = useContext(AnnotationContext);
+
+  const { buildProfile, applyProfile } = useProjectState();
 
   // --- Map Context ---
   const { map, mapStyle, lng, lat, zoom } = useContext(MapContext);
@@ -87,24 +90,7 @@ const FilterMenu = ({ onImportGeometry }) => {
   // SAVE PROFILE (all state)
   // ============================
   const handleSaveProfile = async () => {
-    const profileData = {
-      version: 2,
-      // Data
-      municipios: csvData,
-      csvHeaders: csvHeaders,
-      indicadores: indicadoresData,
-      geometrias: geojsonData,
-      // UI / Visualization
-      colorAttribute: colorAttribute,
-      visualizationConfig: visualizationConfig,
-      legendConfigByKey: legendConfigByKey,
-      // Annotations
-      annotations: annotations,
-      visualizationsAnnot: visualizations,
-      activeVisualizationId: activeVisualizationId,
-      // Export pages
-      exportPages: exportPages,
-    };
+    const profileData = buildProfile();
     const json = JSON.stringify(profileData);
     const defaultName = 'perfil_completo.json';
 
@@ -150,65 +136,7 @@ const FilterMenu = ({ onImportGeometry }) => {
       reader.onload = (e) => {
         try {
           const profile = JSON.parse(e.target.result);
-
-          // Data
-          if (profile.municipios) {
-            setCsvData(profile.municipios);
-            setFilteredCsvData(profile.municipios);
-            if (profile.csvHeaders) {
-              setCsvHeaders(profile.csvHeaders);
-            } else {
-              const profileHeaders = Object.keys(profile.municipios[0] || {});
-              setCsvHeaders(profileHeaders);
-            }
-          }
-          if (profile.indicadores) {
-            setIndicadoresData(profile.indicadores);
-          }
-          if (profile.geometrias) {
-            setGeojsonData(profile.geometrias);
-          }
-
-          // UI / Visualization (version 2+)
-          if (profile.version >= 2) {
-            if (profile.colorAttribute) {
-              setColorAttribute(profile.colorAttribute);
-            }
-            if (profile.visualizationConfig !== undefined) {
-              setVisualizationConfig(profile.visualizationConfig);
-            }
-            if (profile.legendConfigByKey) {
-              // Restore all legend configs
-              Object.entries(profile.legendConfigByKey).forEach(([key, config]) => {
-                updateLegendConfig(key, config);
-              });
-            }
-            // Annotations — REPLACE entirely (deduplicate by id)
-            if (profile.annotations) {
-              const uniqueAnns = [...new Map(profile.annotations.map(a => [a.id, a])).values()];
-              setAnnotations(uniqueAnns);
-            } else {
-              setAnnotations([]);
-            }
-            if (profile.visualizationsAnnot) {
-              const uniqueViz = [...new Map(profile.visualizationsAnnot.map(v => [v.id, v])).values()];
-              setVisualizations(uniqueViz);
-              if (uniqueViz.length > 0) {
-                // Ativar a visualização salva como ativa; senão, a primeira que tem anotações
-                // (perfis antigos podem ter uma visualização vazia duplicada no início).
-                const anns = profile.annotations || [];
-                const saved = uniqueViz.find(v => v.id === profile.activeVisualizationId);
-                const withAnns = uniqueViz.find(v => anns.some(a => a.visualizationId === v.id));
-                setActiveVisualizationId((saved || withAnns || uniqueViz[0]).id);
-              }
-            } else {
-              setVisualizations([]);
-            }
-            // Export pages
-            if (profile.exportPages && Array.isArray(profile.exportPages)) {
-              setExportPages(profile.exportPages);
-            }
-          }
+          applyProfile(profile);
 
           alert('Perfil carregado com sucesso!');
         } catch (error) {

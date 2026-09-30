@@ -16,6 +16,7 @@ import ETLEnvironment from './components/ETLEnvironment';
 import CitySearch from './components/CitySearch';
 import DataSourceInfo from './components/DataSourceInfo';
 import MainLayout from './components/MainLayout';
+import AutoSave from './components/AutoSave';
 
 import { DataProvider, DataContext } from './contexts/DataContext';
 import { MapProvider, MapContext } from './contexts/MapContext';
@@ -309,6 +310,8 @@ function AppContent() {
           </div>
         </div>
       )}
+
+      <AutoSave />
 
       {selectedCityInfo && (
         <CityInfoBottomBar
