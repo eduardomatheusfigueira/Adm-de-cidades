@@ -634,67 +634,90 @@ function drawOverlays(ctx, W, H, opts) {
 }
 
 // Draggable & Resizable overlay handle
+// Nome de arquivo a partir do título do mapa ("Densidade — SP 2022" → "densidade_sp_2022")
+const fileSlug = (text) => String(text || '')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60);
+
+const downloadUrl = (url, name) => {
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+};
+
+const isTouchDevice = () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
+
+// Alça de arraste dos elementos da prancha. Usa Pointer Events (mouse, dedo e caneta) e
+// setPointerCapture; os tamanhos de borda e da alça são em pixels de TELA (a prancha aparece
+// reduzida por --ui-scale = 1/zoom da visualização), para continuar fácil de tocar no celular.
 const DragHandle = ({ id, pos, onMove, visible, size, isSelected, onSelect, onResize, canResize }) => {
   const ref = useRef(null);
 
-  const onDownMove = useCallback((e) => {
-    if (!ref.current) return;
+  const startDrag = useCallback((e, onMv) => {
     e.preventDefault(); e.stopPropagation();
+    const target = e.currentTarget;
+    try { target.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    const move = (ev) => { if (ev.pointerId === e.pointerId) onMv(ev); };
+    const up = (ev) => {
+      if (ev.pointerId !== e.pointerId) return;
+      target.removeEventListener('pointermove', move);
+      target.removeEventListener('pointerup', up);
+      target.removeEventListener('pointercancel', up);
+    };
+    target.addEventListener('pointermove', move);
+    target.addEventListener('pointerup', up);
+    target.addEventListener('pointercancel', up);
+  }, []);
+
+  const onDownMove = useCallback((e) => {
+    if (!ref.current || e.button > 0) return;
     if (onSelect) onSelect();
     const rect = ref.current.getBoundingClientRect();
     const ox = e.clientX - rect.left, oy = e.clientY - rect.top;
-    const onMv = (ev) => {
-      const parent = ref.current.parentElement;
+    startDrag(e, (ev) => {
+      const parent = ref.current?.parentElement;
       if (!parent) return;
       const pr = parent.getBoundingClientRect();
       onMove(id, Math.max(0, Math.min((ev.clientX - pr.left - ox) / pr.width, 0.95)),
                   Math.max(0, Math.min((ev.clientY - pr.top - oy) / pr.height, 0.95)));
-    };
-    const onUp = () => { window.removeEventListener('mousemove', onMv); window.removeEventListener('mouseup', onUp); };
-    window.addEventListener('mousemove', onMv); window.addEventListener('mouseup', onUp);
-  }, [id, onMove, onSelect]);
+    });
+  }, [id, onMove, onSelect, startDrag]);
 
   const onDownResize = useCallback((e) => {
-    if (!ref.current) return;
-    e.preventDefault(); e.stopPropagation();
+    if (!ref.current || e.button > 0) return;
     if (onSelect) onSelect();
     const parent = ref.current.parentElement;
     if (!parent) return;
     const pr = parent.getBoundingClientRect();
     const scaleFactor = pr.width / (parent.offsetWidth || pr.width);
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startW = size?.w || 100;
-    const startH = size?.h || 60;
-
-    const onMv = (ev) => {
+    const startX = e.clientX, startY = e.clientY;
+    const startW = size?.w || 100, startH = size?.h || 60;
+    startDrag(e, (ev) => {
       const dx = (ev.clientX - startX) / (scaleFactor || 1);
       const dy = (ev.clientY - startY) / (scaleFactor || 1);
-      const newW = Math.max(20, Math.round(startW + dx));
-      const newH = Math.max(20, Math.round(startH + dy));
-      if (onResize) onResize(id, newW, newH);
-    };
-    const onUp = () => { window.removeEventListener('mousemove', onMv); window.removeEventListener('mouseup', onUp); };
-    window.addEventListener('mousemove', onMv); window.addEventListener('mouseup', onUp);
-  }, [id, size, onResize, onSelect]);
+      if (onResize) onResize(id, Math.max(20, Math.round(startW + dx)), Math.max(20, Math.round(startH + dy)));
+    });
+  }, [id, size, onResize, onSelect, startDrag]);
 
   if (!visible) return null;
 
+  const px = (n) => `calc(${n}px * var(--ui-scale, 1))`;
   return (
-    <div ref={ref} onMouseDown={onDownMove} style={{
+    <div ref={ref} onPointerDown={onDownMove} style={{
       position: 'absolute', left: `${pos.x*100}%`, top: `${pos.y*100}%`,
       width: size?.w || 40, height: size?.h || 40, cursor: 'move', zIndex: isSelected ? 25 : 20,
-      border: isSelected ? '2px solid #38bdf8' : '2px dashed rgba(0,150,255,0.4)',
+      touchAction: 'none',
+      border: isSelected ? `${px(2)} solid #38bdf8` : `${px(2)} dashed rgba(0,150,255,0.5)`,
       boxShadow: isSelected ? '0 0 8px rgba(56,189,248,0.5)' : 'none',
       borderRadius: 3, background: isSelected ? 'rgba(56,189,248,0.12)' : 'rgba(0,150,255,0.03)',
-    }} title="Clique para selecionar / Arraste para mover">
+    }} title="Toque/clique para selecionar · Arraste para mover">
       {canResize && (
-        <div onMouseDown={onDownResize} style={{
-          position: 'absolute', right: -6, bottom: -6,
-          width: 12, height: 12, borderRadius: 2,
-          background: '#38bdf8', border: '1px solid #ffffff',
+        <div onPointerDown={onDownResize} style={{
+          position: 'absolute', right: px(-11), bottom: px(-11),
+          width: px(22), height: px(22), borderRadius: '50%',
+          background: '#38bdf8', border: `${px(2)} solid #ffffff`,
           boxShadow: '0 1px 4px rgba(0,0,0,0.5)',
-          cursor: 'nwse-resize', zIndex: 30,
+          cursor: 'nwse-resize', zIndex: 30, touchAction: 'none',
         }} title="Arraste para redimensionar" />
       )}
     </div>
@@ -734,6 +757,12 @@ const ImageExportStudio = () => {
   const [format, setFormat] = useState('png');
   const [jpegQuality, setJpegQuality] = useState(0.92);
   const [exporting, setExporting] = useState(false);
+  // Resultado da última exportação no celular: { url, file, name } — mostrado com opções de
+  // compartilhar/salvar (o menu de compartilhamento exige um novo toque do usuário)
+  const [exportResult, setExportResult] = useState(null);
+  const closeExportResult = useCallback(() => {
+    setExportResult(prev => { if (prev?.url) setTimeout(() => URL.revokeObjectURL(prev.url), 1000); return null; });
+  }, []);
   const [progress, setProgress] = useState('');
   const [openSections, setOpenSections] = useState({ res: true, fmt: false, elem: true, title: false, mapCfg: false, vizFilter: false });
 
@@ -1776,13 +1805,21 @@ const ImageExportStudio = () => {
       const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
       const blob = await new Promise(res => out.toBlob(res, mime, format === 'jpeg' ? jpegQuality : undefined));
       if (!blob) throw new Error('não foi possível gerar o arquivo; tente uma resolução menor');
-      const url = URL.createObjectURL(blob), a = document.createElement('a');
-      a.href = url; a.download = `mapa_export_${targetW}x${targetH}.${format}`;
-      document.body.appendChild(a); a.click(); a.remove();
-      // Revogar só depois: no iOS/Android o download ainda está lendo o blob neste momento
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-      setProgress('✅ Imagem exportada com sucesso!');
-      setTimeout(() => setProgress(''), 3000);
+      const name = `${fileSlug(titleCfg?.title) || 'mapa'}_${targetW}x${targetH}.${format === 'jpeg' ? 'jpg' : 'png'}`;
+      const url = URL.createObjectURL(blob);
+      if (isTouchDevice()) {
+        // Celular: mostrar a imagem com "Compartilhar/Salvar" e "Baixar" (download automático
+        // costuma falhar ou abrir uma aba no iOS)
+        const file = typeof File !== 'undefined' ? new File([blob], name, { type: mime }) : null;
+        setExportResult({ url, file, name });
+        setProgress('✅ Imagem pronta!');
+      } else {
+        downloadUrl(url, name);
+        // Revogar só depois: o download ainda está lendo o blob neste momento
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        setProgress('✅ Imagem exportada com sucesso!');
+        setTimeout(() => setProgress(''), 3000);
+      }
     } catch (err) {
       console.error('Export error:', err);
       setProgress(`Erro: ${err.message}`);
@@ -1797,6 +1834,7 @@ const ImageExportStudio = () => {
   // Save current page state before closing
   const handleClose = useCallback(() => {
     saveCurrentPage();
+    closeExportResult();
     // Explicitly remove preview map before component unmounts
     if (previewMapRef.current) {
       previewMapRef.current.remove();
@@ -1810,7 +1848,7 @@ const ImageExportStudio = () => {
         map.current.triggerRepaint();
       }
     }, 100);
-  }, [saveCurrentPage, setShowImageStudio, map]);
+  }, [saveCurrentPage, setShowImageStudio, map, closeExportResult]);
 
   if (!showImageStudio || !mapLoaded) return null;
 
@@ -2383,7 +2421,7 @@ const ImageExportStudio = () => {
             onMouseDown={handleWrapperMouseDown}
             style={{ cursor: 'grab', overflow: 'hidden', position: 'relative' }}>
             <div style={{ position: 'absolute', left: '50%', top: '50%', transform: `translate(-50%, -50%) translate(${viewPan.x}px, ${viewPan.y}px) scale(${viewZoom})`, transformOrigin: 'center center' }}>
-              <div ref={previewFrameRef} className="studio-preview-frame" style={{ width: targetW, height: targetH, position: 'relative', overflow: 'hidden' }}>
+              <div ref={previewFrameRef} className="studio-preview-frame" style={{ width: targetW, height: targetH, position: 'relative', overflow: 'hidden', '--ui-scale': 1 / (viewZoom || 1) }}>
                 {/* Live Mapbox map */}
                 <div ref={previewContainerRef} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }} />
                 {/* Canvas overlay */}
@@ -2451,6 +2489,25 @@ const ImageExportStudio = () => {
             </div>
             <span className="studio-page-info">{currentPageIdx + 1} / {exportPages.length}</span>
           </div>
+          {exportResult && (
+            <div className="studio-export-result" role="dialog" aria-label="Imagem exportada">
+              <img src={exportResult.url} alt="Prévia da imagem exportada" />
+              <div className="studio-export-result-body">
+                <strong>Imagem pronta: {exportResult.name}</strong>
+                <span>No iPhone, toque em <em>Compartilhar</em> e depois em <em>Salvar Imagem</em>. No Android, escolha <em>Salvar</em> ou o app para enviar.</span>
+                <div className="studio-export-result-actions">
+                  {exportResult.file && navigator.canShare?.({ files: [exportResult.file] }) && (
+                    <button type="button" className="studio-export-btn" onClick={async () => {
+                      try { await navigator.share({ files: [exportResult.file], title: exportResult.name }); }
+                      catch (e) { if (e?.name !== 'AbortError') downloadUrl(exportResult.url, exportResult.name); }
+                    }}>📤 Compartilhar / Salvar</button>
+                  )}
+                  <button type="button" className="studio-cancel-btn" onClick={() => downloadUrl(exportResult.url, exportResult.name)}>⬇️ Baixar</button>
+                  <button type="button" className="studio-cancel-btn" onClick={closeExportResult}>Fechar</button>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="studio-actions">
             {exporting ? (
               <div className="studio-progress"><div className="studio-progress-spinner" /><span>{progress}</span></div>

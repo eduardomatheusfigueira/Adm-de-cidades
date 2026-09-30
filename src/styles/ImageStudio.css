@@ -978,3 +978,47 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Resultado da exportação no celular: prévia + compartilhar/baixar */
+.studio-export-result {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  background: #0f172a;
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  color: #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.studio-export-result img {
+  width: 96px;
+  max-height: 96px;
+  object-fit: contain;
+  background: #1e293b;
+  border-radius: 6px;
+  flex: none;
+}
+
+.studio-export-result-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.studio-export-result-body strong {
+  word-break: break-all;
+}
+
+.studio-export-result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.studio-export-result-actions button {
+  min-height: 44px;
+}

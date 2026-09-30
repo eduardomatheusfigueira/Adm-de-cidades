@@ -410,3 +410,32 @@ body {
   z-index: 1001;
   pointer-events: none;
 }
+
+/* Aviso de navegador embutido (Instagram, WhatsApp etc.) */
+.inapp-notice {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  background: #fff3cd;
+  border-bottom: 1px solid #f0c36d;
+  color: #5d4200;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.inapp-notice button {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: inherit;
+}
