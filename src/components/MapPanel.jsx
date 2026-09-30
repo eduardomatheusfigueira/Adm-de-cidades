@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useContext, useMemo, useCallback } from 'react';
 import {
   Map as MapIcon, Upload, ChevronLeft, MapPin, Spline, Pentagon, Ruler, Scan, Save, FolderOpen, Globe,
-  Check, Search, RotateCcw, GraduationCap,
+  Check, Search, RotateCcw, GraduationCap, Layers, Eye, EyeOff, Trash2, Plus,
 } from 'lucide-react';
 import '../styles/MapPanel.css';
 import { DataContext } from '../contexts/DataContext';
@@ -15,6 +15,7 @@ import {
 } from '../utils/colorUtils';
 import { DEFAULT_SYMBOLOGY } from '../utils/palettes';
 import SymbologyPanel from './SymbologyPanel';
+import { referenceLayerFields } from '../utils/referenceLayers';
 import { generateExportHtml } from '../utils/exportMap';
 import { useProjectState } from '../hooks/useProjectState';
 
@@ -39,7 +40,7 @@ const Switch = ({ checked, onChange, label }) => (
 
 const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
   const { csvData, filteredCsvData, indicadoresData, csvHeaders, handleImportIndicators, handleImportMunicipios } = useContext(DataContext);
-  const { map, mapLoaded, mapStyle, handleMapStyleChange, lng, lat, zoom } = useContext(MapContext);
+  const { map, mapLoaded, mapStyle, handleMapStyleChange, lng, lat, zoom, referenceLayers, updateReferenceLayer, removeReferenceLayer } = useContext(MapContext);
   const {
     colorAttribute, visualizationConfig, handleVisualizationConfigChange, setDataWizardMode, legendConfigByKey,
     showAttributeLegend, setShowAttributeLegend, showAnnotationLegend, setShowAnnotationLegend,
@@ -299,6 +300,7 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
       renderMode: visualizationConfig?.renderMode || 'filled',
       fillOpacity: visualizationConfig?.fillOpacity ?? 0.85,
       borderWidth: visualizationConfig?.borderWidth || 2,
+      referenceLayers,
     });
     const nome = (vizAtiva?.name || 'mapa').replace(/[^a-zA-Z0-9_ -]/g, '_');
     baixar(html, `${nome}.html`, 'text/html;charset=utf-8', 'Arquivo HTML', '.html');
@@ -345,7 +347,7 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
           <div className="painel-avancado-botoes">
             <button type="button" className="btn btn-secondary btn-sm" onClick={handleImportIndicators}>Indicadores (CSV)</button>
             <button type="button" className="btn btn-secondary btn-sm" onClick={handleImportMunicipios}>Municípios (CSV)</button>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={onImportGeometry}>Geometria (GeoJSON)</button>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onImportGeometry}>Arquivo geográfico (SHP, KML, GeoJSON)</button>
           </div>
         </details>
       </div>
@@ -444,6 +446,44 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
             )}
 
             <Switch checked={!!viz.labels} onChange={(labels) => mudar({ labels })} label="Mostrar nomes dos municípios" />
+
+            <div className="campo painel-refs">
+              <span className="campo-rotulo">Camadas de referência</span>
+              {referenceLayers.length === 0 && (
+                <span className="painel-refs-vazio">Bairros, rios, rotas ou pontos seus, por cima do mapa (Shapefile, KML, GeoJSON).</span>
+              )}
+              {referenceLayers.map(l => {
+                const campos = referenceLayerFields(l);
+                return (
+                  <div key={l.id} className={`painel-ref ${l.visivel === false ? 'oculta' : ''}`}>
+                    <div className="painel-ref-linha">
+                      <input type="color" className="painel-ref-cor" value={l.cor} onChange={e => updateReferenceLayer(l.id, { cor: e.target.value })} aria-label={`Cor da camada ${l.nome}`} />
+                      <span className="painel-ref-nome" title={`${l.nome} · ${l.formato || ''} · ${l.data.features.length} feições`}>{l.nome}</span>
+                      <button type="button" className="painel-icone" onClick={() => updateReferenceLayer(l.id, { visivel: l.visivel === false })}
+                        aria-label={l.visivel === false ? `Mostrar ${l.nome}` : `Ocultar ${l.nome}`} title={l.visivel === false ? 'Mostrar' : 'Ocultar'}>
+                        {l.visivel === false ? <EyeOff size={17} strokeWidth={1.75} aria-hidden="true" /> : <Eye size={17} strokeWidth={1.75} aria-hidden="true" />}
+                      </button>
+                      <button type="button" className="painel-icone" onClick={() => { if (window.confirm(`Remover a camada “${l.nome}”?`)) removeReferenceLayer(l.id); }}
+                        aria-label={`Remover ${l.nome}`} title="Remover">
+                        <Trash2 size={17} strokeWidth={1.75} aria-hidden="true" />
+                      </button>
+                    </div>
+                    {campos.length > 0 && (
+                      <label className="painel-ref-rotulo">
+                        Rótulo
+                        <select className="selecao" value={l.rotulo || ''} onChange={e => updateReferenceLayer(l.id, { rotulo: e.target.value })}>
+                          <option value="">Sem rótulo</option>
+                          {campos.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </label>
+                    )}
+                  </div>
+                );
+              })}
+              <button type="button" className="btn btn-secondary btn-sm painel-refs-add" onClick={onImportGeometry}>
+                <Plus size={16} strokeWidth={2} aria-hidden="true" /> Adicionar camada
+              </button>
+            </div>
 
             <div className="campo">
               <label htmlFor="mp-base">Mapa base</label>

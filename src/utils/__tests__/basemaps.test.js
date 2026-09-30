@@ -21,3 +21,36 @@ describe('normalizeBasemap', () => {
     }
   });
 });
+
+import { enforceAppLayerOrder } from '../basemaps';
+
+// Mapa falso com getLayersOrder/moveLayer (moveLayer sem "before" leva ao topo)
+const fakeMap = (ids) => {
+  const order = [...ids];
+  return {
+    style: { _loaded: true },
+    moves: 0,
+    getLayersOrder: () => [...order],
+    moveLayer(id) { this.moves++; order.splice(order.indexOf(id), 1); order.push(id); },
+  };
+};
+
+describe('enforceAppLayerOrder', () => {
+  it('põe anotações acima do mapa temático recriado e referências entre eles', () => {
+    const m = fakeMap(['background', 'water', 'annotations-fill-layer', 'annotations-point-layer', 'ref-a-fill', 'ref-a-label',
+      'sectors-fill-layer', 'sectors-nodata-hatch', 'sectors-selected-line', 'sectors-label-layer']);
+    expect(enforceAppLayerOrder(m)).toBe(true);
+    expect(m.getLayersOrder()).toEqual(['background', 'water', 'sectors-fill-layer', 'sectors-nodata-hatch', 'ref-a-fill',
+      'sectors-selected-line', 'sectors-label-layer', 'ref-a-label', 'annotations-fill-layer', 'annotations-point-layer']);
+  });
+  it('não mexe quando a ordem já está certa', () => {
+    const m = fakeMap(['background', 'sectors-fill-layer', 'ref-a-line', 'sectors-label-layer', 'annotations-point-layer']);
+    expect(enforceAppLayerOrder(m)).toBe(false);
+    expect(m.moves).toBe(0);
+  });
+  it('camada do mapa base acima das do app é corrigida', () => {
+    const m = fakeMap(['sectors-fill-layer', 'place-labels']);
+    expect(enforceAppLayerOrder(m)).toBe(true);
+    expect(m.getLayersOrder()).toEqual(['place-labels', 'sectors-fill-layer']);
+  });
+});

@@ -479,3 +479,50 @@
     font-size: 16px;
   }
 }
+
+/* Camadas de referência do aluno */
+.painel-refs { gap: 8px; }
+.painel-refs-vazio { font-size: 13px; line-height: 1.45; color: var(--texto-2); }
+.painel-ref {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 8px 8px 10px;
+  border: 1px solid var(--papel-300);
+  border-radius: var(--raio-lg);
+  background: #FFFFFF;
+}
+.painel-ref.oculta .painel-ref-nome { color: var(--texto-2); text-decoration: line-through; }
+.painel-ref-linha { display: flex; align-items: center; gap: 6px; }
+.painel-ref-cor {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--papel-300);
+  border-radius: var(--raio-sm);
+  background: none;
+  cursor: pointer;
+}
+.painel-ref-nome {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 500;
+}
+.painel-ref-rotulo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--texto-2);
+}
+.painel-refs-add { align-self: flex-start; }
+@media (pointer: coarse) {
+  .painel-ref-linha .painel-icone { min-width: 44px; height: 44px; }
+  .painel-ref-cor { width: 36px; height: 36px; }
+}

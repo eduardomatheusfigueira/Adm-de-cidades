@@ -218,8 +218,7 @@ export const DataProvider = ({ children }) => {
   }, []);
 
   const processGeometryImportInternal = useCallback((importedGeojsonData, municipalityCodeFieldForImport) => {
-    // Esta função é chamada por handleImportGeometry após o modal.
-    // A lógica de UI do modal (showGeometryImportModal, etc.) ficará no UIContext.
+    // Chamada pelo GeoImportDialog (opção "Limites de municípios").
     if (!importedGeojsonData || !municipalityCodeFieldForImport) {
       alert('Dados de geometria ou campo de código do município ausentes.');
       return;

@@ -184,6 +184,35 @@ export const getGeoJSONSourceData = (source) => {
 export const isStyleReady = (map) => !!(map && map.style && map.style._loaded);
 
 // Camadas criadas pelo app (e não pelo mapa base): municípios, anotações, medidas,
-// gratícula e pré-visualização do desenho. Identificadas por prefixo para não esquecer nenhuma.
-const APP_LAYER_PREFIXES = ['sectors-', 'annotations-', 'graticule-', 'preview', 'prev-'];
+// gratícula, camadas de referência do aluno e pré-visualização do desenho. Identificadas por prefixo para não esquecer nenhuma.
+const APP_LAYER_PREFIXES = ['sectors-', 'annotations-', 'graticule-', 'preview', 'prev-', 'ref-'];
 export const isAppLayer = (id) => APP_LAYER_PREFIXES.some(p => String(id).startsWith(p));
+
+// Ordem fixa das camadas do app, de baixo para cima (o mapa base fica sempre por baixo):
+// mapa temático → camadas de referência → seleção → rótulos → gratícula → anotações → desenho.
+// Cada parte do app cria suas camadas em momentos diferentes (e o mapa temático é recriado a
+// cada carga de dados), então a ordem é refeita aqui, só quando está errada.
+const LAYER_RANK = [
+  [/^sectors-fill-layer$/, 0], [/^sectors-nodata-hatch$/, 1], [/^sectors-line-layer$/, 2],
+  [/^sectors-point-layer$/, 3], [/^sectors-symbols-layer$/, 4],
+  [/^ref-.*-(fill|line|point)$/, 10],
+  [/^sectors-selected-(halo|line)$/, 20],
+  [/^sectors-label-layer$/, 30], [/^ref-.*-label$/, 31],
+  [/^graticule-/, 40],
+  [/^annotations-/, 50],
+  [/^(preview|prev-)/, 60],
+];
+const layerRank = (id) => { const r = LAYER_RANK.find(([re]) => re.test(id)); return r ? r[1] : null; };
+
+export function enforceAppLayerOrder(map) {
+  if (!map || !isStyleReady(map)) return false;
+  const order = map.getLayersOrder ? map.getLayersOrder() : (map.getStyle()?.layers || []).map(l => l.id);
+  const app = order.map((id, i) => ({ id, i, rank: layerRank(id) })).filter(l => l.rank !== null);
+  const desired = [...app].sort((a, b) => a.rank - b.rank || a.i - b.i);
+  // Já está certo se as camadas do app aparecem na ordem desejada e acima de todas as outras
+  const firstApp = app.length ? app[0].i : order.length;
+  const tailOk = order.slice(firstApp).every(id => layerRank(id) !== null);
+  if (tailOk && desired.every((l, k) => l.id === app[k].id)) return false;
+  desired.forEach(l => { try { map.moveLayer(l.id); } catch (e) { /* camada removida no meio */ } });
+  return true;
+}

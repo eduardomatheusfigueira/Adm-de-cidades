@@ -1,0 +1,4 @@
+{"type":"FeatureCollection","features":[
+{"type":"Feature","properties":{"nome":"Escola A","alunos":320},"geometry":{"type":"Point","coordinates":[-46.6333,-23.5505]}},
+{"type":"Feature","properties":{"nome":"Escola B","alunos":210},"geometry":{"type":"Point","coordinates":[-46.65,-23.56]}},
+{"type":"Feature","properties":{"nome":"Escola Ç","alunos":95},"geometry":{"type":"Point","coordinates":[-46.62,-23.54]}}]}

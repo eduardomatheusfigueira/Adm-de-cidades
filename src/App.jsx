@@ -10,6 +10,7 @@ import Graticule from './components/Graticule';
 import './index.css';
 
 import DataWizard from './components/DataWizard';
+import GeoImportDialog from './components/GeoImportDialog';
 import DataSourceInfo from './components/DataSourceInfo';
 import MainLayout from './components/MainLayout';
 import AutoSave from './components/AutoSave';
@@ -57,13 +58,8 @@ function AppContent() {
     setActiveEnvironment,
     dataWizardMode,
     setDataWizardMode,
-    showGeometryImportModal, setShowGeometryImportModal,
-    municipalityCodeField, setMunicipalityCodeField,
-    submitGeometryImport,
-    openGeometryImportModal,
     selectedCityInfo, setSelectedCityInfo,
     handleFilterSettingsChange,
-    geometryPropertyKeys, // Get keys from context
     showImageStudio, setShowImageStudio,
   } = useContext(UIContext);
 
@@ -82,31 +78,9 @@ function AppContent() {
     handleFilterSettingsChange(selectedColorAttributeFromMenu);
   };
 
-  const handleImportGeometryInApp = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json,.geojson';
-    input.onchange = async (event) => {
-      const file = event.target.files[0];
-      if (!file) return;
-      if (file.size > 50 * 1024 * 1024) {
-        alert(`O arquivo ${file.name} excede o limite máximo permitido de 50MB.`);
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const jsonData = JSON.parse(e.target.result);
-          openGeometryImportModal(jsonData);
-        } catch (error) {
-          console.error('Erro ao processar arquivo JSON:', error);
-          alert('Erro ao processar o arquivo JSON: ' + error.message);
-        }
-      };
-      reader.readAsText(file);
-    };
-    input.click();
-  };
+  // Importar arquivo geográfico (GeoJSON, KML, Shapefile…): camada de referência ou limites
+  const [showGeoImport, setShowGeoImport] = useState(false);
+  const handleImportGeometryInApp = () => setShowGeoImport(true);
 
   const handleCityUpdateInApp = (updatedCity) => {
     if (!updatedCity || !updatedCity.properties) return;
@@ -262,30 +236,7 @@ function AppContent() {
       {activeEnvironment === 'etl' && <Suspense fallback={<LazyFallback />}><ETLEnvironment /></Suspense>}
 
       {/* Modals and Overlays */}
-      {showGeometryImportModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Importar Geometria</h3>
-            <div className="form-group">
-              <label htmlFor="municipality-code-field">Campo do Código do Município:</label>
-              <select
-                id="municipality-code-field"
-                value={municipalityCodeField}
-                onChange={(e) => setMunicipalityCodeField(e.target.value)}
-              >
-                <option value="">Selecione...</option>
-                {geometryPropertyKeys && geometryPropertyKeys.map(key => (
-                  <option key={key} value={key}>{key}</option>
-                ))}
-              </select>
-            </div>
-            <div className="button-group">
-              <button className="import-button" onClick={submitGeometryImport}>Importar</button>
-              <button className="cancel-button" onClick={() => setShowGeometryImportModal(false)}>Cancelar</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {showGeoImport && <GeoImportDialog onClose={() => setShowGeoImport(false)} />}
 
       {dataWizardMode && <DataWizard mode={dataWizardMode} onClose={() => setDataWizardMode(null)} />}
 

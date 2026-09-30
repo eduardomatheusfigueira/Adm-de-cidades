@@ -25,6 +25,7 @@ export function generateExportHtml({
   fillOpacity,
   borderWidth,
   northArrowStyle,
+  referenceLayers, // camadas de referência do aluno (SHP, KML…), visíveis
 }) {
   const DEFAULT_FILL = '#FFFFFF';
   const DEFAULT_BORDER = '#000000';
@@ -95,6 +96,8 @@ export function generateExportHtml({
   const annotationsGeoJson = safeJsonStringify({ type: 'FeatureCollection', features });
   const munGeoJson = municipalityGeoJson ? safeJsonStringify(municipalityGeoJson) : 'null';
   const styleJson = safeJsonStringify(mapStyle || null);
+  const refLayersJson = safeJsonStringify((referenceLayers || []).filter(l => l.visivel !== false)
+    .map(l => ({ id: String(l.id).replace(/[^a-z0-9]/gi, ''), cor: l.cor, rotulo: l.rotulo || '', data: l.data })), '[]');
   const colorExpr = municipalityColorExpression ? safeJsonStringify(municipalityColorExpression) : '"#cccccc"';
 
   // Build annotation legend items HTML
@@ -442,6 +445,7 @@ map.addControl(new maplibregl.NavigationControl(), 'top-right');
 var munData = ${munGeoJson};
 var colorExpr = ${colorExpr};
 var annData = ${annotationsGeoJson};
+var refLayers = ${refLayersJson};
 
 // ====== Show / Hide widgets ======
 function hideWidget(id, btnId) {
@@ -539,6 +543,16 @@ map.on('load', function() {
     paint: { 'circle-radius': 6, 'circle-color': colorExpr, 'circle-opacity': 0.9, 'circle-stroke-width': 1, 'circle-stroke-color': '#fff' }
   });
   ` : ''}
+
+  // Camadas de referência (acima dos municípios, abaixo das anotações)
+  refLayers.forEach(function (l) {
+    var src = 'ref-' + l.id;
+    map.addSource(src, { type: 'geojson', data: l.data });
+    map.addLayer({ id: src + '-fill', type: 'fill', source: src, filter: ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false], paint: { 'fill-color': l.cor, 'fill-opacity': 0.18 } });
+    map.addLayer({ id: src + '-line', type: 'line', source: src, filter: ['match', ['geometry-type'], ['LineString', 'MultiLineString', 'Polygon', 'MultiPolygon'], true, false], layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': l.cor, 'line-width': 2 } });
+    map.addLayer({ id: src + '-point', type: 'circle', source: src, filter: ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false], paint: { 'circle-radius': 5, 'circle-color': l.cor, 'circle-stroke-width': 1.5, 'circle-stroke-color': '#FFFFFF' } });
+    if (l.rotulo) map.addLayer({ id: src + '-label', type: 'symbol', source: src, layout: { 'text-field': ['to-string', ['coalesce', ['get', l.rotulo], '']], 'text-font': ['${FONT_BOLD}'], 'text-size': 12, 'text-offset': [0, 0.9], 'text-anchor': 'top', 'text-optional': true }, paint: { 'text-color': '#1A1814', 'text-halo-color': 'rgba(255,255,255,0.92)', 'text-halo-width': 1.4 } });
+  });
 
   ${hasAnnotations ? `
   map.addSource('annotations', { type: 'geojson', data: annData });

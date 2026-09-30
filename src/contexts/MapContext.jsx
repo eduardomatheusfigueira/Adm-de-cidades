@@ -5,9 +5,10 @@ import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';
 import { getColorScale, getLegendKey, withNoDataColor, noDataHatchFilter, applyCustomLegendColors, makeVizValueGetter, makeNumberParser } from '../utils/colorUtils';
 import { HATCH_ID, HATCH_LAYER, ensureHatchPattern } from '../utils/hatch';
+import { syncReferenceLayers, newReferenceLayer } from '../utils/referenceLayers';
 import { SYMBOL_COLOR, NEUTRAL_FILL, symbolRadiusExpression } from '../utils/proportional';
 import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
-import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
+import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady, enforceAppLayerOrder } from '../utils/basemaps';
 
 export const MapContext = createContext();
 
@@ -23,6 +24,8 @@ export const MapProvider = ({ children }) => {
   const [mapStyle, setMapStyle] = useState(DEFAULT_BASEMAP);
   // Aviso exibido sobre o mapa (ex.: mapa base remoto indisponível e troca automática para o fundo liso)
   const [mapNotice, setMapNotice] = useState(null);
+  // Camadas de referência do aluno (SHP, KML, GeoJSON…) desenhadas sobre o mapa temático
+  const [referenceLayers, setReferenceLayers] = useState([]);
   // Incrementa a cada 'style.load'. Um estilo local carrega tão rápido que mapLoaded
   // false→true cai no mesmo render do React; este contador garante que as camadas do app
   // (municípios, anotações, gratícula) sejam recriadas após toda troca de mapa base.
@@ -91,6 +94,8 @@ export const MapProvider = ({ children }) => {
       });
       currentStyleUrl.current = mapStyle; // Sync ref
       armStyleWatchdog(mapStyle);
+      // Camadas do app criadas em momentos diferentes: a ordem é conferida quando o mapa assenta
+      map.current.on('idle', () => { try { enforceAppLayerOrder(map.current); } catch (e) { /* estilo trocando */ } });
 
       map.current.on('move', () => {
         setLng(map.current.getCenter().lng);
@@ -1227,8 +1232,33 @@ export const MapProvider = ({ children }) => {
   }, [map]);
 
 
+  // Camadas de referência: recriadas a cada troca de mapa base (styleVersion)
+  useEffect(() => {
+    if (!mapLoaded || !map.current || !isStyleReady(map.current)) return;
+    try { syncReferenceLayers(map.current, referenceLayers); }
+    catch (e) { console.warn('[MapContext] Camadas de referência:', e); }
+  }, [mapLoaded, styleVersion, referenceLayers, geojsonData, filteredCsvData, visualizationConfig]);
+
+  const addReferenceLayer = useCallback((parsed) => {
+    let criada;
+    setReferenceLayers(prev => { criada = newReferenceLayer(parsed, prev.length); return [...prev, criada]; });
+    // Enquadra a camada nova
+    if (parsed.bbox && map.current) {
+      const [x1, y1, x2, y2] = parsed.bbox;
+      try { map.current.fitBounds([[x1, y1], [x2, y2]], { padding: 60, maxZoom: 15 }); } catch (e) { /* bbox degenerada */ }
+    }
+    return criada;
+  }, []);
+  const updateReferenceLayer = useCallback((id, changes) => {
+    setReferenceLayers(prev => prev.map(l => (l.id === id ? { ...l, ...changes } : l)));
+  }, []);
+  const removeReferenceLayer = useCallback((id) => {
+    setReferenceLayers(prev => prev.filter(l => l.id !== id));
+  }, []);
+
   const value = {
     map, mapContainer, mapLoaded, isMapLoading, lng, lat, zoom,
+    referenceLayers, setReferenceLayers, addReferenceLayer, updateReferenceLayer, removeReferenceLayer,
     mapStyle, // Exporta o estado local do estilo
     handleMapStyleChange, // Exporta a função para mudar o estilo
     mapNotice, setMapNotice,

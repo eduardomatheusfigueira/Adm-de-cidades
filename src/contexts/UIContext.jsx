@@ -1,11 +1,8 @@
-import React, { createContext, useState, useContext, useCallback } from 'react';
-import { DataContext } from './DataContext'; // Para chamar processGeometryImportInternal
+import React, { createContext, useState, useCallback } from 'react';
 
 export const UIContext = createContext();
 
 export const UIProvider = ({ children }) => {
-  const { processGeometryImportInternal } = useContext(DataContext);
-
   // Estados de UI e Seleções do Usuário (movidos de App.jsx)
   const [selectedCityInfo, setSelectedCityInfo] = useState(null);
   const [colorAttribute, setColorAttribute] = useState('Sigla_Regiao'); // Default
@@ -41,12 +38,6 @@ export const UIProvider = ({ children }) => {
   const [dataWizardMode, setDataWizardMode] = useState(null);
   const [exportPages, setExportPages] = useState([]);
 
-  // Estados para o modal de importação de geometria
-  const [showGeometryImportModal, setShowGeometryImportModal] = useState(false);
-  const [geometryImportData, setGeometryImportData] = useState(null); // Dados do arquivo GeoJSON importado
-  const [municipalityCodeField, setMunicipalityCodeField] = useState(''); // Campo selecionado no modal
-  const [geometryPropertyKeys, setGeometryPropertyKeys] = useState([]); // Chaves das propriedades do GeoJSON
-
   // Função para lidar com a aplicação de filtros (parte que estava em App.jsx)
   // A outra parte (applyFiltersToCsvData) está no DataContext
   const handleFilterSettingsChange = useCallback((newColorAttribute) => {
@@ -66,35 +57,6 @@ export const UIProvider = ({ children }) => {
     // Se for por indicador, o MapContext usará 'visualization_value' e o colorAttribute aqui não é o primário para cor.
     // Mas pode ser útil manter o último atributo selecionado se o usuário voltar para visualização por atributo.
   }, []);
-
-  // Função para abrir o modal de importação de geometria (parte de handleImportGeometry de App.jsx)
-  const openGeometryImportModal = useCallback((fileData) => {
-    setGeometryImportData(fileData); // Salva os dados do arquivo lido
-
-    // Extrair chaves das propriedades do primeiro feature para popular o select
-    if (fileData && fileData.features && fileData.features.length > 0 && fileData.features[0].properties) {
-      const keys = Object.keys(fileData.features[0].properties);
-      setGeometryPropertyKeys(keys);
-    } else {
-      setGeometryPropertyKeys([]);
-    }
-
-    setShowGeometryImportModal(true);  // Abre o modal
-  }, []);
-
-  // Função para processar a importação de geometria após submissão do modal
-  // (anteriormente processGeometryImport em App.jsx)
-  const submitGeometryImport = useCallback(() => {
-    if (geometryImportData && municipalityCodeField) {
-      processGeometryImportInternal(geometryImportData, municipalityCodeField);
-      setShowGeometryImportModal(false);
-      setGeometryImportData(null);
-      setMunicipalityCodeField('');
-      setGeometryPropertyKeys([]);
-    } else {
-      alert('Por favor, selecione o arquivo de geometria e o campo de código do município.');
-    }
-  }, [geometryImportData, municipalityCodeField, processGeometryImportInternal]);
 
   const updateLegendConfig = useCallback((legendKey, config) => {
     if (!legendKey) return;
@@ -147,17 +109,8 @@ export const UIProvider = ({ children }) => {
     setDataWizardMode,
     exportPages,
     setExportPages,
-    showGeometryImportModal,
-    setShowGeometryImportModal, // Expor para App.jsx controlar o modal
-    geometryImportData,
-    // setGeometryImportData, // Gerenciado por openGeometryImportModal e submitGeometryImport
-    municipalityCodeField,
-    setMunicipalityCodeField, // Expor para App.jsx controlar o campo do modal
-    geometryPropertyKeys, // Expor para App.jsx popular o select
     handleFilterSettingsChange, // Chamado pelo MapPanel/App.jsx
     handleVisualizationConfigChange, // Chamado pelo MapPanel/App.jsx
-    openGeometryImportModal, // Chamado pelo MapPanel/App.jsx
-    submitGeometryImport,  // Chamado pelo modal dentro de App.jsx (ou futuramente um componente Modal dedicado)
   };
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

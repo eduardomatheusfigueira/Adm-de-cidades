@@ -36,7 +36,7 @@ export const storeSetMany = (entries) => tx('readwrite', s => { Object.entries(e
 export const storeClear = () => tx('readwrite', s => s.clear());
 
 // Partes grandes do perfil gravadas separadamente
-export const BIG_KEYS = ['municipios', 'indicadores', 'geometrias'];
+export const BIG_KEYS = ['municipios', 'indicadores', 'geometrias', 'camadas'];
 
 export async function loadAutosave() {
   const meta = await storeGet('meta');

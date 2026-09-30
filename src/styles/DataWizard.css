@@ -505,3 +505,42 @@
     text-align: center;
   }
 }
+
+/* Importar arquivo geográfico: escolha do uso */
+.gi-uso {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gi-opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1px solid var(--papel-300);
+  border-radius: 12px;
+  background: #FFFFFF;
+  cursor: pointer;
+  color: var(--petroleo-700);
+}
+.gi-opcao.ativa {
+  border-color: var(--petroleo-700);
+  box-shadow: 0 0 0 3px var(--petroleo-100);
+}
+.gi-opcao input {
+  margin: 3px 0 0;
+  accent-color: var(--petroleo-700);
+}
+.gi-opcao span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--texto, #1A1814);
+}
+.gi-opcao strong { font-weight: 600; font-size: 14px; }
+.gi-opcao small { font-size: 13px; line-height: 1.4; color: var(--texto-2); }
+.gi-opcao:has(input:disabled) { opacity: 0.55; cursor: not-allowed; }

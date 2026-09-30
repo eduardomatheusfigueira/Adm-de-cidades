@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Escolas</name>
+<Placemark><name>Escola A</name><Point><coordinates>-46.6333,-23.5505,0</coordinates></Point></Placemark>
+<Placemark><name>Escola B</name><Point><coordinates>-46.65,-23.56,0</coordinates></Point></Placemark>
+<Placemark><name>Trilha</name><LineString><coordinates>-46.66,-23.57,0 -46.64,-23.55,0 -46.63,-23.54,0</coordinates></LineString></Placemark>
+</Document></kml>

@@ -12,6 +12,7 @@ const hasContent = (p) => !!p && (
   (p.annotations?.length || 0) > 0 ||
   (p.municipios?.length || 0) > 1 ||
   (p.geometrias?.features?.length || 0) > 0 ||
+  (p.camadas?.length || 0) > 0 ||
   (p.indicadores?.length || 0) > 0 ||
   (p.exportPages?.length || 0) > 0 ||
   !!p.visualizationConfig
@@ -174,6 +175,7 @@ export default function AutoSave() {
     const parts = [
       p.municipios?.length > 1 && `${p.municipios.length} municípios`,
       p.geometrias?.features?.length && `${p.geometrias.features.length} geometrias`,
+      p.camadas?.length && `${p.camadas.length} camada(s) de referência`,
       p.annotations?.length && `${p.annotations.length} anotações`,
       p.exportPages?.length && `${p.exportPages.length} página(s) no Estúdio`,
     ].filter(Boolean);

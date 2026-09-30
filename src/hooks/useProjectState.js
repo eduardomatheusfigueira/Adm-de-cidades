@@ -3,6 +3,7 @@ import { DataContext } from '../contexts/DataContext';
 import { UIContext } from '../contexts/UIContext';
 import { AnnotationContext } from '../contexts/AnnotationContext';
 import { MapContext } from '../contexts/MapContext';
+import { sanitizeReferenceLayers } from '../utils/referenceLayers';
 
 // Estado completo de um trabalho (dados, simbologia, anotações, páginas do Estúdio, mapa base
 // e enquadramento). Usado por "Salvar/Carregar Perfil" e pelo salvamento automático.
@@ -21,7 +22,7 @@ export function useProjectState() {
     annotations, setAnnotations, visualizations, setVisualizations,
     activeVisualizationId, setActiveVisualizationId,
   } = useContext(AnnotationContext);
-  const { map, mapStyle, handleMapStyleChange } = useContext(MapContext);
+  const { map, mapStyle, handleMapStyleChange, referenceLayers, setReferenceLayers } = useContext(MapContext);
 
   const getCamera = useCallback(() => {
     const m = map?.current;
@@ -44,6 +45,8 @@ export function useProjectState() {
     indicadores: indicadoresData,
     geometrias: { type: 'FeatureCollection', features: own },
     malhaUfs,
+    // Camadas de referência do aluno (SHP, KML, GeoJSON…)
+    camadas: referenceLayers,
     // Visualização
     colorAttribute,
     visualizationConfig,
@@ -59,7 +62,7 @@ export function useProjectState() {
     camera: getCamera(),
   };
   }, [csvData, csvHeaders, indicadoresData, geojsonData, colorAttribute, visualizationConfig, legendConfigByKey,
-    annotations, visualizations, activeVisualizationId, exportPages, mapStyle, getCamera]);
+    annotations, visualizations, activeVisualizationId, exportPages, mapStyle, getCamera, referenceLayers]);
 
   const applyProfile = useCallback((profile) => {
     if (!profile || typeof profile !== 'object') throw new Error('Perfil inválido');
@@ -71,6 +74,7 @@ export function useProjectState() {
       setCsvHeaders(profile.csvHeaders || Object.keys(profile.municipios[0] || {}));
     }
     if (profile.indicadores) setIndicadoresData(profile.indicadores);
+    setReferenceLayers(sanitizeReferenceLayers(profile.camadas));
     if (profile.geometrias) setGeojsonData(profile.geometrias);
     // Malha embutida referenciada pelo perfil (carregada depois das geometrias próprias)
     if (Array.isArray(profile.malhaUfs) && profile.malhaUfs.length) {
@@ -111,7 +115,7 @@ export function useProjectState() {
     }
   }, [setCsvData, setFilteredCsvData, setCsvHeaders, setIndicadoresData, setGeojsonData, setColorAttribute,
     setVisualizationConfig, updateLegendConfig, setAnnotations, setVisualizations, setActiveVisualizationId,
-    setExportPages, handleMapStyleChange, map, ensureGeometryForUfs]);
+    setExportPages, handleMapStyleChange, map, ensureGeometryForUfs, setReferenceLayers]);
 
   return { buildProfile, applyProfile };
 }
