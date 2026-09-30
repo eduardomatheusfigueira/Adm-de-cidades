@@ -11,7 +11,8 @@ export const getLegendKey = (visualizationConfig, colorAttribute) => {
 };
 
 // Cor dos municípios sem dado (célula vazia, "-", "...", texto inválido).
-export const NO_DATA_COLOR = '#d9d9d9';
+// Papel 300 do guia de identidade: um neutro que nunca é confundido com uma classe da escala.
+export const NO_DATA_COLOR = '#E4DFD5';
 export const NO_DATA_LABEL = 'Sem dados';
 
 // Marcadores comuns de "sem informação" em planilhas do IBGE/DATASUS.
@@ -91,17 +92,74 @@ export const withNoDataColor = (attribute, expression) => {
     expression];
 };
 
-// Paleta sequencial com exatamente n cores (1 a 9).
-const sequentialColors = (n, scheme) => {
-  if (Array.isArray(scheme) && scheme.length === n) return scheme;
-  if (n >= 3) return d3.schemeReds[Math.min(n, 9)];
-  const base = d3.schemeReds[3];
-  return n === 2 ? [base[0], base[2]] : [base[1]];
+// ── Escalas do guia de identidade (seção 06 · Dados e mapas) ───────────────
+// Rampas de 11 tons (50 → 950); as classes são tiradas de forma equidistante entre 100 e 900.
+const RAMPA_PETROLEO = ['#EDF7FB', '#D6ECF3', '#B8DBE6', '#93C4D2', '#67A6B8', '#3D899D', '#1D6E82', '#015668', '#004554', '#003440', '#00242D'];
+const RAMPA_TERRACOTA = ['#FFF2ED', '#FEE1D6', '#FBC7B3', '#F2A588', '#E5845E', '#D5683B', '#BD5223', '#A04318', '#823513', '#65280D', '#471D0C'];
+// Divergente: dois braços iguais e um centro neutro (Papel 200), sem julgamento de "bom" ou "ruim".
+const ANCORAS_DIVERGENTE = ['#015668', '#3D899D', '#93C4D2', '#F0ECE5', '#F2A588', '#D5683B', '#A04318'];
+
+export const ESCALAS_NUMERICAS = {
+  petroleo: { nome: 'Petróleo', descricao: 'Sequencial · quantidade' },
+  terracota: { nome: 'Terracota', descricao: 'Sequencial · segunda medida' },
+  divergente: { nome: 'Divergente', descricao: 'Desvio em torno do centro' },
 };
 
+const daRampa = (rampa, n) => {
+  if (n <= 1) return [rampa[5]];
+  return Array.from({ length: n }, (_, i) => rampa[Math.round(1 + (i * 8) / (n - 1))]);
+};
+
+// Paleta com exatamente n cores (1 a 9) para a escala escolhida.
+export const sequentialColors = (n, scheme = 'petroleo') => {
+  if (Array.isArray(scheme)) {
+    if (scheme.length === n) return scheme;
+    scheme = 'petroleo';
+  }
+  if (scheme === 'terracota') return daRampa(RAMPA_TERRACOTA, n);
+  if (scheme === 'divergente') {
+    if (n <= 1) return [ANCORAS_DIVERGENTE[3]];
+    const interp = d3.piecewise(d3.interpolateLab, ANCORAS_DIVERGENTE);
+    return Array.from({ length: n }, (_, i) => d3.color(interp(i / (n - 1))).formatHex().toUpperCase());
+  }
+  return daRampa(RAMPA_PETROLEO, n);
+};
+
+// Categórica: ordem fixa (validada para daltonismo nas cinco primeiras). As regiões têm cor própria.
+export const CORES_REGIOES = { N: '#3E5D1B', NE: '#DBAD36', CO: '#CC6349', SE: '#1288A1', S: '#A87EEB' };
+export const NOMES_REGIOES = { N: 'Norte', NE: 'Nordeste', CO: 'Centro-Oeste', SE: 'Sudeste', S: 'Sul' };
+const CATEGORICA_SISINFO = ['#1288A1', '#CC6349', '#3E5D1B', '#DBAD36', '#A87EEB', '#6B8FD6', '#8C6D46', '#D77FA1', '#5E9E7E', '#A39E93'];
+
+const ehRegiao = (valores) => valores.length > 0 && valores.every(v => Object.prototype.hasOwnProperty.call(CORES_REGIOES, v));
+
+// Muitas categorias: tons de mesma luminosidade média espalhados no círculo cromático
+// (mais sóbrio que o arco-íris "turbo" e sem cores fluorescentes).
+const coresCategoricasExtras = (n) => Array.from({ length: n }, (_, i) =>
+  d3.hcl((200 + (i * 360) / n) % 360, 42, i % 2 ? 52 : 66).formatHex());
+
+// Nomes legíveis dos atributos do cadastro de municípios
+const ROTULOS_ATRIBUTOS = {
+  Area_Municipio: 'Área territorial (km²)',
+  Sigla_Regiao: 'Região',
+  Sigla_Estado: 'Estado (UF)',
+  Nome_Municipio: 'Município',
+  Capital: 'Capital',
+  Altitude_Municipio: 'Altitude (m)',
+  Codigo_Municipio: 'Código IBGE',
+  Latitude_Municipio: 'Latitude',
+  Longitude_Municipio: 'Longitude',
+};
+export const rotuloAtributo = (atributo) => ROTULOS_ATRIBUTOS[atributo] || (atributo || '').replace(/_/g, ' ');
+
+// Opções de cor que acompanham a configuração de visualização (escala e número de classes).
+export const scaleOptionsFromConfig = (config) => ({
+  classes: Math.min(9, Math.max(2, parseInt(config?.classes, 10) || 5)),
+  scheme: ESCALAS_NUMERICAS[config?.scheme] ? config.scheme : 'petroleo',
+});
+
 // Default schemes
-const defaultNumericScheme = d3.schemeReds[5]; // Default to 5 categories for Reds
-const defaultCategoricalScheme = d3.schemeCategory10;
+const defaultNumericScheme = 'petroleo';
+const defaultCategoricalScheme = CATEGORICA_SISINFO;
 
 // Número usado como limiar "inalcançável" quando só há um valor distinto
 // (a expressão 'step' exige pelo menos um par limiar/cor).
@@ -146,21 +204,19 @@ export const getColorScale = (
   } else {
     // Categorical Data Handling
     const uniqueValues = [...new Set(filled.map(v => `${v}`))].sort(); // Sort for consistent color assignment
-    let colorRange;
-
-    // Use a more diverse scheme if the number of categories exceeds the default scheme's length
-    if (uniqueValues.length > categoricalScheme.length) {
-      console.log(`Generating ${uniqueValues.length} distinct colors using interpolateTurbo.`);
-      // Generate distinct colors using interpolateTurbo, avoiding the very ends (0 and 1)
-      colorRange = d3.quantize(t => d3.interpolateTurbo(t * 0.8 + 0.1), uniqueValues.length);
+    let colorScale;
+    if (ehRegiao(uniqueValues)) {
+      // Na ordem do IBGE: Norte, Nordeste, Centro-Oeste, Sudeste, Sul
+      const ordem = Object.keys(CORES_REGIOES);
+      uniqueValues.sort((a, b) => ordem.indexOf(a) - ordem.indexOf(b));
+      // Regiões: sempre as mesmas cores, em qualquer recorte
+      colorScale = (value) => CORES_REGIOES[value];
     } else {
-      // Use the provided categorical scheme if it has enough colors
-      colorRange = categoricalScheme;
+      const colorRange = uniqueValues.length > categoricalScheme.length
+        ? coresCategoricasExtras(uniqueValues.length)
+        : categoricalScheme;
+      colorScale = d3.scaleOrdinal().domain(uniqueValues).range(colorRange);
     }
-
-    const colorScale = d3.scaleOrdinal()
-      .domain(uniqueValues) // Use sorted domain
-      .range(colorRange); // Use the determined color range
 
     // Build the Mapbox match expression
     const matchExpression = ['match', ['to-string', ['get', attribute]]];
@@ -183,8 +239,12 @@ export const buildLegendItems = (scaleExpression, values, missingCount = 0) => {
   const type = scaleExpression?.[0];
   const items = [];
   if (type === 'match') {
+    const valores = [];
+    for (let i = 2; i < scaleExpression.length - 1; i += 2) valores.push(`${scaleExpression[i]}`);
+    const regioes = ehRegiao(valores);
     for (let i = 2; i < scaleExpression.length - 1; i += 2) {
-      items.push({ value: `${scaleExpression[i]}`, color: toHex(scaleExpression[i + 1]) });
+      const v = `${scaleExpression[i]}`;
+      items.push({ value: regioes ? NOMES_REGIOES[v] : v, color: toHex(scaleExpression[i + 1]) });
     }
   } else if (type === 'step') {
     const numericValues = (values || []).map(makeNumberParser(values)).filter((v) => !Number.isNaN(v)).sort((a, b) => a - b);

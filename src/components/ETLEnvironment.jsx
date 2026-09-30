@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Building2, Workflow, Hash, TrendingUp, PencilLine, BookOpen, Play } from 'lucide-react';
 import Sidebar from './Sidebar';
 import ETLEditData from './ETLEditData';
 import ETLProcessor from './ETL/ETLProcessor';
@@ -48,104 +49,107 @@ const ETLMunicipiosView = () => {
 
   return (
     <div className="etl-view-container fade-in">
-      <h2>ETL de Municípios</h2>
-      <p className="description-text">
-        Processamento e unificação de dados municipais a partir de múltiplas fontes (CSV, GeoJSON).
-      </p>
+      <div className="etl-cabecalho">
+        <p className="etl-trilha">ETL e dados › Municípios</p>
+        <h1>ETL de municípios</h1>
+        <p className="description-text">
+          Unifica os dados cadastrais dos municípios a partir de várias fontes (CSV e GeoJSON).
+        </p>
+      </div>
 
       <div className="etl-grid">
-        <div className="etl-config-panel">
-          <h3>Configuração</h3>
-          <div className="file-inputs">
-            {['populacao', 'altitude', 'longitude', 'latitude', 'geometria', 'snis'].map(key => (
-              <div key={key} className="file-input-group">
-                <label>{key.charAt(0).toUpperCase() + key.slice(1)}:</label>
-                <div className="custom-file-input">
-                  <input type="file" onChange={(e) => handleFileChange(key, e)} />
-                  <span className={`status-indicator ${inputFiles[key] ? 'success' : ''}`}>
-                    {inputFiles[key] ? '✓' : 'Obrigatório'}
-                  </span>
+        <div className="etl-etapas">
+          <section className="etl-etapa">
+            <h2><span className="etl-num">1</span>Arquivos de entrada</h2>
+            <div className="file-inputs">
+              {[['populacao', 'População'], ['altitude', 'Altitude'], ['longitude', 'Longitude'], ['latitude', 'Latitude'], ['geometria', 'Geometria (GeoJSON)'], ['snis', 'SNIS']].map(([key, rotulo]) => (
+                <div key={key} className="file-input-group">
+                  <label htmlFor={`etl-mun-${key}`}>{rotulo}</label>
+                  <div className="custom-file-input">
+                    <input id={`etl-mun-${key}`} type="file" onChange={(e) => handleFileChange(key, e)} />
+                    <span className={`status-indicator ${inputFiles[key] ? 'success' : ''}`}>
+                      {inputFiles[key] ? '✓ Escolhido' : 'Obrigatório'}
+                    </span>
+                  </div>
                 </div>
+              ))}
+            </div>
+          </section>
+          <section className="etl-etapa">
+            <h2><span className="etl-num">2</span>Saída</h2>
+            <div className="output-config">
+              <div className="campo">
+                <label htmlFor="etl-mun-pasta">Pasta de saída</label>
+                <input id="etl-mun-pasta" className="entrada" type="text" value={outputFolder} onChange={(e) => setOutputFolder(e.target.value)} />
               </div>
-            ))}
-          </div>
-          <div className="output-config">
-            <div className="input-group">
-              <label>Pasta de Saída</label>
-              <input type="text" value={outputFolder} onChange={(e) => setOutputFolder(e.target.value)} />
+              <div className="campo">
+                <label htmlFor="etl-mun-nome">Nome do arquivo</label>
+                <input id="etl-mun-nome" className="entrada etl-mono" type="text" value={outputFilename} onChange={(e) => setOutputFilename(e.target.value)} />
+              </div>
             </div>
-            <div className="input-group">
-              <label>Nome do Arquivo</label>
-              <input type="text" value={outputFilename} onChange={(e) => setOutputFilename(e.target.value)} />
-            </div>
-          </div>
-          <button
-            className="btn btn-primary run-btn"
-            onClick={runETL}
-            disabled={etlStatus === 'running'}
-          >
-            {etlStatus === 'running' ? 'Processando...' : 'Executar ETL'}
-          </button>
+          </section>
         </div>
 
-        <div className="etl-log-panel">
-          <h3>Log de Execução</h3>
-          <div className="log-window">
-            {logMessages.length === 0 ? (
-              <p className="empty-log">Aguardando início do processo...</p>
-            ) : (
-              logMessages.map((msg, idx) => (
-                <div key={idx} className="log-entry">
-                  <span className="log-time">[{msg.time}]</span>
-                  <span className="log-msg">{msg.message}</span>
-                </div>
-              ))
-            )}
+        <div className="etl-lateral">
+          <div className="etl-log-panel">
+            <div className="etl-log-topo">
+              <h2>Log de execução</h2>
+              <span>{etlStatus === 'running' ? 'Executando' : etlStatus === 'completed' ? 'Concluído' : 'Parado'}</span>
+            </div>
+            <div className="log-window" role="log" aria-live="polite">
+              {logMessages.length === 0 ? (
+                <p className="empty-log">Aguardando início do processo…</p>
+              ) : (
+                logMessages.map((msg, idx) => (
+                  <div key={idx} className="log-entry">
+                    <span className="log-time">[{msg.time}]</span>
+                    <span className="log-msg">{msg.message}</span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
+          <button type="button" className="btn btn-primary btn-lg" onClick={runETL} disabled={etlStatus === 'running'}>
+            <Play size={18} strokeWidth={1.75} aria-hidden="true" /> {etlStatus === 'running' ? 'Processando…' : 'Executar ETL'}
+          </button>
         </div>
       </div>
     </div>
   );
 };
 
-const TransformationView = () => {
-  const [activeTab, setActiveTab] = useState('municipios');
+const GUIAS = {
+  snis: { rotulo: 'SNIS', Componente: TransformacaoSNIS },
+  ipeadata: { rotulo: 'IPEADATA', Componente: TransformacaoIPEADATA },
+  datasus: { rotulo: 'DATASUS', Componente: TransformacaoDATASUS },
+  finbra: { rotulo: 'FINBRA', Componente: TransformacaoFINBRA },
+  ibge: { rotulo: 'IBGE / SIDRA', Componente: TransformacaoIBGE },
+  guiamun: { rotulo: 'Cadastro de municípios', Componente: TransformacaoMunicipios },
+  codigomun: { rotulo: 'Código do município', Componente: TransformacaoCodigoMunicipio },
+  indice: { rotulo: 'Índice posicional', Componente: TransformacaoIndicePosicional },
+};
 
-  const tabs = [
-    { id: 'municipios', label: 'Municípios' },
-    { id: 'snis', label: 'SNIS' },
-    { id: 'ipeadata', label: 'IPEADATA' },
-    { id: 'datasus', label: 'DATASUS' },
-    { id: 'finbra', label: 'FINBRA' },
-    { id: 'ibge', label: 'IBGE/SIDRA' },
-    { id: 'codigomun', label: 'Cód. Município' },
-    { id: 'indice', label: 'Índice Pos.' },
-  ];
+const ITENS = [
+  { id: 'municipios', label: 'ETL de municípios', Icon: Building2, grupo: 'Municípios' },
+  { id: 'guiamun', label: 'Guia do cadastro', Icon: BookOpen, grupo: 'Municípios' },
+  { id: 'indicadores', label: 'Processar arquivos', Icon: Workflow, grupo: 'Indicadores por fonte' },
+  { id: 'snis', label: 'SNIS', hint: 'Saneamento', grupo: 'Indicadores por fonte' },
+  { id: 'ipeadata', label: 'IPEADATA', hint: 'Séries', grupo: 'Indicadores por fonte' },
+  { id: 'datasus', label: 'DATASUS', hint: 'Saúde', grupo: 'Indicadores por fonte' },
+  { id: 'finbra', label: 'FINBRA', hint: 'Finanças', grupo: 'Indicadores por fonte' },
+  { id: 'ibge', label: 'IBGE / SIDRA', hint: 'Censos', grupo: 'Indicadores por fonte' },
+  { id: 'codigomun', label: 'Código do município', Icon: Hash, grupo: 'Utilitários' },
+  { id: 'indice', label: 'Índice posicional', Icon: TrendingUp, grupo: 'Utilitários' },
+  { id: 'editar', label: 'Editar dados', Icon: PencilLine, grupo: 'Utilitários' },
+];
 
+const Guia = ({ id }) => {
+  const { rotulo, Componente } = GUIAS[id];
+  const grupo = ITENS.find(i => i.id === id)?.grupo;
   return (
-    <div className="transformation-view-container fade-in">
-      <h2>Processos de Transformação</h2>
-      <div className="tabs-header">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-      <div className="tab-content">
-        {activeTab === 'municipios' && <TransformacaoMunicipios />}
-        {activeTab === 'snis' && <TransformacaoSNIS />}
-        {activeTab === 'ipeadata' && <TransformacaoIPEADATA />}
-        {activeTab === 'datasus' && <TransformacaoDATASUS />}
-        {activeTab === 'finbra' && <TransformacaoFINBRA />}
-        {activeTab === 'ibge' && <TransformacaoIBGE />}
-        {activeTab === 'codigomun' && <TransformacaoCodigoMunicipio />}
-        {activeTab === 'indice' && <TransformacaoIndicePosicional />}
-      </div>
+    <div className="etl-view-container etl-guia fade-in">
+      <p className="etl-trilha">ETL e dados › {grupo} › {rotulo}</p>
+      <Componente />
     </div>
   );
 };
@@ -153,18 +157,10 @@ const TransformationView = () => {
 const ETLEnvironment = ({ initialMunicipalitiesData, initialIndicatorsData, municipalitiesHeaders, indicatorsHeaders }) => {
   const [activeView, setActiveView] = useState('municipios');
 
-  const sidebarItems = [
-    { id: 'municipios', label: 'ETL Municípios', icon: 'fa-map' },
-    { id: 'indicadores', label: 'ETL Indicadores', icon: 'fa-chart-bar' },
-    { id: 'editar', label: 'Editar Dados', icon: 'fa-edit' },
-    { id: 'transformacao', label: 'Transformação', icon: 'fa-cogs' },
-  ];
-
   return (
     <div className="etl-environment-container">
       <Sidebar
-        title="ETL & Dados"
-        items={sidebarItems}
+        items={ITENS}
         activeItem={activeView}
         onItemClick={setActiveView}
       />
@@ -180,7 +176,7 @@ const ETLEnvironment = ({ initialMunicipalitiesData, initialIndicatorsData, muni
             indicatorsHeaders={indicatorsHeaders}
           />
         )}
-        {activeView === 'transformacao' && <TransformationView />}
+        {GUIAS[activeView] && <Guia id={activeView} />}
       </div>
     </div>
   );

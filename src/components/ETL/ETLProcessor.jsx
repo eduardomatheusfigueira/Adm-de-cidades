@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-
-// Placeholder for styles if needed later
-// import './ETLProcessor.css';
+import { FileUp, Play, Download, CircleCheck, CircleX } from 'lucide-react';
 
 const ETLProcessor = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -13,7 +11,7 @@ const ETLProcessor = () => {
 
   // TODO: Define available source types based on plan/data
   const SOURCE_TYPES = [
-    { value: '', label: 'Select Data Source Type...' },
+    { value: '', label: 'Escolha a fonte dos dados…' },
     { value: 'snis_agua_esgoto', label: 'SNIS - Água e Esgoto (.csv)' },
     { value: 'finbra_receitas', label: 'FINBRA - Receitas Orçamentárias (.csv)' },
     { value: 'ibge_pib_2010_2021', label: 'IBGE - PIB (2010-2021) (.xlsx)' },
@@ -36,7 +34,7 @@ const ETLProcessor = () => {
         setResults(payload); // Payload should be the processed data array
         setError(null);
       } else if (type === 'error') {
-        setError(workerError || 'An unknown error occurred during processing.');
+        setError(workerError || 'Ocorreu um erro inesperado no processamento.');
         setResults(null);
       }
     };
@@ -44,7 +42,7 @@ const ETLProcessor = () => {
     // Handle errors from the worker itself
     workerRef.current.onerror = (err) => {
       console.error("Worker Error:", err);
-      setError(`Worker error: ${err.message}`);
+      setError(`Erro no processamento em segundo plano: ${err.message}`);
       setProcessing(false);
       setResults(null);
     };
@@ -67,7 +65,7 @@ const ETLProcessor = () => {
 
   const handleProcessClick = () => {
     if (!selectedFiles.length || !sourceType || processing) {
-      setError("Please select file(s) and a source type.");
+      setError('Escolha pelo menos um arquivo e a fonte dos dados.');
       return;
     }
     setError(null);
@@ -80,7 +78,7 @@ const ETLProcessor = () => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (e) => resolve({ name: file.name, content: e.target.result });
-            reader.onerror = (e) => reject(`Error reading file ${file.name}: ${e.target.error}`);
+            reader.onerror = (e) => reject(`Não foi possível ler o arquivo ${file.name}: ${e.target.error}`);
             // Read as ArrayBuffer for SheetJS compatibility with Excel files
             reader.readAsArrayBuffer(file);
         });
@@ -134,73 +132,80 @@ const ETLProcessor = () => {
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h2>ETL Processor - Data Transformation</h2>
-      <p>Upload raw data files, select the source type, and process them into the standard format for the application.</p>
-
-      <div style={{ marginBottom: '15px' }}>
-        <label htmlFor="file-upload" style={{ display: 'block', marginBottom: '5px' }}>Select File(s):</label>
-        <input
-          id="file-upload"
-          type="file"
-          multiple
-          onChange={handleFileChange}
-          disabled={processing}
-        />
-        {selectedFiles.length > 0 && (
-          <ul style={{ listStyle: 'none', paddingLeft: 0, fontSize: '0.9em', color: '#555' }}>
-            {selectedFiles.map(file => <li key={file.name}>- {file.name}</li>)}
-          </ul>
-        )}
+    <div className="etl-view-container fade-in">
+      <div className="etl-cabecalho">
+        <p className="etl-trilha">ETL e dados › Indicadores</p>
+        <h1>Processar arquivos brutos</h1>
+        <p className="description-text">Envie os arquivos baixados da fonte oficial, escolha de onde eles vêm e baixe o resultado no formato de indicadores do SisInfo.</p>
       </div>
 
-      <div style={{ marginBottom: '15px' }}>
-        <label htmlFor="source-type" style={{ display: 'block', marginBottom: '5px' }}>Source Type:</label>
-        <select
-          id="source-type"
-          value={sourceType}
-          onChange={handleSourceTypeChange}
-          disabled={processing}
-          style={{ padding: '5px' }}
-        >
-          {SOURCE_TYPES.map(option => (
-            <option key={option.value} value={option.value} disabled={option.value === ''}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <div className="etl-grid">
+        <div className="etl-etapas">
+          <section className="etl-etapa">
+            <h2><span className="etl-num">1</span>Arquivos de entrada</h2>
+            <label className="etl-soltar" htmlFor="file-upload">
+              <FileUp size={26} strokeWidth={1.5} aria-hidden="true" />
+              <span><strong>Escolha os arquivos</strong> (CSV ou planilha Excel)</span>
+              <input id="file-upload" type="file" multiple onChange={handleFileChange} disabled={processing} className="sr-only" />
+            </label>
+            {selectedFiles.length > 0 && (
+              <ul className="etl-arquivos">
+                {selectedFiles.map(file => <li key={file.name}>{file.name}</li>)}
+              </ul>
+            )}
+          </section>
 
-      <button
-        onClick={handleProcessClick}
-        disabled={processing || !selectedFiles.length || !sourceType}
-        style={{ padding: '10px 15px', cursor: 'pointer' }}
-      >
-        {processing ? 'Processing...' : 'Process Files'}
-      </button>
-
-      {error && (
-        <div style={{ marginTop: '15px', color: 'red', border: '1px solid red', padding: '10px' }}>
-          <strong>Error:</strong> {error}
+          <section className="etl-etapa">
+            <h2><span className="etl-num">2</span>Fonte dos dados</h2>
+            <div className="campo">
+              <label htmlFor="source-type">De onde vêm os arquivos</label>
+              <select id="source-type" className="selecao" value={sourceType} onChange={handleSourceTypeChange} disabled={processing}>
+                {SOURCE_TYPES.map(option => (
+                  <option key={option.value} value={option.value} disabled={option.value === ''}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+          </section>
         </div>
-      )}
 
-      {results && (
-        <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '15px' }}>
-          <h3>Processing Complete</h3>
-          <p>Successfully processed {results.length} rows.</p>
-          {/* Optionally display a preview of the results */}
-          {/* <pre style={{ maxHeight: '200px', overflowY: 'auto', background: '#f0f0f0', padding: '10px' }}>
-            {JSON.stringify(results.slice(0, 10), null, 2)}
-          </pre> */}
-          <button
-            onClick={handleDownloadClick}
-            style={{ padding: '10px 15px', cursor: 'pointer', marginTop: '10px' }}
-          >
-            Download Formatted CSV
+        <div className="etl-lateral">
+          <button type="button" className="btn btn-primary btn-lg" onClick={handleProcessClick} disabled={processing || !selectedFiles.length || !sourceType}>
+            <Play size={18} strokeWidth={1.75} aria-hidden="true" /> {processing ? 'Processando…' : 'Processar arquivos'}
           </button>
+          {!selectedFiles.length && <p className="etl-dica">Escolha os arquivos na etapa 1 para começar.</p>}
+
+          {error && (
+            <div className="aviso aviso-erro" role="alert">
+              <CircleX size={18} strokeWidth={1.75} aria-hidden="true" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {results && (
+            <div className="aviso aviso-sucesso" role="status">
+              <CircleCheck size={18} strokeWidth={1.75} aria-hidden="true" />
+              <div className="etl-resultado">
+                <strong>Processamento concluído</strong>
+                <span>{results.length.toLocaleString('pt-BR')} linhas no formato de indicadores.</span>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={handleDownloadClick}>
+                  <Download size={15} strokeWidth={1.75} aria-hidden="true" /> Baixar CSV
+                </button>
+              </div>
+            </div>
+          )}
+
+          <section className="etl-formato">
+            <h2>Formato de saída</h2>
+            <dl>
+              <div><dt>Codigo_Municipio</dt><dd>texto</dd></div>
+              <div><dt>Nome_Indicador</dt><dd>texto</dd></div>
+              <div><dt>Ano_Observacao</dt><dd>número</dd></div>
+              <div><dt>Valor</dt><dd>número</dd></div>
+              <div><dt>Indice_Posicional</dt><dd>0 a 1</dd></div>
+            </dl>
+          </section>
         </div>
-      )}
+      </div>
     </div>
   );
 };

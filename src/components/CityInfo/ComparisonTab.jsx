@@ -56,48 +56,31 @@ const ComparisonTab = ({ indicators }) => {
     }, [selectedIndicators, indicatorsForYear]);
 
     const customStyles = {
-        control: (provided) => ({
+        control: (provided, state) => ({
             ...provided,
-            backgroundColor: '#333',
-            borderColor: '#555',
-            color: '#fff',
-            minHeight: '38px'
+            minHeight: '40px',
+            borderColor: state.isFocused ? '#015668' : '#CCC7BC',
+            boxShadow: state.isFocused ? '0 0 0 3px #D6ECF3' : 'none',
+            borderRadius: '8px',
+            '&:hover': { borderColor: '#A39E93' },
         }),
-        menu: (provided) => ({
-            ...provided,
-            backgroundColor: '#333',
-            color: '#fff',
-            zIndex: 9999
-        }),
+        menu: (provided) => ({ ...provided, zIndex: 9999, borderRadius: '10px', boxShadow: '0 16px 40px rgba(0, 36, 45, 0.22)' }),
         option: (provided, state) => ({
             ...provided,
-            backgroundColor: state.isFocused ? '#555' : '#333',
-            color: '#fff'
+            backgroundColor: state.isSelected ? '#015668' : state.isFocused ? '#EDF7FB' : '#FFFFFF',
+            color: state.isSelected ? '#FFFFFF' : '#1A1814',
         }),
-        multiValue: (provided) => ({
-            ...provided,
-            backgroundColor: '#555',
-        }),
-        multiValueLabel: (provided) => ({
-            ...provided,
-            color: '#fff',
-        }),
-        input: (provided) => ({
-            ...provided,
-            color: '#fff'
-        }),
-        singleValue: (provided) => ({
-            ...provided,
-            color: '#fff'
-        })
+        multiValue: (provided) => ({ ...provided, backgroundColor: '#D6ECF3', borderRadius: '999px' }),
+        multiValueLabel: (provided) => ({ ...provided, color: '#004554', fontWeight: 600 }),
     };
 
     return (
         <div className="comparison-tab">
             <div className="chart-controls">
                 <div className="control-group">
-                    <label>Ano:</label>
+                    <label htmlFor="cmp-ano">Ano</label>
                     <select
+                        id="cmp-ano"
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(e.target.value)}
                         className="year-select"
@@ -108,7 +91,7 @@ const ComparisonTab = ({ indicators }) => {
                     </select>
                 </div>
                 <div className="control-group full-width">
-                    <label>Indicadores (Selecione para comparar):</label>
+                    <label>Indicadores para comparar</label>
                     <Select
                         isMulti
                         options={indicatorOptions}
@@ -126,26 +109,26 @@ const ComparisonTab = ({ indicators }) => {
                 {selectedIndicators.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                            <XAxis dataKey="name" stroke="#ccc" tick={{ fontSize: 12 }} interval={0} />
-                            <YAxis stroke="#ccc" label={{ value: 'Índice Posicional', angle: -90, position: 'insideLeft', fill: '#ccc' }} />
+                            <CartesianGrid vertical={false} stroke="#F0ECE5" />
+                            <XAxis dataKey="name" stroke="#CCC7BC" tick={{ fontSize: 12, fill: '#67635A' }} tickLine={false} interval={0} />
+                            <YAxis stroke="#CCC7BC" tick={{ fontSize: 12, fill: '#67635A' }} axisLine={false} tickLine={false} label={{ value: 'Índice posicional', angle: -90, position: 'insideLeft', fill: '#67635A', fontSize: 12 }} />
                             <Tooltip
-                                cursor={{ fill: '#444' }}
-                                contentStyle={{ backgroundColor: '#333', border: 'none', borderRadius: '8px' }}
+                                cursor={{ fill: '#EDF7FB' }}
+                                contentStyle={{ backgroundColor: '#00242D', border: 'none', borderRadius: '8px', color: '#FFFFFF' }}
                                 formatter={(value, name, props) => [
                                     <div>
                                         <div>Índice: {value.toFixed(4)}</div>
-                                        <div style={{ fontSize: '0.8em', color: '#aaa' }}>Valor Real: {props.payload.valor} {props.payload.unit}</div>
+                                        <div style={{ fontSize: '0.8em', color: '#B8DBE6' }}>Valor real: {props.payload.valor} {props.payload.unit}</div>
                                     </div>,
                                     ''
                                 ]}
                             />
-                            <Bar dataKey="indice" fill="#82ca9d" name="Índice Posicional" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="indice" fill="#3D899D" name="Índice posicional" radius={[4, 4, 0, 0]} maxBarSize={48} />
                         </BarChart>
                     </ResponsiveContainer>
                 ) : (
                     <div className="no-data-placeholder">
-                        Selecione indicadores para visualizar a comparação.
+                        {indicators && indicators.length ? 'Escolha indicadores para comparar.' : 'Nenhum indicador importado para este município.'}
                     </div>
                 )}
             </div>

@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import { DataContext } from './DataContext';
 import { UIContext } from './UIContext';
 import { AnnotationContext } from './AnnotationContext';
-import { getColorScale, getLegendKey, makeNumberParser, withNoDataColor, applyCustomLegendColors, isNoDataMarker, isNumericValues } from '../utils/colorUtils';
+import { getColorScale, getLegendKey, makeNumberParser, withNoDataColor, applyCustomLegendColors, isNoDataMarker, isNumericValues, scaleOptionsFromConfig } from '../utils/colorUtils';
 import { getAnnotationMeasurement, getLineSegmentDetails } from '../utils/geoUtils';
 import { DEFAULT_BASEMAP, FALLBACK_BASEMAP, BASEMAPS, FONT_BOLD, getFontStack, isLocalBasemap, normalizeBasemap, resolveBasemapStyle, isStyleReady } from '../utils/basemaps';
 
@@ -28,7 +28,7 @@ export const MapProvider = ({ children }) => {
 
   const { geojsonData, indicadoresData, filteredCsvData, csvData } = useContext(DataContext);
   // Consumindo diretamente do UIContext, sem valores padrão aqui
-  const { colorAttribute, visualizationConfig, activeEnvironment, setSelectedCityInfo, legendConfigByKey, showGraticule, graticuleStyle, showMeasurements } = useContext(UIContext);
+  const { colorAttribute, visualizationConfig, activeEnvironment, selectedCityInfo, setSelectedCityInfo, legendConfigByKey, showGraticule, graticuleStyle, showMeasurements } = useContext(UIContext);
 
   // Annotation context
   const {
@@ -201,6 +201,7 @@ export const MapProvider = ({ children }) => {
     };
 
     const bounds = new maplibregl.LngLatBounds();
+    const pontosEnquadramento = [];
     let hasValidBounds = false;
 
     if (geojsonData && geojsonData.features) {
@@ -250,7 +251,7 @@ export const MapProvider = ({ children }) => {
         return;
       }
 
-      bounds.extend([lon, lat]);
+      pontosEnquadramento.push([lon, lat]);
       hasValidBounds = true;
       // Municípios com polígono não ganham um ponto por cima (poluía o mapa temático);
       // o ponto só aparece para quem não tem limite carregado
@@ -285,8 +286,31 @@ export const MapProvider = ({ children }) => {
     // Reenquadrar só quando o conjunto de municípios/geometrias muda — não ao trocar cores,
     // opacidade ou mapa base (o aluno perderia o enquadramento que escolheu).
     const dataChanged = lastFittedDataRef.current.csv !== currentMapData || lastFittedDataRef.current.geo !== geojsonData;
+    if (hasValidBounds) {
+      // Enquadra pela massa dos municípios: ilhas muito afastadas (ex.: Fernando de Noronha em PE)
+      // ficam fora do cálculo para não empurrar o estado para um canto da tela.
+      const quartis = (vals) => { const v = [...vals].sort((a, b) => a - b); const q = (p) => v[Math.floor(p * (v.length - 1))]; return [q(0.25), q(0.75)]; };
+      let pontos = pontosEnquadramento;
+      if (pontos.length >= 20) {
+        const [lo1, lo3] = quartis(pontos.map(p => p[0]));
+        const [la1, la3] = quartis(pontos.map(p => p[1]));
+        const folgaLo = 3 * Math.max(lo3 - lo1, 0.5);
+        const folgaLa = 3 * Math.max(la3 - la1, 0.5);
+        const dentro = pontos.filter(([lo, la]) => lo >= lo1 - folgaLo && lo <= lo3 + folgaLo && la >= la1 - folgaLa && la <= la3 + folgaLa);
+        if (dentro.length >= pontos.length * 0.9) pontos = dentro;
+      }
+      pontos.forEach(p => bounds.extend(p));
+    }
     if (hasValidBounds && map.current && dataChanged) {
-      map.current.fitBounds(bounds, { padding: 50, maxZoom: 14 });
+      // Garante que o canvas tem o tamanho atual do contêiner (o mapa pode ter sido criado escondido)
+      map.current.resize();
+      // Folga para o que flutua sobre o mapa: painel lateral (se aberto), botões e legenda
+      const largura = map.current.getContainer().clientWidth;
+      const painelAberto = !!document.querySelector('.painel-mapa.aberto');
+      const padding = largura > 768
+        ? { top: 90, bottom: 60, left: painelAberto ? 400 : 60, right: 90 }
+        : { top: 60, bottom: 90, left: 24, right: 24 };
+      map.current.fitBounds(bounds, { padding, maxZoom: 14 });
       lastFittedDataRef.current = { csv: currentMapData, geo: geojsonData };
     }
 
@@ -305,7 +329,8 @@ export const MapProvider = ({ children }) => {
       });
     }
     const attributeValues = finalFeatures.map(f => f.properties[currentAttributeForColoring]).filter(v => v !== undefined && v !== null);
-    const baseScaleExpression = getColorScale(currentAttributeForColoring, attributeValues);
+    const { classes, scheme } = scaleOptionsFromConfig(visualizationConfig);
+    const baseScaleExpression = getColorScale(currentAttributeForColoring, attributeValues, classes, scheme);
     let colorRenderScaleExpression = baseScaleExpression;
 
     const legendKey = getLegendKey(visualizationConfig, colorAttribute);
@@ -322,7 +347,7 @@ export const MapProvider = ({ children }) => {
       map.current.addLayer({
         id: 'sectors-fill-layer', type: 'fill', source: 'sectors',
         filter: ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']],
-        paint: { 'fill-color': colorRenderScaleExpression, 'fill-opacity': 0.6, 'fill-outline-color': '#000' }
+        paint: { 'fill-color': colorRenderScaleExpression, 'fill-opacity': 0.85, 'fill-outline-color': 'rgba(255, 255, 255, 0.85)' }
       });
       map.current.addLayer({
         id: 'sectors-line-layer', type: 'line', source: 'sectors',
@@ -344,6 +369,17 @@ export const MapProvider = ({ children }) => {
           'circle-stroke-width': 1,
           'circle-stroke-color': '#ffffff'
         }
+      });
+      // Município selecionado: contorno Terracota 600 com halo branco (o mesmo gesto da célula do logotipo)
+      map.current.addLayer({
+        id: 'sectors-selected-halo', type: 'line', source: 'sectors',
+        filter: ['==', ['get', 'CD_MUN'], '__nenhum__'],
+        paint: { 'line-color': '#FFFFFF', 'line-width': 6, 'line-opacity': 0.95 }
+      });
+      map.current.addLayer({
+        id: 'sectors-selected-line', type: 'line', source: 'sectors',
+        filter: ['==', ['get', 'CD_MUN'], '__nenhum__'],
+        paint: { 'line-color': '#BD5223', 'line-width': 3 }
       });
 
       // Os listeners por camada sobrevivem à troca de mapa base; registrar só uma vez
@@ -371,7 +407,7 @@ export const MapProvider = ({ children }) => {
     // Determine render mode from visualizationConfig
     const renderMode = visualizationConfig?.renderMode || 'filled';
     const borderWidth = visualizationConfig?.borderWidth || 2;
-    const fillOpacity = visualizationConfig?.fillOpacity ?? 0.6;
+    const fillOpacity = visualizationConfig?.fillOpacity ?? 0.85;
 
     if (renderMode === 'border') {
       // Border mode: transparent fill, colored inward border
@@ -395,7 +431,7 @@ export const MapProvider = ({ children }) => {
       if (map.current.getLayer('sectors-fill-layer')) {
         map.current.setPaintProperty('sectors-fill-layer', 'fill-color', colorRenderScaleExpression);
         map.current.setPaintProperty('sectors-fill-layer', 'fill-opacity', fillOpacity);
-        map.current.setPaintProperty('sectors-fill-layer', 'fill-outline-color', '#000');
+        map.current.setPaintProperty('sectors-fill-layer', 'fill-outline-color', 'rgba(255, 255, 255, 0.85)');
       }
       if (map.current.getLayer('sectors-line-layer')) {
         map.current.setPaintProperty('sectors-line-layer', 'line-opacity', 0);
@@ -413,6 +449,17 @@ export const MapProvider = ({ children }) => {
       loadMapData();
     }
   }, [mapLoaded, styleVersion, loadMapData, activeEnvironment]);
+
+  // Destaca o município selecionado (contorno terracota); limpa quando nada está selecionado
+  useEffect(() => {
+    if (!mapLoaded || !map.current) return;
+    const props = selectedCityInfo?.properties || {};
+    const code = props.CD_MUN || props.Codigo_Municipio;
+    const filter = ['==', ['to-string', ['get', 'CD_MUN']], code ? String(code) : '__nenhum__'];
+    ['sectors-selected-halo', 'sectors-selected-line'].forEach(id => {
+      if (map.current.getLayer(id)) map.current.setFilter(id, filter);
+    });
+  }, [selectedCityInfo, mapLoaded, styleVersion, filteredCsvData, geojsonData]);
 
 
   // =============================================
@@ -1090,9 +1137,15 @@ export const MapProvider = ({ children }) => {
 
   const flyToCity = useCallback((city) => {
     if (map.current && city.lat && city.lng) {
+      // Deixa o município visível acima do cartão e ao lado do painel lateral
+      const largura = map.current.getContainer().clientWidth;
+      const painelAberto = !!document.querySelector('.painel-mapa.aberto');
+      // offset (e não padding): o deslocamento vale só para este voo, não fica gravado no mapa
+      const offset = largura > 768 ? [painelAberto ? 150 : -40, -120] : [0, -110];
       map.current.flyTo({
         center: [city.lng, city.lat],
-        zoom: 12,
+        zoom: Math.max(map.current.getZoom(), 9.5),
+        offset,
         essential: true
       });
     }

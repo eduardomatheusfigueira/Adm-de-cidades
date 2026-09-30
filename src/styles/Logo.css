@@ -1,0 +1,33 @@
+.simbolo-sisinfo {
+  display: block;
+  flex-shrink: 0;
+}
+
+.logo-sisinfo {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.logo-sisinfo-textos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+
+.logo-sisinfo-nome {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.logo-sisinfo-descritor {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--texto-2);
+  white-space: nowrap;
+}

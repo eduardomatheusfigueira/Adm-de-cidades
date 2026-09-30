@@ -1,3 +1,4 @@
+/* ETL e dados */
 .etl-environment-container {
   display: flex;
   height: 100%;
@@ -7,170 +8,401 @@
 
 .etl-content-area {
   flex: 1;
-  padding: var(--spacing-lg);
+  min-width: 0;
+  padding: 26px 32px;
   overflow-y: auto;
 }
 
 .etl-view-container,
 .transformation-view-container {
-  background: var(--surface-color);
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+  max-width: 1180px;
   min-height: 100%;
 }
 
-.etl-view-container h2,
-.transformation-view-container h2 {
-  color: var(--primary-color);
-  margin-bottom: var(--spacing-sm);
+.etl-cabecalho {
+  margin-bottom: 20px;
+}
+
+.etl-trilha {
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--texto-2);
+}
+
+.etl-cabecalho h1 {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .description-text {
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-lg);
+  margin-top: 4px;
+  max-width: 720px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--papel-800);
 }
 
-/* ETL Grid Layout */
+/* Etapas à esquerda, execução à direita */
 .etl-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-xl);
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 20px;
+  align-items: start;
 }
 
-@media (max-width: 1024px) {
-  .etl-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.etl-config-panel,
-.etl-log-panel {
+.etl-etapas,
+.etl-lateral {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 12px;
 }
 
-.etl-config-panel h3,
-.etl-log-panel h3 {
-  font-size: 1.1rem;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: var(--spacing-xs);
+.etl-etapa {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--raio-lg);
+}
+
+.etl-etapa h2,
+.etl-formato h2,
+.etl-log-topo h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.etl-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--cor-primaria);
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.etl-soltar {
+  min-height: 84px;
+  padding: 16px;
+  border: 1.5px dashed var(--petroleo-300);
+  border-radius: 10px;
+  background: #F7FBFC;
+  color: var(--cor-primaria);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.etl-soltar span {
+  color: var(--texto);
+}
+
+.etl-soltar:hover {
+  background: var(--petroleo-50);
+}
+
+.etl-soltar:focus-within {
+  outline: 2px solid var(--petroleo-500);
+  outline-offset: 2px;
+}
+
+.etl-arquivos {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--papel-800);
+}
+
+.etl-dica {
+  font-size: 12px;
+  text-align: center;
+  color: var(--texto-2);
+}
+
+.etl-resultado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.etl-formato {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--raio-lg);
+}
+
+.etl-formato dl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.etl-formato dl > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.etl-formato dt {
+  font-family: var(--font-mono);
+  color: var(--texto);
+}
+
+.etl-formato dd {
+  color: var(--texto-2);
+}
+
+/* Entradas do ETL de municípios */
+.file-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .file-input-group {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 6px;
 }
 
 .file-input-group label {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .custom-file-input {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.custom-file-input input[type="file"] {
+  max-width: 100%;
+  font-size: 13px;
+}
+
+.custom-file-input input[type="file"]::file-selector-button {
+  min-height: 34px;
+  margin-right: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-md);
+  background: #FFFFFF;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--texto);
+  cursor: pointer;
 }
 
 .status-indicator {
-  font-size: 0.8rem;
-  color: var(--error-color);
+  font-size: 12px;
+  color: var(--texto-2);
 }
 
 .status-indicator.success {
-  color: var(--success-color);
-  font-weight: bold;
+  color: var(--cor-sucesso);
+  font-weight: 600;
 }
 
 .output-config {
-  display: flex;
-  gap: var(--spacing-md);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.input-group {
-  flex: 1;
+.etl-mono {
+  font-family: var(--font-mono);
+}
+
+/* Log */
+.etl-log-panel {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--petroleo-950);
+  border-radius: var(--raio-lg);
 }
 
-.input-group input {
-  padding: 0.5rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+.etl-log-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.run-btn {
-  margin-top: var(--spacing-md);
-  align-self: flex-start;
+.etl-log-topo h2 {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: #FFFFFF;
 }
 
-/* Log Window */
+.etl-log-topo span {
+  font-size: 12px;
+  color: var(--petroleo-300);
+}
+
 .log-window {
-  background: #1E293B;
-  /* Slate 800 */
-  color: #E2E8F0;
-  /* Slate 200 */
-  padding: var(--spacing-md);
-  border-radius: var(--radius-md);
-  height: 400px;
+  min-height: 220px;
+  max-height: 360px;
   overflow-y: auto;
-  font-family: monospace;
-  font-size: 0.9rem;
-}
-
-.log-entry {
-  margin-bottom: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--petroleo-200);
 }
 
 .log-time {
-  color: var(--text-secondary);
-  margin-right: var(--spacing-sm);
+  color: var(--petroleo-400);
+  margin-right: 8px;
 }
 
 .empty-log {
-  color: var(--text-secondary);
-  font-style: italic;
-  text-align: center;
-  margin-top: 2rem;
+  color: var(--petroleo-200);
 }
 
-/* Tabs for Transformation */
-.tabs-header {
+/* Guias de transformação por fonte */
+.etl-guia {
+  max-width: 880px;
+}
+
+.transformation-details {
+  padding: 28px 32px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
+  border-radius: var(--raio-lg);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--papel-900);
+}
+
+.transformation-details h2 {
+  margin-bottom: 16px;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.transformation-details h3 {
+  margin: 28px 0 10px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.transformation-details h4 {
+  margin: 20px 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.transformation-details p {
+  margin-bottom: 12px;
+}
+
+.transformation-details ul,
+.transformation-details ol {
+  margin: 0 0 14px;
+  padding-left: 22px;
   display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: var(--spacing-xs);
+  flex-direction: column;
+  gap: 4px;
 }
 
-.tab-btn {
-  padding: 0.5rem 1rem;
+.transformation-details code {
+  font-size: 13px;
+  padding: 1px 5px;
+  border-radius: var(--raio-sm);
+  background: var(--papel-200);
+  color: var(--cor-tinta);
+}
+
+.transformation-details pre {
+  margin: 8px 0 16px;
+  padding: 16px 18px;
+  border-radius: var(--raio-md);
+  background: var(--petroleo-950);
+  color: var(--petroleo-100);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.transformation-details pre code {
+  padding: 0;
   background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-weight: 500;
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  color: inherit;
 }
 
-.tab-btn:hover {
-  background-color: var(--background-color);
-  color: var(--text-primary);
+.transformation-details table {
+  width: 100%;
+  margin: 8px 0 16px;
+  border-collapse: collapse;
+  font-size: 14px;
 }
 
-.tab-btn.active {
-  background-color: var(--primary-light);
-  color: white;
+.transformation-details th,
+.transformation-details td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--papel-200);
 }
 
-.tab-content {
-  padding-top: var(--spacing-md);
+.transformation-details th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--papel-800);
+  background: var(--papel-100);
+}
+
+@media (max-width: 1024px) {
+  .etl-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .etl-content-area {
+    padding: 20px 16px;
+  }
+
+  .etl-cabecalho h1 {
+    font-size: 24px;
+  }
+
+  .file-inputs,
+  .output-config {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .transformation-details {
+    padding: 20px 18px;
+  }
+
+  .transformation-details h2 {
+    font-size: 22px;
+  }
 }

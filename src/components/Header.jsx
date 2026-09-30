@@ -1,42 +1,50 @@
 import React from 'react';
+import { House, Map, ChartColumn, Database } from 'lucide-react';
+import Logo, { Simbolo } from './brand/Logo';
+import CitySearch from './CitySearch';
 import '../styles/Header.css';
 
-const Header = ({ activeEnvironment, onNavigate }) => {
-    const navItems = [
-        { id: 'dataSourceInfo', label: 'Início', icon: 'fa-home' },
-        { id: 'map', label: 'Mapa', icon: 'fa-map-marked-alt' },
-        { id: 'data', label: 'Indicadores', icon: 'fa-chart-bar' },
-        { id: 'etl', label: 'ETL & Transformação', icon: 'fa-database' },
-    ];
+export const NAV_ITEMS = [
+    { id: 'dataSourceInfo', label: 'Início', Icon: House },
+    { id: 'map', label: 'Mapa', Icon: Map },
+    { id: 'data', label: 'Indicadores', Icon: ChartColumn },
+    { id: 'etl', label: 'ETL e dados', Icon: Database },
+];
 
-    return (
-        <header className="app-header">
-            <div className="header-logo">
-                <img src="/logo_white.png" alt="Logo SisInfo" className="logo-image" />
-                <span className="logo-text">SisInfo</span>
-            </div>
+const Header = ({ activeEnvironment, onNavigate, onSearchCity }) => (
+    <header className="app-header">
+        <button
+            type="button"
+            className="header-logo"
+            onClick={() => onNavigate('dataSourceInfo')}
+            aria-label="SisInfo — ir para o início"
+        >
+            <span className="header-logo-full"><Logo tamanho={30} variante="negativa" /></span>
+            <span className="header-logo-compact"><Simbolo tamanho={28} variante="negativa" /></span>
+        </button>
 
-            <nav className="header-nav">
-                {navItems.map((item) => (
+        <nav className="header-nav" aria-label="Principal">
+            {NAV_ITEMS.map(({ id, label, Icon }) => {
+                const active = activeEnvironment === id;
+                return (
                     <button
-                        key={item.id}
-                        className={`nav-item ${activeEnvironment === item.id ? 'active' : ''}`}
-                        onClick={() => onNavigate(item.id)}
+                        key={id}
+                        type="button"
+                        className={`nav-item ${active ? 'active' : ''}`}
+                        aria-current={active ? 'page' : undefined}
+                        onClick={() => onNavigate(id)}
                     >
-                        <i className={`fas ${item.icon}`}></i>
-                        <span>{item.label}</span>
+                        <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+                        <span>{label}</span>
                     </button>
-                ))}
-            </nav>
+                );
+            })}
+        </nav>
 
-            <div className="header-actions">
-                {/* Placeholder for user profile or settings */}
-                <button className="icon-btn" aria-label="Configurações">
-                    <i className="fas fa-cog"></i>
-                </button>
-            </div>
-        </header>
-    );
-};
+        <div className="header-actions">
+            <CitySearch variant="header" onCitySelect={onSearchCity} />
+        </div>
+    </header>
+);
 
 export default Header;

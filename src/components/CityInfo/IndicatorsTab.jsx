@@ -21,17 +21,19 @@ const IndicatorsTab = ({ indicators }) => {
         <div className="indicators-tab">
             <div className="indicators-controls">
                 <input
-                    type="text"
-                    placeholder="Buscar indicador..."
+                    type="search"
+                    placeholder="Buscar indicador"
+                    aria-label="Buscar indicador"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
+                    className="entrada"
                 />
                 <button
-                    className="sort-button"
+                    type="button"
+                    className="btn btn-secondary"
                     onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
                 >
-                    Ordem: {sortOrder === 'asc' ? 'Melhor -> Pior' : 'Pior -> Melhor'}
+                    Índice: {sortOrder === 'asc' ? 'menor → maior' : 'maior → menor'}
                 </button>
             </div>
             <div className="indicators-list">
@@ -39,20 +41,22 @@ const IndicatorsTab = ({ indicators }) => {
                     <div key={index} className="indicator-item">
                         <div className="indicator-info">
                             <span className="indicator-name">{ind.Nome_Indicador}</span>
-                            <span className="indicator-unit">({ind.Unidade_Medida})</span>
+                            {ind.Unidade_Medida && <span className="indicator-unit">{ind.Unidade_Medida} · {ind.Ano_Observacao}</span>}
                         </div>
                         <div className="indicator-stats">
                             <span className="indicator-value">
                                 {new Intl.NumberFormat('pt-BR').format(ind.Valor)}
                             </span>
-                            <span className={`indicator-rank ${parseFloat(ind.Indice_Posicional) <= 0.5 ? 'good' : 'bad'}`}>
-                                Índice: {parseFloat(ind.Indice_Posicional).toFixed(4)}
-                            </span>
+                            {!Number.isNaN(parseFloat(ind.Indice_Posicional)) && (
+                                <span className="indicator-rank">
+                                    Índice {parseFloat(ind.Indice_Posicional).toLocaleString('pt-BR', { maximumFractionDigits: 3 })}
+                                </span>
+                            )}
                         </div>
                     </div>
                 ))}
                 {filteredIndicators.length === 0 && (
-                    <div className="no-results">Nenhum indicador encontrado.</div>
+                    <div className="no-data-placeholder">{indicators && indicators.length ? 'Nenhum indicador encontrado.' : 'Nenhum indicador importado para este município.'}</div>
                 )}
             </div>
         </div>

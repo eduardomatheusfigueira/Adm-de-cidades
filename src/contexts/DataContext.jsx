@@ -444,7 +444,7 @@ ${newCount} novos adicionados.`);
     setCsvData, // Para handleCityDelete, por exemplo
     filteredCsvData,
     setFilteredCsvData, // Para handleCityDelete ou diretamente
-    applyFiltersToCsvData, // Nova função para ser chamada por UIContext/VisualizationMenu
+    applyFiltersToCsvData, // Chamada pelo painel do mapa (MapPanel)
     indicatorsHeaders,
     indicadoresData,
     setIndicadoresData, // Para handleCityUpdate, por exemplo

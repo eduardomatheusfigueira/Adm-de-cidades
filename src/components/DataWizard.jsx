@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { X, Map as MapIcon, Upload, FileUp, Table, Check, CircleCheck, TriangleAlert, CircleX, KeyRound, Hash, ChevronRight } from 'lucide-react';
 import { DataContext } from '../contexts/DataContext';
 import { UIContext } from '../contexts/UIContext';
 import { loadMalhaIndex } from '../utils/malhas';
@@ -79,126 +80,219 @@ export default function DataWizard({ mode, onClose }) {
   };
 
   const applyColor = () => {
-    if (colorBy) handleVisualizationConfigChange({ type: 'attribute', attribute: colorBy, renderMode: 'filled', fillOpacity: 0.75, borderWidth: 2 });
+    if (colorBy) handleVisualizationConfigChange({ type: 'attribute', attribute: colorBy, renderMode: 'filled', fillOpacity: 0.85, borderWidth: 2, scheme: 'petroleo', classes: 5 });
     setActiveEnvironment?.('map');
     onClose();
   };
 
+  const etapa = !table ? 1 : !report ? 2 : 3;
+  const ETAPAS = ['Arquivo', 'Colunas', 'Ver no mapa'];
+  const ehNumerica = (col) => table && isNumericValues(table.rows.map(r => r[col]));
+
   return (
-    <div className="modal-overlay data-wizard-overlay" role="dialog" aria-modal="true">
-      <div className="modal-content data-wizard">
+    <div className="modal-overlay data-wizard-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="data-wizard" role="dialog" aria-modal="true" aria-labelledby="dw-titulo">
         <div className="data-wizard-header">
-          <div className="data-wizard-tabs">
-            <button type="button" className={tab === 'malha' ? 'active' : ''} onClick={() => setTab('malha')}>🗺️ Mapa do Brasil</button>
-            <button type="button" className={tab === 'tabela' ? 'active' : ''} onClick={() => setTab('tabela')}>📊 Juntar minha tabela</button>
+          <div>
+            <h2 id="dw-titulo">{tab === 'malha' ? 'Mapa do Brasil (IBGE)' : 'Juntar minha tabela'}</h2>
+            <p>{tab === 'malha'
+              ? 'Escolha os estados. Os limites dos municípios já vêm com o app.'
+              : 'Ligue uma planilha sua aos municípios pelo código IBGE.'}</p>
           </div>
-          <button type="button" className="data-wizard-close" onClick={onClose} aria-label="Fechar">✕</button>
+          <button type="button" className="data-wizard-close" onClick={onClose} aria-label="Fechar">
+            <X size={20} strokeWidth={1.75} aria-hidden="true" />
+          </button>
         </div>
 
-        {error && <div className="data-wizard-error">{error}</div>}
+        <div className="abas data-wizard-tabs" role="tablist" aria-label="Origem dos dados">
+          <button type="button" role="tab" aria-selected={tab === 'malha'} onClick={() => setTab('malha')}>
+            <MapIcon size={16} strokeWidth={1.75} aria-hidden="true" /> Mapa do Brasil
+          </button>
+          <button type="button" role="tab" aria-selected={tab === 'tabela'} onClick={() => setTab('tabela')}>
+            <Upload size={16} strokeWidth={1.75} aria-hidden="true" /> Juntar minha tabela
+          </button>
+        </div>
 
-        {tab === 'malha' && (
-          <div className="data-wizard-body">
-            <p className="data-wizard-help">
-              Escolha os estados. Os limites dos municípios (IBGE) já vêm com o app — não é preciso baixar nada.
-            </p>
-            {!index ? <p>Carregando lista…</p> : (
-              <>
-                <div className="data-wizard-quick">
-                  <button type="button" onClick={() => setSelected(new Set(index.ufs.map(u => u.codigo_uf)))}>Brasil inteiro</button>
-                  {REGIOES.map(r => <button type="button" key={r.sigla} onClick={() => selectRegion(r.sigla)}>{r.nome}</button>)}
-                  <button type="button" onClick={() => setSelected(new Set())}>Limpar</button>
-                </div>
-                <div className="data-wizard-ufs">
-                  {index.ufs.map(u => (
-                    <label key={u.codigo_uf} className={selected.has(u.codigo_uf) ? 'checked' : ''} title={`${u.nome} — ${u.municipios} municípios`}>
-                      <input type="checkbox" checked={selected.has(u.codigo_uf)} onChange={() => toggleUf(u.codigo_uf)} />
-                      <span>{u.uf}</span>
-                    </label>
-                  ))}
-                </div>
-                <div className="data-wizard-footer">
-                  <span>{selected.size ? `${selectedInfo.municipios} municípios · ${kb(selectedInfo.bytes)}` : 'Nenhum estado selecionado'}</span>
-                  <button type="button" className="data-wizard-primary" disabled={!selected.size || busy} onClick={loadMalha}>
-                    {busy ? 'Carregando…' : 'Carregar no mapa'}
-                  </button>
-                </div>
-                {done && <div className="data-wizard-ok">{done}</div>}
-                <p className="data-wizard-source">Fonte: {index.fonte}</p>
-              </>
-            )}
+        {error && (
+          <div className="aviso aviso-erro data-wizard-aviso" role="alert">
+            <CircleX size={18} strokeWidth={1.75} aria-hidden="true" /><span>{error}</span>
           </div>
         )}
 
-        {tab === 'tabela' && (
-          <div className="data-wizard-body">
-            {!report && (
-              <>
-                <p className="data-wizard-help">
-                  Envie uma tabela <strong>CSV</strong> com uma coluna de <strong>código IBGE do município</strong> (7 dígitos,
-                  ou 6 como no DATASUS) e as colunas com os seus dados. Separador <code>;</code> ou <code>,</code> e números
-                  como <code>1.234,5</code> são aceitos. Os municípios e seus limites entram no mapa automaticamente.
-                </p>
-                <label className="data-wizard-file">
-                  <input type="file" accept=".csv,.txt,text/csv" onChange={onFile} />
-                  <span>{table ? `📄 ${table.name}` : '📂 Escolher arquivo CSV'}</span>
-                </label>
-                {table && (
-                  <>
-                    <p className="data-wizard-meta">
-                      {table.rows.length} linhas · {table.headers.length} colunas · separador “{table.delimiter === '\t' ? 'tab' : table.delimiter}” · {table.encoding}
-                    </p>
-                    <div className="data-wizard-row">
-                      <label htmlFor="dw-code">Coluna com o código IBGE:</label>
-                      <select id="dw-code" value={codeColumn} onChange={e => setCodeColumn(e.target.value)}>
-                        <option value="">Selecione…</option>
-                        {table.headers.map(h => <option key={h} value={h}>{h}</option>)}
-                      </select>
+        {tab === 'malha' && (
+          <>
+            <div className="data-wizard-body">
+              {!index ? <p className="data-wizard-help">Carregando a lista de estados…</p> : (
+                <>
+                  <div className="data-wizard-quick" role="group" aria-label="Seleção rápida">
+                    <button type="button" onClick={() => setSelected(new Set(index.ufs.map(u => u.codigo_uf)))}>Brasil inteiro</button>
+                    {REGIOES.map(r => <button type="button" key={r.sigla} onClick={() => selectRegion(r.sigla)}>{r.nome}</button>)}
+                    <button type="button" className="data-wizard-limpar" onClick={() => setSelected(new Set())}>Limpar</button>
+                  </div>
+                  <div className="data-wizard-ufs">
+                    {index.ufs.map(u => (
+                      <label key={u.codigo_uf} className={selected.has(u.codigo_uf) ? 'checked' : ''} title={`${u.nome} — ${u.municipios} municípios`}>
+                        <input type="checkbox" checked={selected.has(u.codigo_uf)} onChange={() => toggleUf(u.codigo_uf)} />
+                        <span>{u.uf}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {done && (
+                    <div className="aviso aviso-sucesso" role="status">
+                      <CircleCheck size={18} strokeWidth={1.75} aria-hidden="true" /><span>{done}</span>
                     </div>
-                    {!codeColumn && <p className="data-wizard-warn">Não encontrei uma coluna de códigos IBGE. Escolha a coluna acima.</p>}
-                    <div className="data-wizard-preview">
+                  )}
+                  <p className="data-wizard-source">Fonte: {index.fonte}</p>
+                </>
+              )}
+            </div>
+            <div className="data-wizard-footer">
+              <span className="data-wizard-status">
+                {selected.size ? `${selected.size} ${selected.size === 1 ? 'estado' : 'estados'} · ${selectedInfo.municipios.toLocaleString('pt-BR')} municípios · ${kb(selectedInfo.bytes)}` : 'Nenhum estado selecionado'}
+              </span>
+              <button type="button" className="btn btn-primary" disabled={!selected.size || busy} onClick={loadMalha}>
+                {busy ? 'Carregando…' : 'Carregar no mapa'}
+              </button>
+            </div>
+          </>
+        )}
+
+        {tab === 'tabela' && (
+          <>
+            <ol className="data-wizard-etapas" aria-label="Etapas">
+              {ETAPAS.map((nome, i) => {
+                const n = i + 1;
+                const estado = n < etapa ? 'feita' : n === etapa ? 'atual' : 'futura';
+                return (
+                  <React.Fragment key={nome}>
+                    {i > 0 && <li className="data-wizard-etapa-linha" aria-hidden="true" />}
+                    <li className={`data-wizard-etapa ${estado}`} aria-current={estado === 'atual' ? 'step' : undefined}>
+                      <span className="data-wizard-etapa-num">{estado === 'feita' ? <Check size={14} strokeWidth={2.5} aria-hidden="true" /> : n}</span>
+                      {nome}
+                    </li>
+                  </React.Fragment>
+                );
+              })}
+            </ol>
+
+            <div className="data-wizard-body">
+              {!table && (
+                <>
+                  <label className="data-wizard-soltar">
+                    <input type="file" accept=".csv,.txt,text/csv" onChange={onFile} className="sr-only" />
+                    <FileUp size={30} strokeWidth={1.5} aria-hidden="true" />
+                    <span><strong>Escolha um arquivo CSV</strong></span>
+                    <span className="data-wizard-soltar-sub">Uma coluna com o código IBGE do município (7 dígitos, ou 6 como no DATASUS) e as colunas com os seus dados.</span>
+                  </label>
+                  <ul className="data-wizard-dicas">
+                    <li><Check size={15} strokeWidth={2} aria-hidden="true" /> Separador <code>;</code> ou <code>,</code></li>
+                    <li><Check size={15} strokeWidth={2} aria-hidden="true" /> Números como <code>1.234,5</code> ou <code>1234.5</code></li>
+                    <li><Check size={15} strokeWidth={2} aria-hidden="true" /> Os municípios e seus limites entram no mapa automaticamente</li>
+                  </ul>
+                </>
+              )}
+
+              {table && !report && (
+                <>
+                  <div className="data-wizard-arquivo">
+                    <span className="data-wizard-arquivo-icone"><Table size={20} strokeWidth={1.75} aria-hidden="true" /></span>
+                    <div>
+                      <strong>{table.name}</strong>
+                      <span>{table.rows.length.toLocaleString('pt-BR')} linhas · {table.headers.length} colunas · separador “{table.delimiter === '\t' ? 'tab' : table.delimiter}” · {table.encoding}</span>
+                    </div>
+                    <label className="btn btn-ghost btn-sm data-wizard-trocar">
+                      Trocar arquivo
+                      <input type="file" accept=".csv,.txt,text/csv" onChange={onFile} className="sr-only" />
+                    </label>
+                  </div>
+
+                  <div className="campo">
+                    <label htmlFor="dw-code">Coluna com o código IBGE</label>
+                    <select id="dw-code" className="selecao data-wizard-mono" value={codeColumn} onChange={e => setCodeColumn(e.target.value)}>
+                      <option value="">Escolha a coluna…</option>
+                      {table.headers.map(h => <option key={h} value={h}>{h}</option>)}
+                    </select>
+                    {codeColumn
+                      ? <span className="data-wizard-ok-linha"><CircleCheck size={14} strokeWidth={2} aria-hidden="true" /> Os códigos serão procurados na coluna “{codeColumn}”.</span>
+                      : <span className="data-wizard-warn-linha"><TriangleAlert size={14} strokeWidth={2} aria-hidden="true" /> Não encontrei uma coluna de códigos IBGE sozinho. Escolha a coluna acima.</span>}
+                  </div>
+
+                  <div className="data-wizard-preview">
+                    <div className="data-wizard-preview-topo">
+                      <span>Prévia</span>
+                      <span>{Math.min(4, table.rows.length)} de {table.rows.length.toLocaleString('pt-BR')} linhas</span>
+                    </div>
+                    <div className="data-wizard-preview-tabela">
                       <table>
-                        <thead><tr>{table.headers.slice(0, 6).map(h => <th key={h}>{h}</th>)}</tr></thead>
+                        <thead>
+                          <tr>
+                            {table.headers.slice(0, 6).map(h => (
+                              <th key={h} className={h === codeColumn ? 'chave' : ''}>
+                                <span className="data-wizard-col">{h}</span>
+                                {h === codeColumn
+                                  ? <span className="data-wizard-papel chave"><KeyRound size={11} strokeWidth={2} aria-hidden="true" /> Código IBGE</span>
+                                  : ehNumerica(h)
+                                    ? <span className="data-wizard-papel numero"><Hash size={11} strokeWidth={2} aria-hidden="true" /> Número</span>
+                                    : <span className="data-wizard-papel">Texto</span>}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
                         <tbody>{table.rows.slice(0, 4).map((r, i) => <tr key={i}>{table.headers.slice(0, 6).map(h => <td key={h}>{r[h]}</td>)}</tr>)}</tbody>
                       </table>
                     </div>
-                    <div className="data-wizard-footer">
-                      <span />
-                      <button type="button" className="data-wizard-primary" disabled={!codeColumn || busy} onClick={doJoin}>
-                        {busy ? 'Juntando…' : 'Juntar ao mapa'}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-            {report && (
-              <>
-                <div className={report.matched ? 'data-wizard-ok' : 'data-wizard-error'}>
-                  {report.matched} de {report.total} linhas encontradas
-                  {report.added ? ` · ${report.added} municípios adicionados ao mapa` : ''}
-                </div>
-                {report.unmatched.length > 0 && (
-                  <p className="data-wizard-warn">
-                    Códigos não encontrados ({report.unmatched.length}): {report.unmatched.slice(0, 15).join(', ')}{report.unmatched.length > 15 ? '…' : ''}.
-                    Confira se são códigos IBGE de município (ex.: 3550308 = São Paulo) e se não há linhas de total.
-                  </p>
-                )}
-                {report.newColumns.length > 0 && (
-                  <div className="data-wizard-row">
-                    <label htmlFor="dw-color">Colorir o mapa por:</label>
-                    <select id="dw-color" value={colorBy} onChange={e => setColorBy(e.target.value)}>
-                      {report.newColumns.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
                   </div>
+                </>
+              )}
+
+              {report && (
+                <>
+                  <div className={`aviso ${report.matched ? 'aviso-sucesso' : 'aviso-erro'}`} role="status">
+                    {report.matched ? <CircleCheck size={18} strokeWidth={1.75} aria-hidden="true" /> : <CircleX size={18} strokeWidth={1.75} aria-hidden="true" />}
+                    <span>
+                      <strong>{report.matched.toLocaleString('pt-BR')} de {report.total.toLocaleString('pt-BR')} linhas encontradas</strong>
+                      {report.added ? ` · ${report.added.toLocaleString('pt-BR')} municípios adicionados ao mapa` : ''}
+                    </span>
+                  </div>
+                  {report.unmatched.length > 0 && (
+                    <div className="aviso aviso-atencao">
+                      <TriangleAlert size={18} strokeWidth={1.75} aria-hidden="true" />
+                      <span>
+                        Códigos não encontrados ({report.unmatched.length}): {report.unmatched.slice(0, 15).join(', ')}{report.unmatched.length > 15 ? '…' : ''}.
+                        Confira se são códigos IBGE de município (ex.: 3550308 = São Paulo) e se não há linhas de total.
+                      </span>
+                    </div>
+                  )}
+                  {report.newColumns.length > 0 && (
+                    <div className="campo">
+                      <label htmlFor="dw-color">Pintar o mapa por</label>
+                      <select id="dw-color" className="selecao data-wizard-mono" value={colorBy} onChange={e => setColorBy(e.target.value)}>
+                        {report.newColumns.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="data-wizard-footer">
+              <span className="data-wizard-status">{table ? `Etapa ${etapa} de 3` : 'Etapa 1 de 3'}</span>
+              <div className="data-wizard-footer-acoes">
+                {table && !report && <button type="button" className="btn btn-secondary" onClick={() => setTable(null)}>Voltar</button>}
+                {table && !report && (
+                  <button type="button" className="btn btn-primary" disabled={!codeColumn || busy} onClick={doJoin}>
+                    {busy ? 'Juntando…' : 'Juntar ao mapa'} <ChevronRight size={17} strokeWidth={2} aria-hidden="true" />
+                  </button>
                 )}
-                <div className="data-wizard-footer">
-                  <button type="button" onClick={() => { setReport(null); setTable(null); }}>Juntar outra tabela</button>
-                  <button type="button" className="data-wizard-primary" onClick={applyColor}>Ver no mapa</button>
-                </div>
-              </>
-            )}
-          </div>
+                {report && <button type="button" className="btn btn-secondary" onClick={() => { setReport(null); setTable(null); }}>Juntar outra tabela</button>}
+                {report && (
+                  <button type="button" className="btn btn-primary" onClick={applyColor}>
+                    Ver no mapa <ChevronRight size={17} strokeWidth={2} aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>

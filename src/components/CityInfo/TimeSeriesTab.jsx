@@ -30,13 +30,14 @@ const TimeSeriesTab = ({ indicators }) => {
             .sort((a, b) => a.year - b.year);
     }, [selectedIndicator, indicators]);
 
-    if (!indicators || indicators.length === 0) return <div className="no-data">Sem dados disponíveis.</div>;
+    if (!indicators || indicators.length === 0) return <div className="no-data-placeholder">Nenhum indicador importado para este município.</div>;
 
     return (
         <div className="time-series-tab">
             <div className="chart-controls">
-                <label>Selecione o Indicador:</label>
+                <label htmlFor="ts-indicador">Indicador</label>
                 <select
+                    id="ts-indicador"
                     value={selectedIndicator}
                     onChange={(e) => setSelectedIndicator(e.target.value)}
                     className="indicator-select"
@@ -50,22 +51,23 @@ const TimeSeriesTab = ({ indicators }) => {
             <div className="chart-container">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                        <XAxis dataKey="year" stroke="#ccc" />
-                        <YAxis stroke="#ccc" />
+                        <CartesianGrid vertical={false} stroke="#F0ECE5" />
+                        <XAxis dataKey="year" stroke="#CCC7BC" tick={{ fill: '#67635A', fontSize: 12 }} tickLine={false} />
+                        <YAxis stroke="#CCC7BC" tick={{ fill: '#67635A', fontSize: 12 }} tickLine={false} axisLine={false}
+                            tickFormatter={(v) => new Intl.NumberFormat('pt-BR', { notation: 'compact' }).format(v)} />
                         <Tooltip
-                            contentStyle={{ backgroundColor: '#333', border: 'none', borderRadius: '8px' }}
-                            itemStyle={{ color: '#fff' }}
+                            contentStyle={{ backgroundColor: '#00242D', border: 'none', borderRadius: '8px', color: '#FFFFFF' }}
+                            itemStyle={{ color: '#FFFFFF' }}
                             formatter={(value) => [new Intl.NumberFormat('pt-BR').format(value), 'Valor']}
-                            labelStyle={{ color: '#aaa' }}
+                            labelStyle={{ color: '#B8DBE6' }}
                         />
                         <Line
                             type="monotone"
                             dataKey="value"
-                            stroke="#8884d8"
-                            strokeWidth={3}
-                            dot={{ r: 4, fill: '#8884d8' }}
-                            activeDot={{ r: 8 }}
+                            stroke="#015668"
+                            strokeWidth={2}
+                            dot={{ r: 4, fill: '#015668', stroke: '#FFFFFF', strokeWidth: 2 }}
+                            activeDot={{ r: 6 }}
                         />
                     </LineChart>
                 </ResponsiveContainer>

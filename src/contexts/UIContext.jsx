@@ -33,10 +33,12 @@ export const UIProvider = ({ children }) => {
   const [northArrowStyle, setNorthArrowStyle] = useState({
     type: 'noun', // 'noun', 'classic', 'minimal', 'compass'
     showBg: true,
-    color: '#1e293b',
+    color: '#00242D',
   });
   const [showMeasurements, setShowMeasurements] = useState(true); // Alternar exibição de medidas no mapa
   const [showImageStudio, setShowImageStudio] = useState(false);
+  // Assistente de dados aberto de qualquer tela: 'malha' | 'tabela' | null
+  const [dataWizardMode, setDataWizardMode] = useState(null);
   const [exportPages, setExportPages] = useState([]);
 
   // Estados para o modal de importação de geometria
@@ -141,6 +143,8 @@ export const UIProvider = ({ children }) => {
     setShowMeasurements,
     showImageStudio,
     setShowImageStudio,
+    dataWizardMode,
+    setDataWizardMode,
     exportPages,
     setExportPages,
     showGeometryImportModal,
@@ -150,9 +154,9 @@ export const UIProvider = ({ children }) => {
     municipalityCodeField,
     setMunicipalityCodeField, // Expor para App.jsx controlar o campo do modal
     geometryPropertyKeys, // Expor para App.jsx popular o select
-    handleFilterSettingsChange, // Chamado por VisualizationMenu/App.jsx
-    handleVisualizationConfigChange, // Chamado por VisualizationMenu/App.jsx
-    openGeometryImportModal, // Chamado por FilterMenu/App.jsx
+    handleFilterSettingsChange, // Chamado pelo MapPanel/App.jsx
+    handleVisualizationConfigChange, // Chamado pelo MapPanel/App.jsx
+    openGeometryImportModal, // Chamado pelo MapPanel/App.jsx
     submitGeometryImport,  // Chamado pelo modal dentro de App.jsx (ou futuramente um componente Modal dedicado)
   };
 
