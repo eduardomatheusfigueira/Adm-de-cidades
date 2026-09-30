@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { Suspense, lazy, useContext, useEffect, useState } from 'react';
 import { Image as ImageIcon, SlidersHorizontal } from 'lucide-react';
 import MapPanel from './components/MapPanel';
 import Legend from './components/Legend';
@@ -7,17 +7,25 @@ import AnnotationLegend from './components/AnnotationLegend';
 import NorthArrow from './components/NorthArrow';
 import ScaleBar from './components/ScaleBar';
 import Graticule from './components/Graticule';
-import ImageExportStudio from './components/ImageExportStudio';
 import './index.css';
 
-import DataVisualizationEnvironment from './components/DataVisualizationEnvironment';
-import CityInfoBottomBar from './components/CityInfoBottomBar';
-import ETLEnvironment from './components/ETLEnvironment';
 import DataWizard from './components/DataWizard';
 import DataSourceInfo from './components/DataSourceInfo';
 import MainLayout from './components/MainLayout';
 import AutoSave from './components/AutoSave';
 import InAppBrowserNotice from './components/InAppBrowserNotice';
+
+// Carregados só quando usados (o app abre mais rápido, principalmente no celular)
+const ImageExportStudio = lazy(() => import('./components/ImageExportStudio'));
+const DataVisualizationEnvironment = lazy(() => import('./components/DataVisualizationEnvironment'));
+const ETLEnvironment = lazy(() => import('./components/ETLEnvironment'));
+const CityInfoBottomBar = lazy(() => import('./components/CityInfoBottomBar'));
+
+const LazyFallback = () => (
+  <div className="map-loading" style={{ position: 'fixed', zIndex: 3000 }}>
+    <div className="loading-spinner"></div><p>Carregando…</p>
+  </div>
+);
 
 import { DataProvider, DataContext } from './contexts/DataContext';
 import { MapProvider, MapContext } from './contexts/MapContext';
@@ -56,7 +64,7 @@ function AppContent() {
     selectedCityInfo, setSelectedCityInfo,
     handleFilterSettingsChange,
     geometryPropertyKeys, // Get keys from context
-    setShowImageStudio,
+    showImageStudio, setShowImageStudio,
   } = useContext(UIContext);
 
   // Painel do mapa: aberto no desktop, recolhido no celular (lá ele é uma folha que sobe de baixo)
@@ -217,7 +225,9 @@ function AppContent() {
           {mostrarElementosDoMapa && <NorthArrow />}
           {mostrarElementosDoMapa && <ScaleBar />}
           {mostrarElementosDoMapa && <Graticule />}
-          {mostrarElementosDoMapa && <ImageExportStudio />}
+          {mostrarElementosDoMapa && showImageStudio && (
+            <Suspense fallback={<LazyFallback />}><ImageExportStudio /></Suspense>
+          )}
         </div>
 
         {!painelAberto && (
@@ -236,18 +246,20 @@ function AppContent() {
         )}
 
         {selectedCityInfo && (
-          <CityInfoBottomBar
-            cityInfo={selectedCityInfo}
-            onClose={() => setSelectedCityInfo(null)}
-            indicadoresData={indicadoresData}
-          />
+          <Suspense fallback={null}>
+            <CityInfoBottomBar
+              cityInfo={selectedCityInfo}
+              onClose={() => setSelectedCityInfo(null)}
+              indicadoresData={indicadoresData}
+            />
+          </Suspense>
         )}
       </div>
 
       {/* Other Environments */}
-      {activeEnvironment === 'data' && <DataVisualizationEnvironment />}
+      {activeEnvironment === 'data' && <Suspense fallback={<LazyFallback />}><DataVisualizationEnvironment /></Suspense>}
       {activeEnvironment === 'dataSourceInfo' && <DataSourceInfo />}
-      {activeEnvironment === 'etl' && <ETLEnvironment />}
+      {activeEnvironment === 'etl' && <Suspense fallback={<LazyFallback />}><ETLEnvironment /></Suspense>}
 
       {/* Modals and Overlays */}
       {showGeometryImportModal && (

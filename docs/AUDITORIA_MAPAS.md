@@ -889,6 +889,26 @@ Objetivo: o aluno faz um mapa temático **correto** e o entrega pelo computador 
 
 ### Fase 1 — "Ferramenta sólida" (3–5 semanas)
 
+> **Status (implementado):**
+> - **MapLibre:** concluído.
+> - **Prancha real:** A4/A3/Carta a 96/150/300 DPI, margem e moldura, 3 modelos, PDF e DPI gravado no PNG; resolução agora é densidade (M8).
+> - **Painel de simbologia:** quantis, Jenks, intervalos iguais e manual; 2–9 classes; ColorBrewer, Viridis e Okabe-Ito; inverter; histograma.
+> - **Normalização:** alerta de contagem absoluta, símbolos proporcionais e rótulos de municípios.
+> - **Elementos:** mapa de localização, escala numérica, bloco de créditos e desfazer/refazer.
+> - **Modelo do professor por link** (`?modelo=`); perfis leves (referência às UFs da malha).
+> - **Qualidade:**
+>   - ESLint;
+>   - Vitest (28 testes);
+>   - CI no GitHub Actions;
+>   - code-splitting (bundle inicial de 2,17 MB para 1,55 MB).
+> - **Pendentes:**
+>   - barra inferior e bottom sheets mobile-first;
+>   - importador de SHP/KML/TopoJSON e formato largo;
+>   - esquema de projeto validado (zod) e lista de projetos;
+>   - dividir `ImageExportStudio.jsx`;
+>   - gratícula em graus-minutos-segundos na moldura;
+>   - remover código morto da raiz.
+
 - **Migração para MapLibre GL** + OpenFreeMap/CARTO + satélite com atribuição; `pixelRatio` nativo; HTML sem token (§10). Arquivos: `MapContext`, `ImageExportStudio`, `VisualizationMenu`, `exportMap`, `package.json`.
 - **Prancha real**: A4/A3/Carta, retrato/paisagem, margens em mm, DPI 96/150/300, quadro do mapa com moldura, 3–5 modelos acadêmicos, PDF (jsPDF) com várias páginas. Resolve M8, M55, M85.
 - **Painel de simbologia**: quantis, intervalos iguais, Jenks (simple-statistics), manual; 3–9 classes; ColorBrewer/Viridis/Okabe-Ito; inverter; histograma; editor de classes de verdade. Resolve M7, A9.

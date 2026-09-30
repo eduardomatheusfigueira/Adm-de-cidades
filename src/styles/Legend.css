@@ -11,7 +11,9 @@
   line-height: 1.4;
   color: var(--texto);
   overflow-y: auto;
-  max-height: calc(100vh - 160px);
+  /* legendas longas rolam em vez de passar do fim da tela */
+  max-height: 55vh;
+  max-height: 55dvh;
 }
 
 .legend-drag-handle {
@@ -196,4 +198,10 @@
     padding: 10px 12px;
     max-height: 35dvh;
   }
+}
+
+.legend-symbols {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-body);
 }

@@ -1280,3 +1280,30 @@
     min-width: auto;
   }
 }
+
+/* Modelos de prancha e avisos (tema claro) */
+.studio-subtitle {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--texto-2);
+  margin: 8px 0 4px;
+}
+
+.studio-templates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.studio-warn {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: var(--raio-sm);
+  background: var(--cor-atencao-fundo);
+  color: var(--cor-atencao);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}

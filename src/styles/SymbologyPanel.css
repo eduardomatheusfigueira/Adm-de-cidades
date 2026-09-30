@@ -1,0 +1,159 @@
+/* Simbologia do mapa (painel do mapa › Visualização) */
+.symb-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.symb-label {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.symb-label:first-child {
+  margin-top: 0;
+}
+
+.symb-input {
+  font-size: 16px; /* evita zoom automático do iOS */
+}
+
+.symb-note {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: var(--raio-sm);
+  background: var(--cor-atencao-fundo);
+  color: var(--cor-atencao);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.symb-palettes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 232px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.symb-group-title {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-2);
+}
+
+.symb-group-title:first-child {
+  margin-top: 0;
+}
+
+.symb-palette {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 4px 10px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-md);
+  background: #FFFFFF;
+  color: var(--texto);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.symb-palette:hover {
+  background: var(--papel-100);
+}
+
+.symb-palette.active {
+  border-color: var(--cor-primaria);
+  background: var(--petroleo-50);
+  box-shadow: 0 0 0 1px var(--cor-primaria);
+  font-weight: 600;
+}
+
+.symb-swatches {
+  display: inline-flex;
+  flex: none;
+  gap: 1px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.symb-swatches span {
+  width: 16px;
+  height: 14px;
+}
+
+.symb-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.symb-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--cor-primaria);
+}
+
+.symb-preview {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--raio-md);
+  background: var(--papel-50);
+}
+
+.symb-histogram {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-bottom: 8px;
+}
+
+.symb-preview ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.symb-preview li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.symb-preview li span {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 3px;
+}
+
+.symb-normalize {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--papel-200);
+}
+
+.symb-warn {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}

@@ -959,3 +959,11 @@ textarea {
     bottom: 64px;
   }
 }
+
+/* Instruções do salvamento automático (texto com quebras de linha) */
+.autosave-instructions {
+  white-space: pre-wrap;
+  background: var(--papel-200);
+  border-radius: var(--raio-sm);
+  padding: 6px 8px;
+}

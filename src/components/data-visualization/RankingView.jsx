@@ -104,8 +104,8 @@ const RankingView = ({ indicadoresData, csvData }) => {
 
   const verNoMapa = () => {
     handleVisualizationConfigChange(ehIndicador
-      ? { type: 'indicator', indicator: nomeFonte, year: ano, valueType: 'value', renderMode: 'filled', fillOpacity: 0.85, scheme: 'petroleo', classes: 5 }
-      : { type: 'attribute', attribute: nomeFonte, renderMode: 'filled', fillOpacity: 0.85, scheme: 'petroleo', classes: 5 });
+      ? { type: 'indicator', indicator: nomeFonte, year: ano, valueType: 'value', renderMode: 'filled', fillOpacity: 0.85 }
+      : { type: 'attribute', attribute: nomeFonte, renderMode: 'filled', fillOpacity: 0.85 });
     setActiveEnvironment('map');
   };
 

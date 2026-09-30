@@ -80,7 +80,7 @@ export default function DataWizard({ mode, onClose }) {
   };
 
   const applyColor = () => {
-    if (colorBy) handleVisualizationConfigChange({ type: 'attribute', attribute: colorBy, renderMode: 'filled', fillOpacity: 0.85, borderWidth: 2, scheme: 'petroleo', classes: 5 });
+    if (colorBy) handleVisualizationConfigChange({ type: 'attribute', attribute: colorBy, renderMode: 'filled', fillOpacity: 0.85, borderWidth: 2 });
     setActiveEnvironment?.('map');
     onClose();
   };

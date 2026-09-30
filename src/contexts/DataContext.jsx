@@ -365,9 +365,9 @@ ${newCount} novos adicionados.`);
   // UFs que já têm geometria carregada (lidas do estado atual, que pode ter vindo de um perfil)
   const geojsonRef = React.useRef(geojsonData);
   geojsonRef.current = geojsonData;
-  const ensureGeometryForUfs = useCallback(async (codigosUf) => {
+  const ensureGeometryForUfs = useCallback(async (codigosUf, force = false) => {
     const present = new Set((geojsonRef.current?.features || []).map(f => String(f.properties?.CD_MUN ?? '').slice(0, 2)));
-    const missing = codigosUf.filter(c => !present.has(c));
+    const missing = force ? codigosUf : codigosUf.filter(c => !present.has(c));
     if (!missing.length) return 0;
     const features = await loadMunicipiosGeometry(missing);
     mergeGeometries(features);
@@ -454,6 +454,7 @@ ${newCount} novos adicionados.`);
     handleImportMunicipios,
     loadBaseMap,
     joinTable,
+    ensureGeometryForUfs, // carrega a malha embutida das UFs indicadas (usado ao abrir perfis)
     processGeometryImportInternal, // A ser chamada por UIContext após modal
     handleSaveProfile,
     handleLoadProfile,

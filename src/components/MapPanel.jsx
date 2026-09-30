@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useContext, useMemo, useCallback } from 'react';
 import {
   Map as MapIcon, Upload, ChevronLeft, MapPin, Spline, Pentagon, Ruler, Scan, Save, FolderOpen, Globe,
-  Check, Search, RotateCcw,
+  Check, Search, RotateCcw, GraduationCap,
 } from 'lucide-react';
 import '../styles/MapPanel.css';
 import { DataContext } from '../contexts/DataContext';
@@ -10,9 +10,11 @@ import { UIContext } from '../contexts/UIContext';
 import { AnnotationContext } from '../contexts/AnnotationContext';
 import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, isStyleReady, isAppLayer, getGeoJSONSourceData, resolveBasemapStyle } from '../utils/basemaps';
 import {
-  isNumericValues, getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, countMissing,
-  toNumericIfPossible, scaleOptionsFromConfig, rotuloAtributo, sequentialColors, ESCALAS_NUMERICAS, NOMES_REGIOES,
+  isNumericValues, getColorScale, getLegendKey, isNoDataMarker, buildLegendItems,
+  makeVizValueGetter, normalizedLabel, rotuloAtributo, NOMES_REGIOES,
 } from '../utils/colorUtils';
+import { DEFAULT_SYMBOLOGY } from '../utils/palettes';
+import SymbologyPanel from './SymbologyPanel';
 import { generateExportHtml } from '../utils/exportMap';
 import { useProjectState } from '../hooks/useProjectState';
 
@@ -24,7 +26,7 @@ const NOMES_UF = {
 };
 
 const EXCLUIDOS = new Set(['Codigo_Municipio', 'Longitude_Municipio', 'Latitude_Municipio']);
-const PADRAO_VIZ = { type: 'attribute', renderMode: 'filled', fillOpacity: 0.85, borderWidth: 2, scheme: 'petroleo', classes: 5, valueType: 'value' };
+const PADRAO_VIZ = { type: 'attribute', renderMode: 'filled', fillOpacity: 0.85, borderWidth: 2, symbology: DEFAULT_SYMBOLOGY, labels: false, valueType: 'value' };
 const semAcento = (t) => (t || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 const ehCapital = (city) => String(city?.Capital).trim().toLowerCase() === 'true';
 
@@ -59,10 +61,11 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
   }, [csvData]);
 
   // ── Visualização (aplicada na hora) ────────────────────────────────────────
-  const [viz, setViz] = useState(() => ({ ...PADRAO_VIZ, attribute: colorAttribute || 'Sigla_Regiao', ...(visualizationConfig || {}) }));
+  const comSimbologia = (config) => ({ ...config, symbology: { ...DEFAULT_SYMBOLOGY, ...(config?.symbology || {}) } });
+  const [viz, setViz] = useState(() => comSimbologia({ ...PADRAO_VIZ, attribute: colorAttribute || 'Sigla_Regiao', ...(visualizationConfig || {}) }));
   useEffect(() => {
     // Mudança vinda de fora (assistente de dados, perfil carregado): o painel acompanha
-    if (visualizationConfig) setViz(v => ({ ...v, ...visualizationConfig }));
+    if (visualizationConfig) setViz(v => comSimbologia({ ...v, ...visualizationConfig }));
   }, [visualizationConfig]);
 
   const { categoricos, numericos } = useMemo(() => {
@@ -82,13 +85,28 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
     : [], [indicadoresData, viz.indicator]);
 
   const ehNumerico = viz.type === 'indicator' || numericos.includes(viz.attribute);
+  // Símbolos proporcionais só fazem sentido para atributos numéricos (contagens, totais)
+  const podeSimbolos = viz.type === 'attribute' && numericos.includes(viz.attribute);
+
+  // Valores da variável escolhida, para a prévia da classificação (os mesmos que vão para o mapa)
+  const valoresSimbologia = useMemo(() => {
+    if (viz.type === 'indicator') {
+      if (!viz.indicator || !viz.year) return [];
+      return (indicadoresData || [])
+        .filter(r => r.Nome_Indicador === viz.indicator && r.Ano_Observacao === viz.year)
+        .map(r => (viz.valueType === 'position' ? r.Indice_Posicional : r.Valor));
+    }
+    if (!viz.attribute) return [];
+    const getter = makeVizValueGetter(csvData, viz.attribute, viz.symbology);
+    return (filteredCsvData || csvData || []).map(getter.get);
+  }, [viz.type, viz.indicator, viz.year, viz.valueType, viz.attribute, viz.symbology, indicadoresData, filteredCsvData, csvData]);
 
   const aplicar = useCallback((proxima) => {
     const pronto = proxima.type === 'attribute' ? !!proxima.attribute : !!(proxima.indicator && proxima.year);
     if (!pronto) return;
     const config = {
       type: proxima.type, renderMode: proxima.renderMode, borderWidth: proxima.borderWidth, fillOpacity: proxima.fillOpacity,
-      scheme: proxima.scheme, classes: proxima.classes,
+      symbology: proxima.symbology, labels: !!proxima.labels,
       ...(proxima.type === 'attribute'
         ? { attribute: proxima.attribute }
         : { indicator: proxima.indicator, year: proxima.year, valueType: proxima.valueType || 'value' }),
@@ -96,7 +114,12 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
     handleVisualizationConfigChange(config);
   }, [handleVisualizationConfigChange]);
 
-  const mudar = (parcial) => { const n = { ...viz, ...parcial }; setViz(n); aplicar(n); };
+  const mudar = (parcial) => {
+    const n = { ...viz, ...parcial };
+    // Trocou para uma variável de categorias: símbolos proporcionais não se aplicam
+    if (n.renderMode === 'symbols' && !(n.type === 'attribute' && numericos.includes(n.attribute))) n.renderMode = 'filled';
+    setViz(n); aplicar(n);
+  };
 
   // Controles deslizantes: o mapa é redesenhado quando o movimento para
   const timerRef = useRef(null);
@@ -188,6 +211,23 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
 
   const salvarPerfil = () => baixar(JSON.stringify(buildProfile()), 'perfil_completo.json', 'application/json', 'Perfil JSON', '.json');
 
+  // Modelo para a turma: perfil com título e instruções, aberto pelos alunos via ?modelo=
+  const salvarModelo = async () => {
+    const titulo = window.prompt('Título do modelo (aparece para os alunos):', 'Mapa da atividade');
+    if (titulo === null) return;
+    const instrucoes = window.prompt('Instruções para os alunos (opcional):', 'Complete o mapa: escreva o título, sua fonte e seu nome, e exporte em PDF.') || '';
+    const nome = (titulo || 'modelo').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'modelo';
+    const perfil = { ...buildProfile(), modelo: { titulo, instrucoes, criadoEm: new Date().toISOString() } };
+    await baixar(JSON.stringify(perfil), `${nome}.json`, 'application/json', 'Perfil JSON', '.json');
+    window.alert(
+      `Modelo salvo como "${nome}.json".\n\nPara a turma abrir:\n` +
+      `1) Coloque o arquivo na pasta public/modelos/ do repositório (o deploy publica automaticamente) e envie o link:\n` +
+      `${window.location.origin}/?modelo=${nome}\n\n` +
+      `2) Ou hospede o arquivo em um endereço público (que permita acesso de outros sites) e use:\n` +
+      `${window.location.origin}/?modelo=https://endereco/do/arquivo.json`
+    );
+  };
+
   const carregarPerfil = () => {
     const input = document.createElement('input');
     input.type = 'file'; input.accept = '.json';
@@ -218,17 +258,20 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
     }
     if (!attribute) return null;
     let values;
+    let missing = 0;
     if (visualizationConfig?.type === 'indicator') {
       const { indicator, year, valueType } = visualizationConfig;
       values = (indicadoresData || []).filter(r => r.Nome_Indicador === indicator && r.Ano_Observacao === year)
         .map(r => (valueType === 'position' ? r.Indice_Posicional : r.Valor)).filter(v => !isNoDataMarker(v));
     } else {
-      values = (filteredCsvData || []).map(r => r[attribute]).filter(v => v !== undefined && v !== null && `${v}`.trim() !== '');
-      values = toNumericIfPossible(values, (csvData || []).map(r => r[attribute]).filter(v => !isNoDataMarker(v)));
+      // mesmo valor exibido no mapa (inclusive normalizado), com o formato da coluna inteira
+      const getter = makeVizValueGetter(csvData, attribute, visualizationConfig?.symbology);
+      if (getter.normalized) title = normalizedLabel(attribute, visualizationConfig.symbology);
+      const linhas = filteredCsvData || [];
+      values = linhas.map(getter.get).filter(v => v !== null && v !== undefined);
+      missing = linhas.length - values.length;
     }
-    const { classes, scheme } = scaleOptionsFromConfig(visualizationConfig);
-    const expr = getColorScale(attribute, values, classes, scheme);
-    const missing = visualizationConfig?.type === 'indicator' ? 0 : countMissing(filteredCsvData, attribute, expr?.[0] === 'step');
+    const expr = getColorScale(attribute, values, visualizationConfig?.symbology);
     let items = buildLegendItems(expr, values, missing).items;
     const custom = legendConfigByKey[legendKey];
     if (custom?.items?.length) { title = custom.title || title; items = custom.items; }
@@ -364,42 +407,31 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
               </>
             )}
 
-            {ehNumerico ? (
-              <>
-                <div className="campo">
-                  <label htmlFor="mp-classes">Classes (quantis)</label>
-                  <select id="mp-classes" className="selecao" value={viz.classes || 5} onChange={(e) => mudar({ classes: Number(e.target.value) })}>
-                    {[3, 4, 5, 6, 7].map(n => <option key={n} value={n}>{n} classes</option>)}
-                  </select>
-                </div>
-                <div className="campo">
-                  <span className="campo-rotulo">Escala de cores</span>
-                  <div className="painel-escalas" role="group" aria-label="Escala de cores">
-                    {Object.entries(ESCALAS_NUMERICAS).map(([id, e]) => (
-                      <button key={id} type="button" aria-pressed={(viz.scheme || 'petroleo') === id} onClick={() => mudar({ scheme: id })} title={`${e.nome} · ${e.descricao}`} aria-label={`${e.nome}: ${e.descricao}`}>
-                        <span className="painel-escala-amostra">
-                          {sequentialColors(5, id).map(c => <span key={c} style={{ background: c }} />)}
-                        </span>
-                        <span className="painel-escala-nome">{e.nome}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <p className="painel-nota">
-                Cores fixas por categoria. {viz.attribute === 'Sigla_Regiao' && `As regiões têm sempre a mesma cor (${Object.values(NOMES_REGIOES).join(', ')}).`}
-              </p>
+            {viz.renderMode !== 'symbols' && <SymbologyPanel
+              rawValues={valoresSimbologia}
+              symbology={viz.symbology}
+              onChange={(symbology) => mudarDeslizando({ symbology })}
+              attribute={viz.type === 'attribute' ? viz.attribute : null}
+              normalizeOptions={numericos.filter(a => a !== viz.attribute)}
+              attributeIsNumeric={numericos.includes(viz.attribute)}
+            />}
+            {!ehNumerico && viz.attribute === 'Sigla_Regiao' && viz.symbology?.categoricalPalette === 'SisInfo' && (
+              <p className="painel-nota">As regiões têm sempre a mesma cor ({Object.values(NOMES_REGIOES).join(', ')}).</p>
             )}
 
             <div className="campo">
               <span className="campo-rotulo">Desenho</span>
               <div className="segmentado" role="group" aria-label="Desenho">
-                <button type="button" aria-pressed={viz.renderMode !== 'border'} onClick={() => mudar({ renderMode: 'filled' })}>Preenchido</button>
-                <button type="button" aria-pressed={viz.renderMode === 'border'} onClick={() => mudar({ renderMode: 'border' })}>Só contorno</button>
+                <button type="button" aria-pressed={viz.renderMode !== 'border' && viz.renderMode !== 'symbols'} onClick={() => mudar({ renderMode: 'filled' })}>Preenchido</button>
+                <button type="button" aria-pressed={viz.renderMode === 'border'} onClick={() => mudar({ renderMode: 'border' })}>Contorno</button>
+                {podeSimbolos && (
+                  <button type="button" aria-pressed={viz.renderMode === 'symbols'} onClick={() => mudar({ renderMode: 'symbols' })}>Círculos</button>
+                )}
               </div>
             </div>
-            {viz.renderMode === 'border' ? (
+            {viz.renderMode === 'symbols' ? (
+              <p className="painel-nota">Um círculo por município, com área proporcional ao valor original: o jeito certo de mostrar contagens como população ou casos.</p>
+            ) : viz.renderMode === 'border' ? (
               <div className="campo">
                 <label htmlFor="mp-borda">Espessura do contorno · {viz.borderWidth} px</label>
                 <input id="mp-borda" type="range" className="painel-range" min="1" max="10" step="0.5" value={viz.borderWidth} onChange={(e) => mudarDeslizando({ borderWidth: parseFloat(e.target.value) })} />
@@ -410,6 +442,8 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
                 <input id="mp-opacidade" type="range" className="painel-range" min="0.05" max="1" step="0.05" value={viz.fillOpacity ?? 0.85} onChange={(e) => mudarDeslizando({ fillOpacity: parseFloat(e.target.value) })} />
               </div>
             )}
+
+            <Switch checked={!!viz.labels} onChange={(labels) => mudar({ labels })} label="Mostrar nomes dos municípios" />
 
             <div className="campo">
               <label htmlFor="mp-base">Mapa base</label>
@@ -527,6 +561,7 @@ const MapPanel = ({ aberto, onFechar, onFiltersApplied, onImportGeometry }) => {
               <div className="painel-acoes painel-acoes-coluna">
                 <button type="button" className="btn btn-secondary" onClick={salvarPerfil}><Save size={17} strokeWidth={1.75} aria-hidden="true" />Salvar perfil (.json)</button>
                 <button type="button" className="btn btn-secondary" onClick={carregarPerfil}><FolderOpen size={17} strokeWidth={1.75} aria-hidden="true" />Carregar perfil</button>
+                <button type="button" className="btn btn-secondary" onClick={salvarModelo}><GraduationCap size={17} strokeWidth={1.75} aria-hidden="true" />Salvar como modelo para a turma</button>
                 <button type="button" className="btn btn-secondary" onClick={exportarHtml}><Globe size={17} strokeWidth={1.75} aria-hidden="true" />Exportar mapa interativo (.html)</button>
               </div>
             </section>
