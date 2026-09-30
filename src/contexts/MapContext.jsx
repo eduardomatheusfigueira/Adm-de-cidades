@@ -38,6 +38,7 @@ export const MapProvider = ({ children }) => {
     cursorPosition,
     handleMapClick: annotationHandleMapClick,
     handleMapDoubleClick: annotationHandleDoubleClick,
+    finishDrawing: annotationFinishDrawing,
     setCursorPosition,
     getActiveAnnotations,
     activeVisualizationId,
@@ -416,6 +417,10 @@ export const MapProvider = ({ children }) => {
   const annotationClickRef = useRef(annotationHandleMapClick);
   const annotationDblClickRef = useRef(annotationHandleDoubleClick);
   const setCursorRef = useRef(setCursorPosition);
+  const tempCoordsRef = useRef(tempCoordinates);
+  const finishDrawingRef = useRef(annotationFinishDrawing);
+  useEffect(() => { tempCoordsRef.current = tempCoordinates; }, [tempCoordinates]);
+  useEffect(() => { finishDrawingRef.current = annotationFinishDrawing; }, [annotationFinishDrawing]);
 
   useEffect(() => { drawingModeRef.current = drawingMode; }, [drawingMode]);
   useEffect(() => { annotationClickRef.current = annotationHandleMapClick; }, [annotationHandleMapClick]);
@@ -430,6 +435,17 @@ export const MapProvider = ({ children }) => {
       if (drawingModeRef.current) {
         e.preventDefault();
         e.originalEvent?.stopPropagation?.();
+        // Tocar perto do 1º vértice fecha o polígono; perto do último, conclui a linha
+        // (no celular não há duplo clique confiável).
+        const mode = drawingModeRef.current;
+        const coords = tempCoordsRef.current || [];
+        const near = (c) => { const p = map.current.project(c); return Math.hypot(p.x - e.point.x, p.y - e.point.y) < 22; };
+        const isPoly = mode === 'polygon' || mode === 'measure_polygon';
+        const isLine = mode === 'line' || mode === 'measure_line';
+        if ((isPoly && coords.length >= 3 && near(coords[0])) || (isLine && coords.length >= 2 && near(coords[coords.length - 1]))) {
+          finishDrawingRef.current();
+          return;
+        }
         annotationClickRef.current(e.lngLat);
       }
     };
@@ -462,13 +478,15 @@ export const MapProvider = ({ children }) => {
     };
   }, [mapLoaded, styleVersion]);
 
-  // Change cursor style when in drawing mode
+  // Change cursor style when in drawing mode; o zoom por duplo clique/toque atrapalha o desenho
   useEffect(() => {
     if (!map.current) return;
     if (drawingMode) {
       map.current.getCanvas().style.cursor = 'crosshair';
+      map.current.doubleClickZoom.disable();
     } else {
       map.current.getCanvas().style.cursor = '';
+      map.current.doubleClickZoom.enable();
     }
   }, [drawingMode]);
 

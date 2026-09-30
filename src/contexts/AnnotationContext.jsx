@@ -93,12 +93,9 @@ export const AnnotationProvider = ({ children }) => {
     return false;
   }, [drawingMode, tempCoordinates, getNextNumber, activeVisualizationId, currentColor]);
 
-  // Called on double-click to finalize line/polygon
-  const handleMapDoubleClick = useCallback((lngLat) => {
+  // Finaliza a linha/polígono com os vértices informados
+  const finalizeDrawing = useCallback((rawCoords) => {
     if (!drawingMode || drawingMode === 'point') return false;
-
-    const coord = [lngLat.lng, lngLat.lat];
-    let rawCoords = [...tempCoordinates, coord];
 
     // Filter out consecutive duplicate coordinates (e.g. from double clicks)
     let finalCoords = rawCoords.filter((c, idx) => {
@@ -166,7 +163,27 @@ export const AnnotationProvider = ({ children }) => {
     setIsDrawing(false);
     setCursorPosition(null);
     return true;
-  }, [drawingMode, tempCoordinates, getNextNumber, activeVisualizationId, cancelDrawing]);
+  }, [drawingMode, getNextNumber, activeVisualizationId, cancelDrawing, currentColor]);
+
+  // Duplo clique (desktop): o ponto do duplo clique entra como último vértice
+  const handleMapDoubleClick = useCallback((lngLat) => {
+    if (!drawingMode || drawingMode === 'point') return false;
+    // O clique anterior já concluiu o desenho (tocar no último vértice): nada a fazer
+    if (tempCoordinates.length === 0) return true;
+    return finalizeDrawing([...tempCoordinates, [lngLat.lng, lngLat.lat]]);
+  }, [drawingMode, tempCoordinates, finalizeDrawing]);
+
+  // Botão "Concluir" (celular): usa só os vértices já marcados
+  const finishDrawing = useCallback(() => finalizeDrawing([...tempCoordinates]), [tempCoordinates, finalizeDrawing]);
+
+  // Botão "Desfazer ponto": remove o último vértice
+  const undoLastVertex = useCallback(() => {
+    setTempCoordinates(prev => {
+      const next = prev.slice(0, -1);
+      if (next.length === 0) setIsDrawing(false);
+      return next;
+    });
+  }, []);
 
   // --- Annotation CRUD ---
   const updateAnnotationDescription = useCallback((id, description) => {
@@ -258,6 +275,8 @@ export const AnnotationProvider = ({ children }) => {
     cancelDrawing,
     handleMapClick,
     handleMapDoubleClick,
+    finishDrawing,
+    undoLastVertex,
     setCursorPosition,
     // Annotation CRUD
     updateAnnotationDescription,

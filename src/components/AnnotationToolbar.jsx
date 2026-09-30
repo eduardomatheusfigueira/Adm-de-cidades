@@ -16,6 +16,8 @@ const AnnotationToolbar = () => {
     drawingMode,
     isDrawing,
     cancelDrawing,
+    finishDrawing,
+    undoLastVertex,
     tempCoordinates,
     cursorPosition,
     currentColor,
@@ -29,7 +31,12 @@ const AnnotationToolbar = () => {
 
   // Compute live measurement during drawing
   const isPolyType = drawingMode === 'polygon' || drawingMode === 'measure_polygon';
-  const liveCoords = cursorPosition ? [...tempCoordinates, [cursorPosition.lng, cursorPosition.lat]] : tempCoordinates;
+  // cursorPosition é gravado como [lng, lat] (MapContext); aceitar também {lng, lat}
+  const cursor = Array.isArray(cursorPosition) ? cursorPosition : (cursorPosition ? [cursorPosition.lng, cursorPosition.lat] : null);
+  const liveCoords = cursor ? [...tempCoordinates, cursor] : tempCoordinates;
+  const minVertices = isPolyType ? 3 : 2;
+  const canFinish = drawingMode !== 'point' && tempCoordinates.length >= minVertices;
+  const finishHint = isPolyType ? 'toque no 1º ponto ou em Concluir para fechar' : 'toque no último ponto ou em Concluir para terminar';
   const liveDistance = isDrawing ? formatDistance(getLineLengthMeters(liveCoords)) : '';
   const liveArea = isDrawing && isPolyType && liveCoords.length >= 3 ? formatArea(getPolygonAreaSqMeters(liveCoords)) : '';
   const livePerimeter = isDrawing && isPolyType && liveCoords.length >= 3 ? formatDistance(getLineLengthMeters([...liveCoords, liveCoords[0]])) : '';
@@ -48,34 +55,37 @@ const AnnotationToolbar = () => {
         </label>
         <span className="status-icon">{activeTool?.icon}</span>
         <span className="status-text">
-          {drawingMode === 'point' && 'Clique no mapa para inserir ponto'}
+          {drawingMode === 'point' && 'Toque/clique no mapa para inserir pontos'}
           {drawingMode === 'line' && (
-            isDrawing
-              ? `Desenhando linha (${tempCoordinates.length} vértices) — duplo-clique para finalizar`
-              : 'Clique no mapa para iniciar a linha'
+            isDrawing ? `Linha: ${tempCoordinates.length} ponto(s) — ${finishHint}` : 'Toque/clique no mapa para começar a linha'
           )}
           {drawingMode === 'polygon' && (
-            isDrawing
-              ? `Desenhando polígono (${tempCoordinates.length} vértices) — duplo-clique para fechar`
-              : 'Clique no mapa para iniciar o polígono'
+            isDrawing ? `Polígono: ${tempCoordinates.length} ponto(s) — ${finishHint}` : 'Toque/clique no mapa para começar o polígono'
           )}
           {drawingMode === 'measure_line' && (
-            isDrawing
-              ? `Medindo distância (${tempCoordinates.length} vértices) — Comprimento: ${liveDistance} — duplo-clique para finalizar`
-              : 'Clique no mapa para iniciar a medição de distância'
+            isDrawing ? `Distância: ${liveDistance} (${tempCoordinates.length} ponto(s)) — ${finishHint}` : 'Toque/clique no mapa para começar a medir a distância'
           )}
           {drawingMode === 'measure_polygon' && (
             isDrawing
-              ? `Medindo área (${tempCoordinates.length} vértices) ${liveArea ? `— Área: ${liveArea} (Perímetro: ${livePerimeter})` : `— Comprimento: ${liveDistance}`} — duplo-clique para fechar`
-              : 'Clique no mapa para iniciar a medição de área'
+              ? `${liveArea ? `Área: ${liveArea} · Perímetro: ${livePerimeter}` : `Comprimento: ${liveDistance}`} (${tempCoordinates.length} ponto(s)) — ${finishHint}`
+              : 'Toque/clique no mapa para começar a medir a área'
           )}
         </span>
-        <button
-          className="status-cancel-btn"
-          onClick={cancelDrawing}
-          title="Cancelar desenho"
-        >
-          ✕
+      </div>
+      <div className="annotation-toolbar-actions">
+        {drawingMode !== 'point' && (
+          <>
+            <button type="button" className="draw-action-btn primary" onClick={finishDrawing} disabled={!canFinish}
+              title={canFinish ? 'Concluir o desenho' : `Marque pelo menos ${minVertices} pontos`}>
+              ✓ Concluir
+            </button>
+            <button type="button" className="draw-action-btn" onClick={undoLastVertex} disabled={tempCoordinates.length === 0} title="Remover o último ponto">
+              ↶ Desfazer ponto
+            </button>
+          </>
+        )}
+        <button type="button" className="draw-action-btn" onClick={cancelDrawing} title="Sair do modo de desenho">
+          ✕ {drawingMode === 'point' ? 'Terminar' : 'Cancelar'}
         </button>
       </div>
     </div>
