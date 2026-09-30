@@ -3,12 +3,13 @@ import { Rnd } from 'react-rnd';
 import '../styles/Legend.css';
 import { UIContext } from '../contexts/UIContext';
 import { DataContext } from '../contexts/DataContext';
-import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, makeVizValueGetter, normalizedLabel } from '../utils/colorUtils';
+import { Pencil, X } from 'lucide-react';
+import { getColorScale, getLegendKey, isNoDataMarker, buildLegendItems, makeVizValueGetter, normalizedLabel, rotuloAtributo } from '../utils/colorUtils';
 import { symbolLegendCircles, SYMBOL_COLOR } from '../utils/proportional';
 
 // Legenda de símbolos proporcionais: círculos aninhados alinhados pela base
 export const SymbolLegend = ({ circles }) => {
-  if (!circles?.length) return <p style={{ fontSize: '0.8em', color: '#555' }}>Sem valores positivos para desenhar.</p>;
+  if (!circles?.length) return <p className="legend-vazia">Sem valores positivos para desenhar.</p>;
   const R = circles[0].r, W = R * 2 + 90, H = Math.max(R * 2, circles.length * 13) + 8;
   return (
     <svg className="legend-symbols" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Legenda de símbolos proporcionais">
@@ -21,8 +22,8 @@ export const SymbolLegend = ({ circles }) => {
           return (
             <g key={i}>
               <circle cx={R + 2} cy={cy} r={c.r} fill={SYMBOL_COLOR} fillOpacity={0.25} stroke={SYMBOL_COLOR} strokeWidth="1.2" />
-              <line x1={R + 2} x2={R * 2 + 12} y1={cy - c.r} y2={ly} stroke="#64748b" strokeDasharray="2 2" />
-              <text x={R * 2 + 16} y={ly + 4} fontSize="11" fill="#1e293b">{c.value.toLocaleString('pt-BR')}</text>
+              <line x1={R + 2} x2={R * 2 + 12} y1={cy - c.r} y2={ly} stroke="#7F7A70" strokeDasharray="2 2" />
+              <text x={R * 2 + 16} y={ly + 4} fontSize="11" fill="#1A1814">{c.value.toLocaleString('pt-BR')}</text>
             </g>
           );
         });
@@ -54,14 +55,14 @@ const Legend = () => {
     if (!legendKey) return null;
 
     let attribute = colorAttribute;
-    let title = `Atributo: ${colorAttribute}`;
+    let title = rotuloAtributo(colorAttribute);
 
     if (visualizationConfig?.type === 'indicator') {
       attribute = 'visualization_value';
-      title = `Indicador: ${visualizationConfig.indicator} (${visualizationConfig.year})`;
+      title = `${visualizationConfig.indicator} (${visualizationConfig.year})${visualizationConfig.valueType === 'position' ? ' · índice posicional' : ''}`;
     } else if (visualizationConfig?.type === 'attribute' && visualizationConfig.attribute) {
       attribute = visualizationConfig.attribute;
-      title = `Atributo: ${visualizationConfig.attribute}`;
+      title = rotuloAtributo(visualizationConfig.attribute);
     }
 
     if (!attribute) return null;
@@ -82,7 +83,7 @@ const Legend = () => {
 
     // Atributo (com normalização opcional); formato numérico decidido pela coluna completa
     const getter = makeVizValueGetter(csvData, attribute, visualizationConfig?.symbology);
-    if (getter.normalized) title = `Atributo: ${normalizedLabel(attribute, visualizationConfig.symbology)}`;
+    if (getter.normalized) title = normalizedLabel(attribute, visualizationConfig.symbology);
     const rows = filteredCsvData || [];
     values = rows.map(getter.get).filter((v) => v !== null && v !== undefined);
     const scaleExpression = getColorScale(attribute, values, visualizationConfig?.symbology);
@@ -109,7 +110,7 @@ const Legend = () => {
   const [draftItems, setDraftItems] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const displayedTitle = symbolLegend ? `Atributo: ${symbolLegend.title}` : (customLegend?.title ?? baseLegend?.title ?? 'Legenda');
+  const displayedTitle = symbolLegend ? rotuloAtributo(symbolLegend.title) : (customLegend?.title ?? baseLegend?.title ?? 'Legenda');
   const displayedItems = customLegend?.items ?? baseLegend?.items ?? [];
 
   useEffect(() => {
@@ -141,11 +142,11 @@ const Legend = () => {
   return (
     <Rnd
       default={(() => {
-        // No celular a legenda começa menor e mais alta, sem cobrir a barra de escala
+        // Ao lado do painel lateral no desktop; no celular, no canto superior esquerdo
         const w = typeof window !== 'undefined' ? window.innerWidth : 1024;
-        return w < 600
-          ? { x: 8, y: 150, width: Math.min(220, w - 72), height: 'auto' }
-          : { x: 10, y: 300, width: 250, height: 'auto' };
+        return w <= 768
+          ? { x: 8, y: 8, width: Math.min(210, w - 80), height: 'auto' }
+          : { x: 372, y: 16, width: 230, height: 'auto' };
       })()}
       minWidth={150}
       bounds="parent"
@@ -153,24 +154,35 @@ const Legend = () => {
       style={{ zIndex: 5, position: 'absolute' }}
       disableDragging={isEditing}
     >
-      <div className="legend" style={{ position: 'relative', width: '100%', height: '100%', bottom: 'auto', right: 'auto', margin: 0 }}>
-        <div
-          className="legend-drag-handle"
-          style={{
-            cursor: isEditing ? 'default' : 'move',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            borderBottom: '1px solid var(--border-color)',
-            paddingBottom: 'var(--spacing-xs)', marginBottom: 'var(--spacing-sm)',
-            userSelect: 'none',
-          }}
-        >
-          <div className="legend-title" style={{ borderBottom: 'none', margin: 0, padding: 0 }}>{displayedTitle}</div>
-          <button
-            onMouseDown={(e) => e.stopPropagation()}
-            onClick={() => setShowAttributeLegend(false)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--text-light)', lineHeight: 1, padding: '2px 4px' }}
-            title="Ocultar legenda"
-          >✕</button>
+      <section className="legend" aria-label="Legenda do mapa">
+        <div className={`legend-drag-handle ${isEditing ? '' : 'arrastavel'}`}>
+          <div className="legend-title">{displayedTitle}</div>
+          <div className="legend-header-actions">
+            {!isEditing && !symbolLegend && (
+              <button
+                type="button"
+                className="legend-icon-btn"
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={() => setIsEditing(true)}
+                aria-label="Editar legenda"
+                title="Editar legenda"
+              >
+                <Pencil size={15} strokeWidth={1.75} aria-hidden="true" />
+              </button>
+            )}
+            <button
+              type="button"
+              className="legend-icon-btn"
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              onClick={() => setShowAttributeLegend(false)}
+              aria-label="Ocultar legenda"
+              title="Ocultar legenda"
+            >
+              <X size={16} strokeWidth={1.75} aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         {symbolLegend ? (
@@ -178,20 +190,22 @@ const Legend = () => {
         ) : !isEditing ? (
           <>
             {displayedItems.length === 0 && (
-              <p style={{ fontSize: '0.8em', color: '#555', marginTop: '5px', fontStyle: 'italic' }}>(Escala de cores dinâmica)</p>
+              <p className="legend-vazia">Escala de cores dinâmica</p>
             )}
-            {displayedItems.map((item, index) => (
-              <div key={`${item.value}-${index}`} className="legend-item">
-                <span className="legend-color" style={{ backgroundColor: item.color }}></span>
-                <span className="legend-value">{item.value}</span>
+            <ul className="legend-list">
+              {displayedItems.map((item, index) => (
+                <li key={`${item.value}-${index}`} className="legend-item">
+                  <span className={`legend-color ${item.noData ? 'legend-color-sem-dados' : ''}`} style={{ backgroundColor: item.color }}></span>
+                  <span className="legend-value">{item.value}</span>
+                </li>
+              ))}
+            </ul>
+            {customLegend && (
+              <div className="legend-actions">
+                <span className="legend-custom-note">Legenda editada</span>
+                <button type="button" className="legend-action-btn" onClick={onReset}>Restaurar padrão</button>
               </div>
-            ))}
-            <div className="legend-actions">
-              <button type="button" className="legend-action-btn" onClick={() => setIsEditing(true)}>Editar legenda</button>
-              {customLegend && (
-                <button type="button" className="legend-action-btn legend-reset-btn" onClick={onReset}>Restaurar padrão</button>
-              )}
-            </div>
+            )}
           </>
         ) : (
           <div className="legend-editor">
@@ -214,7 +228,7 @@ const Legend = () => {
             {errorMessage && <p className="legend-error-message">{errorMessage}</p>}
           </div>
         )}
-      </div>
+      </section>
     </Rnd>
   );
 };

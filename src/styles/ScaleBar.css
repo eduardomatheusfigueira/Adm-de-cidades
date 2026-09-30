@@ -2,13 +2,11 @@
 
 .scale-bar-container {
   position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--surface-color);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-color);
+  bottom: 16px;
+  right: 16px;
+  background-color: rgba(255, 255, 255, 0.92);
+  border-radius: var(--raio-md);
+  box-shadow: var(--sombra-1);
   padding: 8px 28px 6px;
   z-index: 5;
   display: flex;
@@ -129,11 +127,13 @@
 }
 
 /* Celular: escala compacta e botão de fechar sempre visível (não há hover no toque) */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .scale-bar-container {
     padding: 6px 16px 4px;
-    /* acima da atribuição do mapa base, no canto inferior */
-    bottom: 36px;
+    /* acima do botão "Dados e visualização", no canto inferior esquerdo */
+    right: auto;
+    left: 12px;
+    bottom: 70px;
   }
 
   .scale-bar-close {

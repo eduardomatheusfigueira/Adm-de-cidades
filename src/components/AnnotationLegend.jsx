@@ -12,7 +12,7 @@ const DRAG_CANCEL = '.annotation-legend-header-actions, button, input, select, t
 // Posição inicial que cabe na tela também em celulares (painel de 280 px).
 const defaultPanelPos = () => {
   const w = typeof window !== 'undefined' ? window.innerWidth : 1024;
-  return { x: Math.max(8, Math.min(280, w - 288)), y: w < 600 ? 120 : 300 };
+  return w <= 768 ? { x: 8, y: 120 } : { x: Math.min(372, w - 288), y: 300 };
 };
 
 const TYPE_ICONS = { point: '📍', line: '📏', polygon: '⬡' };

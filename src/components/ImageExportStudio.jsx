@@ -1,4 +1,6 @@
 import React, { useState, useContext, useCallback, useRef, useEffect, useMemo } from 'react';
+import { X, Image as ImageIcon, ChevronRight, Eye, EyeOff, ArrowUp, ArrowDown, ZoomIn, ZoomOut, Type, Square, Circle, Copy, Trash2, Share2, Download, ArrowUpRight, Maximize, Undo2, Redo2, RotateCcw } from 'lucide-react';
+import { Simbolo } from './brand/Logo';
 import maplibregl from 'maplibre-gl';
 import { BASEMAPS, BASEMAP_LAYER_CATEGORIES, getFontStack, getGeoJSONSourceData, normalizeBasemap, resolveBasemapStyle, isStyleReady, isAppLayer } from '../utils/basemaps';
 import '../styles/ImageStudio.css';
@@ -306,7 +308,7 @@ function drawSymbolLegend(ctx, x, y, w, title, circles, s = 1) {
   circles.forEach(c => {
     const r = c.r * s, cy = baseY - r;
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(217,95,2,0.25)'; ctx.fill();
+    ctx.save(); ctx.globalAlpha = 0.25; ctx.fillStyle = SYMBOL_COLOR; ctx.fill(); ctx.restore();
     ctx.strokeStyle = SYMBOL_COLOR; ctx.lineWidth = 1.2 * s; ctx.stroke();
     // rótulos com espaçamento mínimo (círculos pequenos têm topos muito próximos)
     const labelY = Math.max(cy - r, lastLabelY + fs * 1.15);
@@ -352,7 +354,7 @@ function drawInset(ctx, x, y, w, h, inset, s = 1) {
     polys.forEach(rings => rings.forEach(ring => ring.forEach(([lon, lat], i) => (i ? ctx.lineTo(px(lon), py(lat)) : ctx.moveTo(px(lon), py(lat))))));
     ctx.fillStyle = hl.has(f.properties.SIGLA_UF) ? '#fca5a5' : '#e5e7eb';
     ctx.fill('evenodd');
-    ctx.strokeStyle = '#9ca3af'; ctx.lineWidth = 0.6 * s; ctx.stroke();
+    ctx.strokeStyle = '#CCC7BC'; ctx.lineWidth = 0.6 * s; ctx.stroke();
   });
   const b = inset.bounds;
   if (b) {
@@ -1179,17 +1181,17 @@ const ImageExportStudio = () => {
   };
 
   const getElementInfo = (id) => {
-    if (id === 'title') return { name: '🏷️ Título', icon: '🏷️' };
-    if (id === 'north') return { name: '🧭 Norte', icon: '🧭' };
-    if (id === 'scale') return { name: '📏 Escala', icon: '📏' };
-    if (id === 'legend') return { name: '🎨 Legenda', icon: '🎨' };
-    if (id === 'annLegend') return { name: 'ℹ️ Info Mapa', icon: 'ℹ️' };
+    if (id === 'title') return { name: 'Título', icon: '' };
+    if (id === 'north') return { name: 'Norte', icon: '' };
+    if (id === 'scale') return { name: 'Escala', icon: '' };
+    if (id === 'legend') return { name: 'Legenda', icon: '' };
+    if (id === 'annLegend') return { name: 'Informações do mapa', icon: '' };
     const el = studioElements.find(e => e.id === id);
     if (!el) return { name: id, icon: '?' };
-    if (el.type === 'text') return { name: `💬 ${(el.text || 'Texto').substring(0, 16)}`, icon: '💬' };
-    if (el.type === 'rect') return { name: '🔲 Quadro', icon: '🔲' };
-    if (el.type === 'circle') return { name: '⭕ Círculo', icon: '⭕' };
-    if (el.type === 'arrow') return { name: '↗️ Seta', icon: '↗️' };
+    if (el.type === 'text') return { name: `Texto: ${(el.text || 'Texto').substring(0, 16)}`, icon: '' };
+    if (el.type === 'rect') return { name: 'Quadro', icon: '' };
+    if (el.type === 'circle') return { name: 'Círculo', icon: '' };
+    if (el.type === 'arrow') return { name: 'Seta', icon: '' };
     return { name: `Elemento`, icon: '?' };
   };
 
@@ -1610,12 +1612,12 @@ const ImageExportStudio = () => {
       try {
         if (pm.getLayer('sectors-fill-layer')) {
           pm.setPaintProperty('sectors-fill-layer', 'fill-color', NEUTRAL_FILL);
-          pm.setPaintProperty('sectors-fill-layer', 'fill-outline-color', '#9ca3af');
+          pm.setPaintProperty('sectors-fill-layer', 'fill-outline-color', '#CCC7BC');
           pm.setPaintProperty('sectors-fill-layer', 'fill-opacity', 0.8);
         }
         if (pm.getLayer('sectors-symbols-layer')) pm.setLayoutProperty('sectors-symbols-layer', 'visibility', 'visible');
       } catch (e) { console.warn('Viz apply error:', e); }
-      setLegendData({ title: `Atributo: ${vizAttr}`, items: [], symbols: symbolLegendCircles(max) });
+      setLegendData({ title: normalizedLabel(vizAttr, null), items: [], symbols: symbolLegendCircles(max) });
       return;
     }
 
@@ -1644,7 +1646,7 @@ const ImageExportStudio = () => {
     const items = customLegend?.items?.length
       ? [...customLegend.items.filter(it => !it.noData), ...autoItems.filter(it => it.noData)]
       : autoItems;
-    const defaultTitle = useIndicator ? `Indicador: ${vizInd} (${vizYr})` : `Atributo: ${normalizedLabel(vizAttr, symbology)}`;
+    const defaultTitle = useIndicator ? `Indicador: ${vizInd} (${vizYr})` : normalizedLabel(vizAttr, symbology);
     setLegendData({ title: customLegend?.title || defaultTitle, items });
   }, [csvData, indicadoresData, legendConfigByKey, visualizationConfig, prvVizType, prvVizAttribute, prvVizIndicator, prvVizYear, prvVizValueType,
     prvFilterRegion, prvFilterState, prvFilterCityType, prvRenderMode]);
@@ -2221,12 +2223,12 @@ const ImageExportStudio = () => {
         // costuma falhar ou abrir uma aba no iOS)
         const file = typeof File !== 'undefined' ? new File([blob], name, { type: mime }) : null;
         setExportResult({ url, file, name });
-        setProgress('✅ Imagem pronta!');
+        setProgress('Imagem pronta.');
       } else {
         downloadUrl(url, name);
         // Revogar só depois: o download ainda está lendo o blob neste momento
         setTimeout(() => URL.revokeObjectURL(url), 60000);
-        setProgress('✅ Imagem exportada com sucesso!');
+        setProgress('Imagem exportada.');
         setTimeout(() => setProgress(''), 3000);
       }
     } catch (err) {
@@ -2266,13 +2268,13 @@ const ImageExportStudio = () => {
       <div className="image-studio">
         <div className="studio-sidebar">
           <div className="studio-sidebar-header">
-            <h2><span className="studio-icon">📷</span> Exportar Imagem</h2>
-            <button className="studio-close-btn" onClick={handleClose}>✕</button>
+            <h2><Simbolo tamanho={24} variante="negativa" /> Estúdio de exportação</h2>
+            <button type="button" className="studio-close-btn" onClick={handleClose} aria-label="Fechar o Estúdio"><X size={20} strokeWidth={1.75} aria-hidden="true" /></button>
           </div>
           <div className="studio-sidebar-body">
             <div className="studio-section">
               <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, res: !s.res}))}>
-                <span>📐 Resolução</span><span className={`studio-chevron ${openSections.res ? 'open' : ''}`}>▸</span>
+                <span>Tamanho</span><span className={`studio-chevron ${openSections.res ? 'open' : ''}`}><ChevronRight size={16} strokeWidth={2} aria-hidden="true" /></span>
               </div>
               {openSections.res && (<>
               <div className="studio-subtitle">Papel (para imprimir ou PDF)</div>
@@ -2280,7 +2282,7 @@ const ImageExportStudio = () => {
                 {PAPERS.map(pp => (
                   <button key={pp.id} className={`studio-preset-btn ${paperCfg?.size === pp.id ? 'active' : ''}`}
                     onClick={() => setPaperCfg(c => ({ size: pp.id, dpi: c?.dpi || 150 }))}>
-                    {pp.label}<br /><span style={{ fontSize: '0.65rem', opacity: 0.6 }}>{pp.w}×{pp.h} mm</span>
+                    {pp.label}<br /><span style={{ fontSize: '0.75rem', opacity: 0.6 }}>{pp.w}×{pp.h} mm</span>
                   </button>
                 ))}
               </div>
@@ -2299,7 +2301,7 @@ const ImageExportStudio = () => {
                 {PRESETS.map((p, i) => (
                   <button key={p.label} className={`studio-preset-btn ${!paperCfg && !useCustom && preset === i ? 'active' : ''}`}
                     onClick={() => { setPaperCfg(null); setPreset(i); setUseCustom(false); }}>
-                    {p.label}<br /><span style={{ fontSize: '0.65rem', opacity: 0.6 }}>{p.w}×{p.h}</span>
+                    {p.label}<br /><span style={{ fontSize: '0.75rem', opacity: 0.6 }}>{p.w}×{p.h}</span>
                   </button>
                 ))}
                 <button className={`studio-preset-btn ${!paperCfg && useCustom ? 'active' : ''}`} onClick={() => { setPaperCfg(null); setUseCustom(true); }}>Custom</button>
@@ -2308,11 +2310,11 @@ const ImageExportStudio = () => {
                 <div className="studio-orientation-row">
                   <button className={`studio-orient-btn ${orientation === 'landscape' ? 'active' : ''}`}
                     onClick={() => setOrientation('landscape')} title="Paisagem">
-                    <span style={{ fontSize: '1rem' }}>▬</span> Paisagem
+                    <span className="studio-orient-amostra paisagem" aria-hidden="true" /> Paisagem
                   </button>
                   <button className={`studio-orient-btn ${orientation === 'portrait' ? 'active' : ''}`}
                     onClick={() => setOrientation('portrait')} title="Retrato">
-                    <span style={{ fontSize: '1rem' }}>▮</span> Retrato
+                    <span className="studio-orient-amostra retrato" aria-hidden="true" /> Retrato
                   </button>
                 </div>
               )}
@@ -2337,7 +2339,7 @@ const ImageExportStudio = () => {
 
             <div className="studio-section">
               <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, fmt: !s.fmt}))}>
-                <span>💾 Formato</span><span className={`studio-chevron ${openSections.fmt ? 'open' : ''}`}>▸</span>
+                <span>Formato</span><span className={`studio-chevron ${openSections.fmt ? 'open' : ''}`}><ChevronRight size={16} strokeWidth={2} aria-hidden="true" /></span>
               </div>
               {openSections.fmt && (<>
               <div className="studio-input-row">
@@ -2360,14 +2362,14 @@ const ImageExportStudio = () => {
 
             <div className="studio-section">
               <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, frame: !s.frame}))}>
-                <span>🖼️ Modelos e moldura</span><span className={`studio-chevron ${openSections.frame ? 'open' : ''}`}>▸</span>
+                <span>Modelos e moldura</span><span className={`studio-chevron ${openSections.frame ? 'open' : ''}`}><ChevronRight size={16} strokeWidth={2} aria-hidden="true" /></span>
               </div>
               {openSections.frame && (<>
                 <div className="studio-subtitle">Modelos prontos</div>
                 <div className="studio-templates">
                   {LAYOUT_TEMPLATES.map(t => (
                     <button key={t.id} type="button" className="studio-preset-btn" onClick={() => applyTemplate(t)} title={t.hint}>
-                      {t.label}<br /><span style={{ fontSize: '0.65rem', opacity: 0.6 }}>{t.hint}</span>
+                      {t.label}<br /><span style={{ fontSize: '0.75rem', opacity: 0.6 }}>{t.hint}</span>
                     </button>
                   ))}
                 </div>
@@ -2386,14 +2388,14 @@ const ImageExportStudio = () => {
 
             <div className="studio-section">
               <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, elem: !s.elem}))}>
-                <span>🗂️ Elementos</span><span className={`studio-chevron ${openSections.elem ? 'open' : ''}`}>▸</span>
+                <span>Elementos</span><span className={`studio-chevron ${openSections.elem ? 'open' : ''}`}><ChevronRight size={16} strokeWidth={2} aria-hidden="true" /></span>
               </div>
               {openSections.elem && (<>
-              <label className="studio-check-row"><input type="checkbox" checked={incNorth} onChange={e => setIncNorth(e.target.checked)} /><span className="studio-check-label">🧭 Indicador de Norte</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incNorth} onChange={e => setIncNorth(e.target.checked)} /><span className="studio-check-label">Indicador de Norte</span></label>
               {incNorth && (
                 <div style={{ paddingLeft: 18, marginTop: 2, marginBottom: 6 }}>
                   <div className="studio-input-row" style={{ marginBottom: 4 }}>
-                    <label style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Estilo</label>
+                    <label style={{ fontSize: '0.75rem', color: 'var(--texto-2)' }}>Estilo</label>
                     <select className="studio-select" value={northArrowStyle?.type || 'noun'} onChange={e => setNorthArrowStyle(s => ({ ...(s || {}), type: e.target.value }))}>
                       <option value="noun">Estilizada (Noun)</option>
                       <option value="classic">Clássica</option>
@@ -2406,16 +2408,16 @@ const ImageExportStudio = () => {
                     <span className="studio-check-label" style={{ fontSize: '0.7rem' }}>Fundo branco</span>
                   </label>
                   <div className="studio-input-row">
-                    <label style={{ fontSize: '0.65rem', color: '#94a3b8' }}>Cor</label>
+                    <label style={{ fontSize: '0.75rem', color: 'var(--texto-2)' }}>Cor</label>
                     <input type="color" value={northArrowStyle?.color || '#1e293b'} onChange={e => setNorthArrowStyle(s => ({ ...(s || {}), color: e.target.value }))} />
                   </div>
                 </div>
               )}
-              <label className="studio-check-row"><input type="checkbox" checked={incScale} onChange={e => setIncScale(e.target.checked)} /><span className="studio-check-label">📏 Barra de Escala</span></label>
-              <label className="studio-check-row"><input type="checkbox" checked={incLegend} onChange={e => setIncLegend(e.target.checked)} /><span className="studio-check-label">🎨 Legenda de Cores</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incScale} onChange={e => setIncScale(e.target.checked)} /><span className="studio-check-label">Barra de Escala</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incLegend} onChange={e => setIncLegend(e.target.checked)} /><span className="studio-check-label">Legenda de Cores</span></label>
               {incLegend && (
                 <div className="studio-input-row" style={{ marginTop: 2, marginBottom: 4, paddingLeft: 18 }}>
-                  <label style={{ fontSize: '0.65rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>Título</label>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--texto-2)', whiteSpace: 'nowrap' }}>Título</label>
                   <input
                     className="studio-text-input"
                     type="text"
@@ -2425,10 +2427,10 @@ const ImageExportStudio = () => {
                   />
                 </div>
               )}
-              <label className="studio-check-row"><input type="checkbox" checked={incAnnLegend} onChange={e => setIncAnnLegend(e.target.checked)} /><span className="studio-check-label">ℹ️ Informações do Mapa</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incAnnLegend} onChange={e => setIncAnnLegend(e.target.checked)} /><span className="studio-check-label">Informações do mapa</span></label>
               {incAnnLegend && (
                 <div className="studio-input-row" style={{ marginTop: 2, marginBottom: 4, paddingLeft: 18 }}>
-                  <label style={{ fontSize: '0.65rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>Título</label>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--texto-2)', whiteSpace: 'nowrap' }}>Título</label>
                   <input
                     className="studio-text-input"
                     type="text"
@@ -2438,9 +2440,9 @@ const ImageExportStudio = () => {
                   />
                 </div>
               )}
-              <label className="studio-check-row"><input type="checkbox" checked={incTitle} onChange={e => setIncTitle(e.target.checked)} /><span className="studio-check-label">🏷️ Título</span></label>
-              <label className="studio-check-row"><input type="checkbox" checked={incInset} onChange={e => setIncInset(e.target.checked)} /><span className="studio-check-label">🗺️ Mapa de localização</span></label>
-              <label className="studio-check-row"><input type="checkbox" checked={creditsCfg.show} onChange={e => setCreditsCfg(c => ({ ...c, show: e.target.checked }))} /><span className="studio-check-label">📝 Fonte, elaboração e data</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incTitle} onChange={e => setIncTitle(e.target.checked)} /><span className="studio-check-label">Título</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incInset} onChange={e => setIncInset(e.target.checked)} /><span className="studio-check-label">Mapa de localização</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={creditsCfg.show} onChange={e => setCreditsCfg(c => ({ ...c, show: e.target.checked }))} /><span className="studio-check-label">Fonte, elaboração e data</span></label>
               {creditsCfg.show && (
                 <div className="studio-credits-fields">
                   <input className="studio-text-input" type="text" placeholder="Fonte dos dados (ex.: IBGE, Censo 2022)" value={creditsCfg.fonte} onChange={e => setCreditsCfg(c => ({ ...c, fonte: e.target.value }))} />
@@ -2449,9 +2451,9 @@ const ImageExportStudio = () => {
                   <small className="studio-credits-note">A atribuição do mapa base (ex.: © OpenStreetMap) é incluída automaticamente, como exige a licença.</small>
                 </div>
               )}
-              <label className="studio-check-row"><input type="checkbox" checked={incMunPoints} onChange={e => setIncMunPoints(e.target.checked)} /><span className="studio-check-label">📍 Pontos dos Municípios</span></label>
-              <label className="studio-check-row"><input type="checkbox" checked={incMeasurements} onChange={e => setIncMeasurements(e.target.checked)} /><span className="studio-check-label">📐 Exibir Medidas nas Anotações</span></label>
-              <label className="studio-check-row"><input type="checkbox" checked={incGraticule} onChange={e => setIncGraticule(e.target.checked)} /><span className="studio-check-label">🌐 Paralelos e Meridianos</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incMunPoints} onChange={e => setIncMunPoints(e.target.checked)} /><span className="studio-check-label">Pontos dos municípios</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incMeasurements} onChange={e => setIncMeasurements(e.target.checked)} /><span className="studio-check-label">Medidas nas anotações</span></label>
+              <label className="studio-check-row"><input type="checkbox" checked={incGraticule} onChange={e => setIncGraticule(e.target.checked)} /><span className="studio-check-label">Paralelos e meridianos</span></label>
               {incGraticule && (
                 <div style={{ paddingLeft: 18, marginTop: 2, marginBottom: 6 }}>
                   {/* Line controls */}
@@ -2485,10 +2487,10 @@ const ImageExportStudio = () => {
                       onChange={e => setGraticuleStyle(s => ({ ...s, fontSize: Number(e.target.value) }))} style={{ width: 44 }} />
                     <button className={`studio-toolbar-btn${graticuleStyle.bold ? ' active' : ''}`}
                       onClick={() => setGraticuleStyle(s => ({ ...s, bold: !s.bold }))} title="Negrito"
-                      style={{ fontWeight: 'bold', padding: '2px 6px', fontSize: '0.65rem', minWidth: 22 }}>B</button>
+                      style={{ fontWeight: 'bold', padding: '2px 6px', fontSize: '0.75rem', minWidth: 22 }}>B</button>
                     <button className={`studio-toolbar-btn${graticuleStyle.italic ? ' active' : ''}`}
                       onClick={() => setGraticuleStyle(s => ({ ...s, italic: !s.italic }))} title="Itálico"
-                      style={{ fontStyle: 'italic', padding: '2px 6px', fontSize: '0.65rem', minWidth: 22 }}>I</button>
+                      style={{ fontStyle: 'italic', padding: '2px 6px', fontSize: '0.75rem', minWidth: 22 }}>I</button>
                   </div>
                   <div className="studio-input-row" style={{ marginBottom: 2 }}>
                     <label>Cor texto</label>
@@ -2515,7 +2517,7 @@ const ImageExportStudio = () => {
                   </div>
                 </div>
               )}
-              <p style={{ fontSize: '0.65rem', color: '#64748b', marginTop: 4, fontStyle: 'italic' }}>
+              <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 4, fontStyle: 'italic' }}>
                 Arraste as bordas azuis no preview para reposicionar.
               </p>
               </>)}
@@ -2523,15 +2525,15 @@ const ImageExportStudio = () => {
 
             <div className="studio-section">
               <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, customElem: !s.customElem}))}>
-                <span>✏️ Detalhes e Camadas</span><span className={`studio-chevron ${openSections.customElem ? 'open' : ''}`}>▸</span>
+                <span>Detalhes e camadas</span><span className={`studio-chevron ${openSections.customElem ? 'open' : ''}`}><ChevronRight size={16} strokeWidth={2} aria-hidden="true" /></span>
               </div>
               {openSections.customElem && (<>
                 {/* Add element buttons */}
                 <div className="studio-add-buttons">
-                  <button className="studio-add-btn" onClick={() => addStudioElement('text')} title="Adicionar Texto"><span>💬</span> Texto</button>
-                  <button className="studio-add-btn" onClick={() => addStudioElement('rect')} title="Adicionar Quadro"><span>🔲</span> Quadro</button>
-                  <button className="studio-add-btn" onClick={() => addStudioElement('circle')} title="Adicionar Círculo"><span>⭕</span> Círculo</button>
-                  <button className="studio-add-btn" onClick={() => addStudioElement('arrow')} title="Adicionar Seta"><span>↗️</span> Seta</button>
+                  <button className="studio-add-btn" onClick={() => addStudioElement('text')} title="Adicionar texto"><Type size={15} strokeWidth={1.75} aria-hidden="true" /> Texto</button>
+                  <button className="studio-add-btn" onClick={() => addStudioElement('rect')} title="Adicionar quadro"><Square size={15} strokeWidth={1.75} aria-hidden="true" /> Quadro</button>
+                  <button className="studio-add-btn" onClick={() => addStudioElement('circle')} title="Adicionar círculo"><Circle size={15} strokeWidth={1.75} aria-hidden="true" /> Círculo</button>
+                  <button className="studio-add-btn" onClick={() => addStudioElement('arrow')} title="Adicionar seta"><ArrowUpRight size={15} strokeWidth={1.75} aria-hidden="true" /> Seta</button>
                 </div>
 
                 {/* Layer stack list */}
@@ -2546,15 +2548,15 @@ const ImageExportStudio = () => {
                       <div key={id} className={`studio-layer-item${isSelected ? ' selected' : ''}${!visible ? ' hidden-layer' : ''}`}
                         onClick={() => setSelectedStudioElId(isSelected ? null : id)}>
                         <button className="studio-layer-vis" onClick={(e) => { e.stopPropagation(); toggleElementVisibility(id); }}
-                          title={visible ? 'Ocultar' : 'Mostrar'}>{visible ? '👁' : '👁‍🗨'}</button>
+                          title={visible ? 'Ocultar' : 'Mostrar'} aria-label={visible ? 'Ocultar' : 'Mostrar'}>{visible ? <Eye size={14} strokeWidth={1.75} aria-hidden="true" /> : <EyeOff size={14} strokeWidth={1.75} aria-hidden="true" />}</button>
                         <span className="studio-layer-name">{info.name}</span>
                         <div className="studio-layer-controls">
                           <button onClick={(e) => { e.stopPropagation(); moveElementStack(id, 'front'); }} title="Topo">⏫</button>
-                          <button onClick={(e) => { e.stopPropagation(); moveElementStack(id, 'up'); }} title="Acima">🔼</button>
-                          <button onClick={(e) => { e.stopPropagation(); moveElementStack(id, 'down'); }} title="Abaixo">🔽</button>
+                          <button onClick={(e) => { e.stopPropagation(); moveElementStack(id, 'up'); }} title="Acima" aria-label="Mover para cima"><ArrowUp size={12} strokeWidth={2} aria-hidden="true" /></button>
+                          <button onClick={(e) => { e.stopPropagation(); moveElementStack(id, 'down'); }} title="Abaixo" aria-label="Mover para baixo"><ArrowDown size={12} strokeWidth={2} aria-hidden="true" /></button>
                           <button onClick={(e) => { e.stopPropagation(); moveElementStack(id, 'back'); }} title="Fundo">⏬</button>
                           {!isOvl && (
-                            <button className="studio-layer-delete" onClick={(e) => { e.stopPropagation(); removeStudioElement(id); }} title="Excluir">✕</button>
+                            <button className="studio-layer-delete" onClick={(e) => { e.stopPropagation(); removeStudioElement(id); }} title="Excluir" aria-label="Excluir"><X size={12} strokeWidth={2} aria-hidden="true" /></button>
                           )}
                         </div>
                       </div>
@@ -2587,10 +2589,10 @@ const ImageExportStudio = () => {
                           <span style={{ fontSize: '0.6rem', color: '#64748b', marginLeft: 2 }}>px</span>
                           <button className={`studio-toolbar-btn${sel.fontWeight === 'bold' ? ' active' : ''}`}
                             onClick={() => updateStudioElement(sel.id, { fontWeight: sel.fontWeight === 'bold' ? 'normal' : 'bold' })}
-                            style={{ fontWeight: 'bold', padding: '2px 6px', fontSize: '0.65rem', minWidth: 22, marginLeft: 4 }}>B</button>
+                            style={{ fontWeight: 'bold', padding: '2px 6px', fontSize: '0.75rem', minWidth: 22, marginLeft: 4 }}>B</button>
                           <button className={`studio-toolbar-btn${sel.fontStyle === 'italic' ? ' active' : ''}`}
                             onClick={() => updateStudioElement(sel.id, { fontStyle: sel.fontStyle === 'italic' ? '' : 'italic' })}
-                            style={{ fontStyle: 'italic', padding: '2px 6px', fontSize: '0.65rem', minWidth: 22 }}>I</button>
+                            style={{ fontStyle: 'italic', padding: '2px 6px', fontSize: '0.75rem', minWidth: 22 }}>I</button>
                         </div>
                       )}
 
@@ -2647,9 +2649,9 @@ const ImageExportStudio = () => {
 
                       {/* Actions row */}
                       <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-                        <button className="studio-add-btn" style={{ flex: 1 }} onClick={() => duplicateStudioElement(sel.id)}>📋 Duplicar</button>
+                        <button className="studio-add-btn" style={{ flex: 1 }} onClick={() => duplicateStudioElement(sel.id)}><Copy size={14} strokeWidth={1.75} aria-hidden="true" /> Duplicar</button>
                         <button className="studio-add-btn" style={{ flex: 1, background: 'rgba(239,68,68,0.15)', color: '#f87171' }}
-                          onClick={() => removeStudioElement(sel.id)}>🗑️ Excluir</button>
+                          onClick={() => removeStudioElement(sel.id)}><Trash2 size={14} strokeWidth={1.75} aria-hidden="true" /> Excluir</button>
                       </div>
                     </div>
                   );
@@ -2664,7 +2666,7 @@ const ImageExportStudio = () => {
             {incTitle && (
               <div className="studio-section">
                 <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, title: !s.title}))}>
-                  <span>🏷️ Título do Mapa</span><span className={`studio-chevron ${openSections.title ? 'open' : ''}`}>▸</span>
+                  <span>Título do mapa</span><span className={`studio-chevron ${openSections.title ? 'open' : ''}`}><ChevronRight size={16} strokeWidth={2} aria-hidden="true" /></span>
                 </div>
                 {openSections.title && (<>
                 <div className="studio-input-row">
@@ -2731,7 +2733,7 @@ const ImageExportStudio = () => {
             {/* Configuração do Mapa */}
             <div className="studio-section">
               <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, mapCfg: !s.mapCfg}))}>
-                <span>🗺️ Configuração do Mapa</span><span className={`studio-chevron ${openSections.mapCfg ? 'open' : ''}`}>▸</span>
+                <span>Configuração do mapa</span><span className={`studio-chevron ${openSections.mapCfg ? 'open' : ''}`}><ChevronRight size={16} strokeWidth={2} aria-hidden="true" /></span>
               </div>
               {openSections.mapCfg && (<>
                 <div className="studio-input-row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4 }}>
@@ -2740,7 +2742,7 @@ const ImageExportStudio = () => {
                     <input className="studio-text-input" type="text" placeholder="https://.../style.json"
                       onKeyDown={e => { if (e.key === 'Enter' && e.target.value.trim()) handlePreviewStyleChange(e.target.value.trim()); }}
                       id="studio-custom-style-input" />
-                    <button className="studio-toolbar-btn" style={{ padding: '4px 8px', fontSize: '0.65rem' }}
+                    <button className="studio-toolbar-btn" style={{ padding: '4px 8px', fontSize: '0.75rem' }}
                       onClick={() => { const v = document.getElementById('studio-custom-style-input')?.value?.trim(); if (v) handlePreviewStyleChange(v); }}>
                       Aplicar
                     </button>
@@ -2754,7 +2756,7 @@ const ImageExportStudio = () => {
                   </select>
                 </div>
                 <div style={{ marginTop: 6 }}>
-                  <label style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Camadas</label>
+                  <label style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Camadas</label>
                   <div className="studio-layer-toggles">
                     {LAYER_CATEGORIES.map(cat => (
                       <label key={cat.key} className="studio-layer-item">
@@ -2766,7 +2768,7 @@ const ImageExportStudio = () => {
                   </div>
                 </div>
                 <div style={{ marginTop: 8 }}>
-                  <label style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Renderização</label>
+                  <label style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Renderização</label>
                   <div className="studio-input-row" style={{ marginTop: 4 }}>
                     <label>Modo</label>
                     <select className="studio-select" value={prvRenderMode} onChange={e => setPrvRenderMode(e.target.value)}>
@@ -2796,7 +2798,7 @@ const ImageExportStudio = () => {
             {/* Visualização e Filtros */}
             <div className="studio-section">
               <div className="studio-section-title studio-collapsible" onClick={() => setOpenSections(s => ({...s, vizFilter: !s.vizFilter}))}>
-                <span>🎨 Visualização e Filtros</span><span className={`studio-chevron ${openSections.vizFilter ? 'open' : ''}`}>▸</span>
+                <span>Visualização e filtros</span><span className={`studio-chevron ${openSections.vizFilter ? 'open' : ''}`}><ChevronRight size={16} strokeWidth={2} aria-hidden="true" /></span>
               </div>
               {openSections.vizFilter && (<>
                 <button type="button" className="studio-toolbar-btn" style={{ width: '100%', marginBottom: 8, minHeight: 36 }}
@@ -2809,7 +2811,7 @@ const ImageExportStudio = () => {
                     setPrvFilterRegion('all'); setPrvFilterState('all'); setPrvFilterCityType('all');
                     applyPreviewVisualization(m);
                   }}>
-                  ↺ Igual ao mapa principal
+                  <RotateCcw size={14} strokeWidth={1.75} aria-hidden="true" /> Igual ao mapa principal
                 </button>
                 <div className="studio-input-row">
                   <label>Tipo</label>
@@ -2852,7 +2854,7 @@ const ImageExportStudio = () => {
                   </div>
                 </>)}
                 <div style={{ marginTop: 8 }}>
-                  <label style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Filtros</label>
+                  <label style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Filtros</label>
                   <div className="studio-input-row" style={{ marginTop: 4 }}>
                     <label>Região</label>
                     <select className="studio-select" value={prvFilterRegion} onChange={e => { setPrvFilterRegion(e.target.value); setPrvFilterState('all'); }}>
@@ -2886,11 +2888,11 @@ const ImageExportStudio = () => {
           <div className="studio-preview-toolbar">
             <span className="studio-preview-info">Resolução: <strong>{targetW}×{targetH}</strong> | Formato: <strong>{format.toUpperCase()}</strong> | Viewport: <strong>{Math.round(viewZoom*100)}%</strong></span>
             <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
-              <button className="studio-toolbar-btn" onClick={() => setViewZoom(z => Math.min(z * 1.3, 3))} title="Zoom in">🔍+</button>
-              <button className="studio-toolbar-btn" onClick={() => setViewZoom(z => Math.max(z * 0.7, 0.05))} title="Zoom out">🔍−</button>
-              <button className="studio-toolbar-btn" onClick={undoLayout} disabled={!historyRef.current.past.length} title="Desfazer (Ctrl+Z)" data-history={historyTick}>↶</button>
-              <button className="studio-toolbar-btn" onClick={redoLayout} disabled={!historyRef.current.future.length} title="Refazer (Ctrl+Shift+Z)">↷</button>
-              <button className="studio-toolbar-btn" onClick={fitToView} title="Ajustar à tela">⊞ Fit</button>
+              <button className="studio-toolbar-btn" onClick={() => setViewZoom(z => Math.min(z * 1.3, 3))} title="Aproximar a prévia" aria-label="Aproximar a prévia"><ZoomIn size={16} strokeWidth={1.75} aria-hidden="true" /></button>
+              <button className="studio-toolbar-btn" onClick={() => setViewZoom(z => Math.max(z * 0.7, 0.05))} title="Afastar a prévia" aria-label="Afastar a prévia"><ZoomOut size={16} strokeWidth={1.75} aria-hidden="true" /></button>
+              <button className="studio-toolbar-btn" onClick={undoLayout} disabled={!historyRef.current.past.length} title="Desfazer (Ctrl+Z)" aria-label="Desfazer" data-history={historyTick}><Undo2 size={16} strokeWidth={1.75} aria-hidden="true" /></button>
+              <button className="studio-toolbar-btn" onClick={redoLayout} disabled={!historyRef.current.future.length} title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer"><Redo2 size={16} strokeWidth={1.75} aria-hidden="true" /></button>
+              <button className="studio-toolbar-btn" onClick={fitToView} title="Ajustar à tela" aria-label="Ajustar à tela"><Maximize size={16} strokeWidth={1.75} aria-hidden="true" /></button>
             </div>
           </div>
           <div ref={wrapperRef} className="studio-preview-wrapper"
@@ -2977,9 +2979,9 @@ const ImageExportStudio = () => {
                     <button type="button" className="studio-export-btn" onClick={async () => {
                       try { await navigator.share({ files: [exportResult.file], title: exportResult.name }); }
                       catch (e) { if (e?.name !== 'AbortError') downloadUrl(exportResult.url, exportResult.name); }
-                    }}>📤 Compartilhar / Salvar</button>
+                    }}><Share2 size={16} strokeWidth={1.75} aria-hidden="true" /> Compartilhar / salvar</button>
                   )}
-                  <button type="button" className="studio-cancel-btn" onClick={() => downloadUrl(exportResult.url, exportResult.name)}>⬇️ Baixar</button>
+                  <button type="button" className="studio-cancel-btn" onClick={() => downloadUrl(exportResult.url, exportResult.name)}><Download size={16} strokeWidth={1.75} aria-hidden="true" /> Baixar</button>
                   <button type="button" className="studio-cancel-btn" onClick={closeExportResult}>Fechar</button>
                 </div>
               </div>
@@ -2990,9 +2992,9 @@ const ImageExportStudio = () => {
               <div className="studio-progress"><div className="studio-progress-spinner" /><span>{progress}</span></div>
             ) : (
               <>
-                {progress && <span style={{ fontSize: '0.75rem', color: '#4ade80', marginRight: 'auto' }}>{progress}</span>}
+                {progress && <span className="studio-progress-ok" role="status">{progress}</span>}
                 <button className="studio-cancel-btn" onClick={handleClose}>Fechar</button>
-                <button className="studio-export-btn" onClick={handleExport}>📷 Exportar Imagem</button>
+                <button type="button" className="studio-export-btn" onClick={handleExport}><ImageIcon size={18} strokeWidth={1.75} aria-hidden="true" /> Exportar imagem</button>
               </>
             )}
           </div>

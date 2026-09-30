@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { getColorScale, buildLegendItems, isNumericValues, makeNumberParser, isNoDataMarker, STEP_SENTINEL, looksLikeAbsoluteCount } from '../utils/colorUtils';
+import { TriangleAlert } from 'lucide-react';
+import { getColorScale, buildLegendItems, isNumericValues, makeNumberParser, isNoDataMarker, STEP_SENTINEL, looksLikeAbsoluteCount, rotuloAtributo } from '../utils/colorUtils';
 import { SEQUENTIAL, DIVERGING, CATEGORICAL, CLASSIFICATION_METHODS, numericColors, categoricalColors } from '../utils/palettes';
 import '../styles/SymbologyPanel.css';
 
@@ -26,10 +27,10 @@ function Histogram({ values, thresholds, colors }) {
         const v0 = min + (max - min) * (i + 0.5) / BINS;
         return <rect key={i} x={(i * W) / BINS + 0.5} y={H - h} width={W / BINS - 1} height={h} fill={colorAt(v0)} />;
       })}
-      {thresholds.map((t, i) => <line key={i} x1={x(t)} x2={x(t)} y1={0} y2={H} stroke="#111827" strokeWidth="1" strokeDasharray="3 2" />)}
-      <line x1="0" x2={W} y1={H} y2={H} stroke="#94a3b8" />
-      <text x="0" y={H + 11} fontSize="9" fill="#64748b">{min.toLocaleString('pt-BR')}</text>
-      <text x={W} y={H + 11} fontSize="9" fill="#64748b" textAnchor="end">{max.toLocaleString('pt-BR')}</text>
+      {thresholds.map((t, i) => <line key={i} x1={x(t)} x2={x(t)} y1={0} y2={H} stroke="#1A1814" strokeWidth="1" strokeDasharray="3 2" />)}
+      <line x1="0" x2={W} y1={H} y2={H} stroke="#CCC7BC" />
+      <text x="0" y={H + 11} fontSize="9" fill="#67635A">{min.toLocaleString('pt-BR')}</text>
+      <text x={W} y={H + 11} fontSize="9" fill="#67635A" textAnchor="end">{max.toLocaleString('pt-BR')}</text>
     </svg>
   );
 }
@@ -50,20 +51,21 @@ function NormalizeControls({ attribute, symbology, set, options }) {
   return (
     <div className="symb-normalize">
       {absolute && (
-        <p className="symb-warn">
-          ⚠️ “{attribute}” parece ser uma <strong>contagem absoluta</strong>. Em mapas coloridos por área, totais
+        <p className="aviso aviso-atencao symb-warn">
+          <TriangleAlert size={16} strokeWidth={1.75} aria-hidden="true" />
+          <span>“{rotuloAtributo(attribute)}” parece ser uma <strong>contagem absoluta</strong>. Em mapas coloridos por área, totais
           fazem municípios grandes ou populosos parecerem sempre “maiores”. Prefira dividir por população ou área
-          (taxa ou densidade) — ou use símbolos proporcionais.
+          (taxa ou densidade) — ou use símbolos proporcionais.</span>
         </p>
       )}
       <label className="symb-label" htmlFor="symb-norm">Dividir por (normalizar)</label>
-      <select id="symb-norm" className="visualization-dropdown" value={symbology.normalizeBy || ''}
+      <select id="symb-norm" className="selecao" value={symbology.normalizeBy || ''}
         onChange={e => set({ normalizeBy: e.target.value || null })}>
         <option value="">Não dividir (valor original)</option>
-        {options.map(o => <option key={o} value={o}>{o === 'Area_Municipio' ? 'Área do município (km²) → densidade' : o}</option>)}
+        {options.map(o => <option key={o} value={o}>{o === 'Area_Municipio' ? 'Área do município (km²) → densidade' : rotuloAtributo(o)}</option>)}
       </select>
       {symbology.normalizeBy && (
-        <select className="visualization-dropdown" value={symbology.factor || 1} onChange={e => set({ factor: Number(e.target.value) })} aria-label="Multiplicar o resultado">
+        <select className="selecao" value={symbology.factor || 1} onChange={e => set({ factor: Number(e.target.value) })} aria-label="Multiplicar o resultado">
           {FACTORS.map(f => <option key={f.v} value={f.v}>{f.label}</option>)}
         </select>
       )}
@@ -117,14 +119,14 @@ export default function SymbologyPanel({ rawValues, symbology, onChange, attribu
         <NormalizeControls attribute={attribute} symbology={symbology} set={set} options={normalizeOptions} />
       )}
       <label className="symb-label" htmlFor="symb-method">Classificação</label>
-      <select id="symb-method" className="visualization-dropdown" value={symbology.method} onChange={e => set({ method: e.target.value })}>
+      <select id="symb-method" className="selecao" value={symbology.method} onChange={e => set({ method: e.target.value })}>
         {CLASSIFICATION_METHODS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}
       </select>
 
       {symbology.method === 'manual' ? (
         <>
           <label className="symb-label" htmlFor="symb-breaks">Limites entre as classes (separados por ;)</label>
-          <input id="symb-breaks" className="symb-input" type="text" inputMode="decimal"
+          <input id="symb-breaks" className="entrada symb-input" type="text" inputMode="decimal"
             placeholder="ex.: 10; 50; 100; 500"
             defaultValue={(symbology.breaks || []).map(b => `${b}`.replace('.', ',')).join('; ')}
             onBlur={e => set({ breaks: e.target.value.split(';').map(t => t.trim()).filter(Boolean) })} />
@@ -132,7 +134,7 @@ export default function SymbologyPanel({ rawValues, symbology, onChange, attribu
       ) : (
         <>
           <label className="symb-label" htmlFor="symb-classes">Número de classes: {requested}</label>
-          <input id="symb-classes" type="range" min="2" max="9" step="1" value={requested}
+          <input id="symb-classes" className="painel-range" type="range" min="2" max="9" step="1" value={requested}
             onChange={e => set({ classes: Number(e.target.value) })} />
         </>
       )}

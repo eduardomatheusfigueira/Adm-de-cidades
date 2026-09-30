@@ -8,7 +8,7 @@ const NorthArrow = () => {
   const { map, mapLoaded } = useContext(MapContext);
   const { showNorthArrow, setShowNorthArrow, northArrowStyle } = useContext(UIContext);
   const [bearing, setBearing] = useState(0);
-  const [arrowSize, setArrowSize] = useState(90);
+  const [arrowSize, setArrowSize] = useState(() => (typeof window !== 'undefined' && window.innerWidth <= 768 ? 60 : 90));
 
   useEffect(() => {
     if (!map?.current || !mapLoaded) return;
@@ -25,13 +25,14 @@ const NorthArrow = () => {
   const rotation = -bearing;
   const styleType = northArrowStyle?.type || 'noun';
   const showBg = northArrowStyle?.showBg ?? true;
-  const color = northArrowStyle?.color || '#1e293b';
+  const color = northArrowStyle?.color || '#00242D';
 
   return (
     <Rnd
       default={{
-        x: 10,
-        y: 80,
+        // Coluna da direita, abaixo dos controles de zoom (o painel ocupa a esquerda)
+        x: Math.max(8, (typeof window !== 'undefined' ? window.innerWidth : 1024) - arrowSize - 14),
+        y: typeof window !== 'undefined' && window.innerWidth <= 768 ? 150 : 230,
         width: arrowSize,
         height: arrowSize,
       }}

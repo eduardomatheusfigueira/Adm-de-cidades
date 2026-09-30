@@ -6,13 +6,12 @@ const Footer = () => {
 
     return (
         <footer className="app-footer">
-            <div className="footer-content-simple">
-                <span>SisInfo &copy; {currentYear} Todos os direitos reservados</span>
-                <span className="separator">|</span>
-                <span>Eduardo Matheus Figueira</span>
-                <span className="separator">|</span>
-                <span>eduardomatheusfigueira@gmail.com</span>
-            </div>
+            <span>
+                Malha municipal: IBGE, via geodata-br (CC0) · Lista de municípios: municipios-brasileiros (MIT) · Mapas base: OpenFreeMap
+            </span>
+            <span className="app-footer-autoria">
+                SisInfo © {currentYear} · Eduardo Matheus Figueira · eduardomatheusfigueira@gmail.com
+            </span>
         </footer>
     );
 };

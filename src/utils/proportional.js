@@ -2,8 +2,9 @@
 // o modo correto de mapear contagens absolutas (população, casos, matrículas...).
 
 export const SYMBOL_MAX_RADIUS = 28; // px na tela (e na prancha de design do Estúdio)
-export const SYMBOL_COLOR = '#d95f02';
-export const NEUTRAL_FILL = '#e5e7eb';
+// Petróleo 700 sobre Papel 200 (guia de identidade): a quantidade no mesmo tom das escalas sequenciais
+export const SYMBOL_COLOR = '#1D6E82';
+export const NEUTRAL_FILL = '#F0ECE5';
 
 export const symbolRadius = (value, max, maxR = SYMBOL_MAX_RADIUS) =>
   max > 0 && value > 0 ? maxR * Math.sqrt(value / max) : 0;

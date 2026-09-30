@@ -1,24 +1,14 @@
 /* src/styles/Footer.css */
 .app-footer {
-    background-color: var(--surface-color);
-    border-top: 1px solid var(--border-color);
-    padding: 15px 20px;
-    margin-top: auto;
-    color: var(--text-secondary);
-    font-size: 0.85rem;
+    flex-shrink: 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.footer-content-simple {
-    display: flex;
-    align-items: center;
-    gap: 10px;
     flex-wrap: wrap;
-    justify-content: center;
-}
-
-.separator {
-    color: var(--border-color);
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 24px;
+    padding: 14px 32px;
+    background-color: var(--background-color);
+    border-top: 1px solid var(--border-color);
+    color: var(--texto-2);
+    font-size: 12px;
 }

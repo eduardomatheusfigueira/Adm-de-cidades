@@ -1,75 +1,113 @@
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useId, useRef, useEffect } from 'react';
+import { Search, X } from 'lucide-react';
 import { DataContext } from '../contexts/DataContext';
 import '../styles/CitySearch.css';
 
-function CitySearch({
-  // cities = [], // Removido - virá do context
-  onCitySelect
-}) {
-  const { csvData: cities } = useContext(DataContext); // Obtendo cities (csvData) do DataContext
+const normalizar = (texto) => (texto || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
+// Busca de município por nome (sem acento) ou código IBGE.
+// variant: 'header' (fundo escuro, no cabeçalho) | 'floating' (sobre o mapa)
+function CitySearch({ onCitySelect, variant = 'floating', placeholder = 'Buscar município ou código IBGE' }) {
+  const { csvData: cities } = useContext(DataContext);
   const [searchTerm, setSearchTerm] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const listId = useId();
+  const boxRef = useRef(null);
 
-  const cityNames = useMemo(() =>
-    (cities || []).map(city => ({ // Adicionado fallback para cities ser undefined/null inicialmente
-      name: city.Nome_Municipio || 'Nome Indisponível',
+  const cityList = useMemo(() =>
+    (cities || []).map(city => ({
+      name: city.Nome_Municipio || 'Nome indisponível',
+      uf: city.Sigla_Estado || '',
       code: city.Codigo_Municipio,
       lat: parseFloat(city.Latitude_Municipio),
-      lng: parseFloat(city.Longitude_Municipio)
-    })).filter(city => city.name && city.code && !isNaN(city.lat) && !isNaN(city.lng)), [cities]); // Adicionado city.code no filter
+      lng: parseFloat(city.Longitude_Municipio),
+      key: normalizar(city.Nome_Municipio),
+    })).filter(city => city.code && !isNaN(city.lat) && !isNaN(city.lng)), [cities]);
 
-  const handleInputChange = (event) => {
-    const value = event.target.value;
-    setSearchTerm(value);
+  const suggestions = useMemo(() => {
+    const termo = normalizar(searchTerm.trim());
+    if (termo.length < 2) return [];
+    const porCodigo = /^\d+$/.test(termo);
+    const encontrados = cityList.filter(city => porCodigo ? String(city.code).startsWith(termo) : city.key.includes(termo));
+    // Quem começa com o termo vem primeiro
+    encontrados.sort((a, b) => (b.key.startsWith(termo) - a.key.startsWith(termo)) || a.name.localeCompare(b.name, 'pt-BR'));
+    return encontrados.slice(0, 7);
+  }, [searchTerm, cityList]);
 
-    if (value.length > 1) {
-      const filteredSuggestions = cityNames
-        .filter(city =>
-          city.name.toLowerCase().includes(value.toLowerCase())
-        )
-        .slice(0, 5);
-      setSuggestions(filteredSuggestions);
-    } else {
-      setSuggestions([]);
-    }
-  };
+  useEffect(() => { setActiveIndex(0); }, [suggestions]);
 
-  const handleSuggestionClick = (city) => {
+  useEffect(() => {
+    const fechar = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', fechar);
+    return () => document.removeEventListener('mousedown', fechar);
+  }, []);
+
+  const choose = (city) => {
     setSearchTerm(city.name);
-    setSuggestions([]);
-    if (onCitySelect) {
-      onCitySelect(city);
-    }
+    setOpen(false);
+    if (onCitySelect) onCitySelect(city);
   };
 
   const handleKeyDown = (event) => {
-    if (event.key === 'Enter' && suggestions.length > 0) {
-      handleSuggestionClick(suggestions[0]);
-    }
+    if (!suggestions.length) return;
+    if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true); setActiveIndex(i => (i + 1) % suggestions.length); }
+    else if (event.key === 'ArrowUp') { event.preventDefault(); setActiveIndex(i => (i - 1 + suggestions.length) % suggestions.length); }
+    else if (event.key === 'Enter') { event.preventDefault(); choose(suggestions[activeIndex] || suggestions[0]); }
+    else if (event.key === 'Escape') { setOpen(false); }
   };
 
+  const showList = open && suggestions.length > 0;
+  const semResultado = open && searchTerm.trim().length >= 2 && suggestions.length === 0;
+
   return (
-    <div className="city-search-container">
+    <div className={`city-search city-search--${variant}`} ref={boxRef}>
+      <Search className="city-search-icon" size={18} strokeWidth={1.75} aria-hidden="true" />
       <input
-        type="text"
-        placeholder="Pesquisar cidade..."
+        type="search"
+        role="combobox"
+        aria-expanded={showList}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        aria-activedescendant={showList ? `${listId}-${activeIndex}` : undefined}
+        aria-label={placeholder}
+        placeholder={placeholder}
         value={searchTerm}
-        onChange={handleInputChange}
+        onChange={(e) => { setSearchTerm(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
         onKeyDown={handleKeyDown}
         className="city-search-input"
+        autoComplete="off"
+        spellCheck={false}
       />
-      {suggestions.length > 0 && (
-        <ul className="city-search-suggestions">
-          {suggestions.map((city) => (
+      {searchTerm && (
+        <button type="button" className="city-search-clear" aria-label="Limpar busca" onClick={() => { setSearchTerm(''); setOpen(false); }}>
+          <X size={16} strokeWidth={1.75} aria-hidden="true" />
+        </button>
+      )}
+      {showList && (
+        <ul className="city-search-suggestions" id={listId} role="listbox">
+          {suggestions.map((city, i) => (
             <li
               key={city.code}
-              onClick={() => handleSuggestionClick(city)}
+              id={`${listId}-${i}`}
+              role="option"
+              aria-selected={i === activeIndex}
+              className={i === activeIndex ? 'active' : ''}
+              onMouseDown={(e) => e.preventDefault()}
+              onMouseEnter={() => setActiveIndex(i)}
+              onClick={() => choose(city)}
             >
-              {city.name}
+              <span className="city-search-name">{city.name}{city.uf && <span className="city-search-uf"> · {city.uf}</span>}</span>
+              <span className="city-search-code">{city.code}</span>
             </li>
           ))}
         </ul>
+      )}
+      {semResultado && (
+        <div className="city-search-suggestions city-search-empty" role="status">
+          Nenhum município encontrado. Confira a grafia ou busque pelo código IBGE.
+        </div>
       )}
     </div>
   );

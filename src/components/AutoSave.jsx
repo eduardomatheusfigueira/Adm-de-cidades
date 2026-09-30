@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
+import { GraduationCap } from 'lucide-react';
 import { UIContext } from '../contexts/UIContext';
 import { useProjectState } from '../hooks/useProjectState';
 import { BIG_KEYS, loadAutosave, storeClear, storeSetMany } from '../utils/projectStore';
@@ -153,7 +154,7 @@ export default function AutoSave() {
             </>
           ) : (
             <>
-              <strong>🎓 Modelo do professor: {info.titulo || template.name}</strong>
+              <strong><GraduationCap size={16} strokeWidth={1.75} aria-hidden="true" style={{ verticalAlign: '-3px', marginRight: 6 }} />Modelo do professor: {info.titulo || template.name}</strong>
               {info.instrucoes && <span className="autosave-instructions">{info.instrucoes}</span>}
               <span>O mapa, os dados e as páginas do Estúdio deste modelo serão abertos para você continuar.
                 {hasSaved ? ' O trabalho salvo neste aparelho será substituído.' : ''}</span>

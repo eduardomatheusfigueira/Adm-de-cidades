@@ -1,6 +1,6 @@
-import React, { Suspense, lazy, useContext, useEffect } from 'react';
-import FilterMenu from './components/FilterMenu';
-import VisualizationMenu from './components/VisualizationMenu';
+import React, { Suspense, lazy, useContext, useEffect, useState } from 'react';
+import { Image as ImageIcon, SlidersHorizontal } from 'lucide-react';
+import MapPanel from './components/MapPanel';
 import Legend from './components/Legend';
 import AnnotationToolbar from './components/AnnotationToolbar';
 import AnnotationLegend from './components/AnnotationLegend';
@@ -9,7 +9,7 @@ import ScaleBar from './components/ScaleBar';
 import Graticule from './components/Graticule';
 import './index.css';
 
-import CitySearch from './components/CitySearch';
+import DataWizard from './components/DataWizard';
 import DataSourceInfo from './components/DataSourceInfo';
 import MainLayout from './components/MainLayout';
 import AutoSave from './components/AutoSave';
@@ -54,6 +54,9 @@ function AppContent() {
 
   const {
     activeEnvironment,
+    setActiveEnvironment,
+    dataWizardMode,
+    setDataWizardMode,
     showGeometryImportModal, setShowGeometryImportModal,
     municipalityCodeField, setMunicipalityCodeField,
     submitGeometryImport,
@@ -61,13 +64,17 @@ function AppContent() {
     selectedCityInfo, setSelectedCityInfo,
     handleFilterSettingsChange,
     geometryPropertyKeys, // Get keys from context
-    showAttributeLegend, setShowAttributeLegend,
-    showAnnotationLegend, setShowAnnotationLegend,
-    showNorthArrow, setShowNorthArrow,
-    showScaleBar, setShowScaleBar,
-    showGraticule, setShowGraticule,
     showImageStudio, setShowImageStudio,
   } = useContext(UIContext);
+
+  // Painel do mapa: aberto no desktop, recolhido no celular (lá ele é uma folha que sobe de baixo)
+  const [painelAberto, setPainelAberto] = useState(() => typeof window === 'undefined' || window.innerWidth > 768);
+
+  // Os elementos arrastáveis (legenda, norte, escala…) só montam depois da primeira visita ao mapa:
+  // montados com o mapa escondido, o react-rnd mede posição zero e dobra o deslocamento inicial.
+  const [mapaVisitado, setMapaVisitado] = useState(false);
+  useEffect(() => { if (activeEnvironment === 'map') setMapaVisitado(true); }, [activeEnvironment]);
+  const mostrarElementosDoMapa = mapLoaded && mapaVisitado;
 
   // --- Handlers ---
   const handleFiltersAppliedInApp = (filteredDataFromMenu, selectedColorAttributeFromMenu) => {
@@ -166,8 +173,15 @@ function AppContent() {
     }
   };
 
-  const handleCitySearchSelectInApp = (city) => {
-    flyToCity(city);
+  // Busca do cabeçalho: leva ao mapa, voa até o município e abre o perfil dele
+  const handleHeaderCitySearch = (city) => {
+    const row = (csvData || []).find(c => String(c.Codigo_Municipio) === String(city.code));
+    setActiveEnvironment('map');
+    // espera o mapa voltar a ficar visível (e redimensionar) antes de voar
+    setTimeout(() => {
+      if (row) handleCitySelectBottomBarInApp(row);
+      else flyToCity(city);
+    }, 80);
   };
 
   useEffect(() => {
@@ -181,21 +195,22 @@ function AppContent() {
   }, [selectedCityInfo, setSelectedCityInfo]);
 
   return (
-    <MainLayout>
-      {/* Map Environment Specifics */}
-      {/* Map Environment Specifics - ALWAYS MOUNTED, HIDDEN WHEN INACTIVE */}
-      <div style={{ display: activeEnvironment === 'map' ? 'block' : 'none', height: '100%', width: '100%', position: 'relative' }}>
-        <div className="top-left-controls">
-          <FilterMenu onImportGeometry={handleImportGeometryInApp} />
-        </div>
-        <div className="top-right-controls">
-          <VisualizationMenu onFiltersApplied={handleFiltersAppliedInApp} />
-        </div>
-        <CitySearch onCitySelect={handleCitySearchSelectInApp} />
+    <MainLayout onSearchCity={handleHeaderCitySearch}>
+      {/* Mapa: sempre montado, escondido quando outra tela está ativa */}
+      <div
+        className={`mapa-area ${painelAberto ? 'com-painel' : ''}`}
+        style={{ display: activeEnvironment === 'map' ? 'block' : 'none' }}
+      >
+        <MapPanel
+          aberto={painelAberto}
+          onFechar={() => setPainelAberto(false)}
+          onFiltersApplied={handleFiltersAppliedInApp}
+          onImportGeometry={handleImportGeometryInApp}
+        />
         <div ref={contextMapContainerRef} className="map-container">
           {isMapLoading && (
             <div className="map-loading">
-              <div className="loading-spinner"></div><p>Carregando mapa...</p>
+              <div className="loading-spinner"></div><p>Carregando mapa…</p>
             </div>
           )}
           {mapNotice && (
@@ -204,91 +219,41 @@ function AppContent() {
               <button type="button" onClick={() => setMapNotice(null)} aria-label="Fechar aviso">✕</button>
             </div>
           )}
-          {mapLoaded && <AnnotationToolbar />}
-          {mapLoaded && <Legend />}
-          {mapLoaded && <AnnotationLegend />}
-          {mapLoaded && <NorthArrow />}
-          {mapLoaded && <ScaleBar />}
-          {mapLoaded && <Graticule />}
-          {mapLoaded && showImageStudio && (
+          {mostrarElementosDoMapa && <AnnotationToolbar />}
+          {mostrarElementosDoMapa && <Legend />}
+          {mostrarElementosDoMapa && <AnnotationLegend />}
+          {mostrarElementosDoMapa && <NorthArrow />}
+          {mostrarElementosDoMapa && <ScaleBar />}
+          {mostrarElementosDoMapa && <Graticule />}
+          {mostrarElementosDoMapa && showImageStudio && (
             <Suspense fallback={<LazyFallback />}><ImageExportStudio /></Suspense>
           )}
-
-          {/* Small discrete toggle buttons - bottom-right, above map controls */}
-          {mapLoaded && (!showAttributeLegend || !showAnnotationLegend || !showNorthArrow || !showScaleBar || !showGraticule) && (
-            <div style={{ position: 'absolute', bottom: '120px', right: '10px', display: 'flex', flexDirection: 'column', gap: '6px', zIndex: 10 }}>
-              {!showAttributeLegend && (
-                <button
-                  onClick={() => setShowAttributeLegend(true)}
-                  title="Mostrar Legenda de Cores"
-                  style={{ background: 'var(--surface-color)', width: '30px', height: '30px', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', lineHeight: 1, padding: 0, opacity: 0.7, transition: 'opacity 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
-                >
-                  🎨
-                </button>
-              )}
-              {!showAnnotationLegend && (
-                <button
-                  onClick={() => setShowAnnotationLegend(true)}
-                  title="Mostrar Informações do Mapa"
-                  style={{ background: 'var(--surface-color)', width: '30px', height: '30px', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', lineHeight: 1, padding: 0, opacity: 0.7, transition: 'opacity 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
-                >
-                  ℹ️
-                </button>
-              )}
-              {!showNorthArrow && (
-                <button
-                  onClick={() => setShowNorthArrow(true)}
-                  title="Mostrar Indicador de Norte"
-                  style={{ background: 'var(--surface-color)', width: '30px', height: '30px', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', lineHeight: 1, padding: 0, opacity: 0.7, transition: 'opacity 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
-                >
-                  🧭
-                </button>
-              )}
-              {!showScaleBar && (
-                <button
-                  onClick={() => setShowScaleBar(true)}
-                  title="Mostrar Barra de Escala"
-                  style={{ background: 'var(--surface-color)', width: '30px', height: '30px', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', lineHeight: 1, padding: 0, opacity: 0.7, transition: 'opacity 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
-                >
-                  📏
-                </button>
-              )}
-              {!showGraticule && (
-                <button
-                  onClick={() => setShowGraticule(true)}
-                  title="Mostrar Paralelos e Meridianos"
-                  style={{ background: 'var(--surface-color)', width: '30px', height: '30px', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', lineHeight: 1, padding: 0, opacity: 0.7, transition: 'opacity 0.2s' }}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '0.7'}
-                >
-                  🌐
-                </button>
-              )}
-            </div>
-          )}
-          {/* Export Image button - always visible */}
-          {mapLoaded && (
-            <div style={{ position: 'absolute', bottom: '80px', right: '10px', zIndex: 10 }}>
-              <button
-                onClick={() => setShowImageStudio(true)}
-                title="Exportar Imagem em Alta Resolução"
-                style={{ background: 'var(--surface-color)', width: '30px', height: '30px', borderRadius: '4px', border: '1px solid var(--border-color)', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', lineHeight: 1, padding: 0, opacity: 0.85, transition: 'opacity 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}
-              >
-                📷
-              </button>
-            </div>
-          )}
         </div>
+
+        {!painelAberto && (
+          <button type="button" className="mapa-abrir-painel" onClick={() => setPainelAberto(true)} aria-label="Dados e visualização">
+            <SlidersHorizontal size={18} strokeWidth={1.75} aria-hidden="true" />
+            <span className="rotulo-longo">Dados e visualização</span>
+            <span className="rotulo-curto" aria-hidden="true">Visualização</span>
+          </button>
+        )}
+        {mapLoaded && (
+          <button type="button" className="btn btn-destaque mapa-exportar" onClick={() => setShowImageStudio(true)} aria-label="Exportar imagem">
+            <ImageIcon size={18} strokeWidth={1.75} aria-hidden="true" />
+            <span className="rotulo-longo">Exportar imagem</span>
+            <span className="rotulo-curto" aria-hidden="true">Exportar</span>
+          </button>
+        )}
+
+        {selectedCityInfo && (
+          <Suspense fallback={null}>
+            <CityInfoBottomBar
+              cityInfo={selectedCityInfo}
+              onClose={() => setSelectedCityInfo(null)}
+              indicadoresData={indicadoresData}
+            />
+          </Suspense>
+        )}
       </div>
 
       {/* Other Environments */}
@@ -322,20 +287,11 @@ function AppContent() {
         </div>
       )}
 
+      {dataWizardMode && <DataWizard mode={dataWizardMode} onClose={() => setDataWizardMode(null)} />}
+
       <AutoSave />
       <InAppBrowserNotice />
 
-      {selectedCityInfo && (
-        <Suspense fallback={null}>
-        <CityInfoBottomBar
-          cityInfo={selectedCityInfo}
-          onClose={() => setSelectedCityInfo(null)}
-          cities={csvData}
-          onCitySelect={handleCitySelectBottomBarInApp}
-          indicadoresData={indicadoresData}
-        />
-        </Suspense>
-      )}
     </MainLayout>
   );
 }

@@ -1,136 +1,184 @@
-/* src/styles/Legend.css */
+/* Legenda do mapa — cartão flutuante (nível 2) */
 .legend {
-  background-color: var(--surface-color);
-  padding: var(--spacing-md);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 12px 14px 14px;
+  background-color: #FFFFFF;
+  border-radius: var(--raio-lg);
+  box-shadow: var(--sombra-2);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--texto);
   overflow-y: auto;
   /* legendas longas rolam em vez de passar do fim da tela */
   max-height: 55vh;
   max-height: 55dvh;
-  transition: box-shadow var(--transition-fast);
 }
 
-.legend:hover {
-  box-shadow: var(--shadow-lg);
+.legend-drag-handle {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+  user-select: none;
+}
+
+.legend-drag-handle.arrastavel {
+  cursor: move;
 }
 
 .legend-title {
+  padding-top: 5px;
   font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: var(--spacing-xs);
-  margin-bottom: var(--spacing-sm);
+  font-size: 13px;
+  color: var(--cor-tinta);
+}
+
+.legend-header-actions {
+  display: flex;
+  gap: 2px;
+  margin: -2px -6px 0 0;
+}
+
+.legend-icon-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--raio-md);
+  background: transparent;
+  color: var(--texto-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.legend-icon-btn:hover {
+  background: var(--papel-200);
+  color: var(--texto);
+}
+
+.legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: 3px 0;
+  gap: 10px;
 }
 
 .legend-color {
   display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: var(--radius-sm);
+  width: 18px;
+  height: 14px;
+  border-radius: 3px;
   flex-shrink: 0;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.legend-color-sem-dados {
+  box-shadow: inset 0 0 0 1px var(--papel-400);
 }
 
 .legend-value {
-  font-size: 0.8rem;
-  color: var(--text-primary);
+  font-size: 13px;
+  color: var(--texto);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Legend Actions */
+.legend-vazia {
+  font-size: 12px;
+  color: var(--texto-2);
+}
+
+/* Ações */
 .legend-actions {
   display: flex;
-  gap: var(--spacing-xs);
+  align-items: center;
+  gap: 6px;
   flex-wrap: wrap;
-  margin-top: var(--spacing-sm);
-  padding-top: var(--spacing-sm);
-  border-top: 1px solid var(--border-color);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--papel-200);
+}
+
+.legend-custom-note {
+  margin-right: auto;
+  font-size: 12px;
+  color: var(--texto-2);
 }
 
 .legend-action-btn {
-  background: none;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 2px 6px;
-  font-size: 0.72rem;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-md);
+  background: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--texto);
   cursor: pointer;
-  color: var(--text-secondary);
-  transition: all var(--transition-fast);
 }
 
 .legend-action-btn:hover {
-  background-color: var(--surface-hover);
-  color: var(--text-primary);
-  border-color: var(--text-light);
+  background: var(--papel-100);
 }
 
-.legend-reset-btn:hover {
-  border-color: var(--warning-color);
-  color: var(--warning-color);
+.legend-remove-btn {
+  color: var(--cor-erro);
 }
 
-.legend-cancel-btn:hover {
-  border-color: var(--text-secondary);
-}
-
-.legend-remove-btn:hover {
-  border-color: var(--error-color);
-  color: var(--error-color);
-}
-
-/* Legend Editor */
+/* Editor */
 .legend-editor {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 6px;
 }
 
 .legend-editor-label {
   font-weight: 600;
-  font-size: 0.78rem;
-  color: var(--text-secondary);
+  font-size: 12px;
+  color: var(--texto-2);
 }
 
 .legend-editor-input {
   width: 100%;
-  padding: 4px 6px;
-  font-size: 0.8rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  min-height: 34px;
+  padding: 0 8px;
+  font-size: 13px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-md);
   font-family: inherit;
 }
 
 .legend-editor-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  max-height: 200px;
+  gap: 6px;
+  max-height: 220px;
   overflow-y: auto;
 }
 
 .legend-editor-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .legend-editor-row input[type="color"] {
-  width: 24px;
-  height: 24px;
-  border: none;
-  padding: 0;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-sm);
+  padding: 2px;
+  background: #FFFFFF;
   cursor: pointer;
 }
 
@@ -140,15 +188,20 @@
 
 .legend-error-message {
   margin-top: 4px;
-  font-size: 0.75rem;
-  color: var(--error-color);
+  font-size: 12px;
+  color: var(--cor-erro);
 }
 
 /* Celular: legenda mais compacta, com rolagem própria, sem cobrir o mapa inteiro */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .legend {
-    padding: var(--spacing-sm);
-    font-size: 0.8rem;
+    padding: 10px 12px;
     max-height: 35dvh;
   }
+}
+
+.legend-symbols {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-body);
 }

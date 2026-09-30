@@ -2,7 +2,7 @@ import {
   ascending, color as d3color, scaleOrdinal,
 } from 'd3';
 import * as ss from 'simple-statistics';
-import { numericColors, categoricalColors } from './palettes';
+import { numericColors, categoricalColors, DEFAULT_SYMBOLOGY } from './palettes';
 
 export const getLegendKey = (visualizationConfig, colorAttribute) => {
   if (visualizationConfig?.type === 'indicator') {
@@ -15,7 +15,8 @@ export const getLegendKey = (visualizationConfig, colorAttribute) => {
 };
 
 // Cor dos municípios sem dado (célula vazia, "-", "...", texto inválido).
-export const NO_DATA_COLOR = '#d9d9d9';
+// Papel 300 do guia de identidade: um neutro que nunca é confundido com uma classe da escala.
+export const NO_DATA_COLOR = '#E4DFD5';
 export const NO_DATA_LABEL = 'Sem dados';
 
 // Marcadores comuns de "sem informação" em planilhas do IBGE/DATASUS.
@@ -95,6 +96,25 @@ export const withNoDataColor = (attribute, expression) => {
     expression];
 };
 
+// Regiões: sempre as mesmas cores (guia de identidade), em qualquer recorte
+export const CORES_REGIOES = { N: '#3E5D1B', NE: '#DBAD36', CO: '#CC6349', SE: '#1288A1', S: '#A87EEB' };
+export const NOMES_REGIOES = { N: 'Norte', NE: 'Nordeste', CO: 'Centro-Oeste', SE: 'Sudeste', S: 'Sul' };
+const ehRegiao = (valores) => valores.length > 0 && valores.every(v => Object.prototype.hasOwnProperty.call(CORES_REGIOES, v));
+
+// Nomes legíveis dos atributos do cadastro de municípios
+const ROTULOS_ATRIBUTOS = {
+  Area_Municipio: 'Área territorial (km²)',
+  Sigla_Regiao: 'Região',
+  Sigla_Estado: 'Estado (UF)',
+  Nome_Municipio: 'Município',
+  Capital: 'Capital',
+  Altitude_Municipio: 'Altitude (m)',
+  Codigo_Municipio: 'Código IBGE',
+  Latitude_Municipio: 'Latitude',
+  Longitude_Municipio: 'Longitude',
+};
+export const rotuloAtributo = (atributo) => ROTULOS_ATRIBUTOS[atributo] || (atributo || '').replace(/_/g, ' ');
+
 // Número usado como limiar "inalcançável" quando só há um valor distinto
 // (a expressão 'step' exige pelo menos um par limiar/cor).
 export const STEP_SENTINEL = 1e300;
@@ -123,7 +143,7 @@ export function classBreaks(sortedValues, method = 'quantile', k = 5, manualBrea
 // Opções de simbologia aceitas por getColorScale (ver DEFAULT_SYMBOLOGY em palettes.js).
 // Compatibilidade: o 3º argumento também pode ser só o número de classes.
 export const getColorScale = (attribute, values, options = {}) => {
-  const opts = typeof options === 'number' ? { classes: options } : (options || {});
+  const opts = { ...DEFAULT_SYMBOLOGY, ...(typeof options === 'number' ? { classes: options } : (options || {})) };
   const method = opts.method || 'quantile';
   const k = Math.max(2, Math.min(9, Number(opts.classes) || 5));
 
@@ -143,7 +163,7 @@ export const getColorScale = (attribute, values, options = {}) => {
       if (t > min && t <= max && (thresholds.length === 0 || t > thresholds[thresholds.length - 1])) thresholds.push(t);
     });
 
-    const colorRange = numericColors(opts.palette || 'Reds', thresholds.length + 1, !!opts.reverse);
+    const colorRange = numericColors(opts.palette, thresholds.length + 1, !!opts.reverse);
     const input = ['to-number', ['get', attribute]];
     if (thresholds.length === 0) {
       // Um único valor distinto: uma classe só.
@@ -158,8 +178,16 @@ export const getColorScale = (attribute, values, options = {}) => {
   } else {
     // Categorical Data Handling
     const uniqueValues = [...new Set(filled.map(v => `${v}`))].sort(); // ordem estável das cores
-    const colorRange = categoricalColors(opts.categoricalPalette || 'Category10', uniqueValues.length);
-    const colorScale = scaleOrdinal().domain(uniqueValues).range(colorRange);
+    let colorScale;
+    if (opts.categoricalPalette === 'SisInfo' && ehRegiao(uniqueValues)) {
+      // Na ordem do IBGE (Norte, Nordeste, Centro-Oeste, Sudeste, Sul), com as cores fixas das regiões
+      const ordem = Object.keys(CORES_REGIOES);
+      uniqueValues.sort((x, y) => ordem.indexOf(x) - ordem.indexOf(y));
+      colorScale = (value) => CORES_REGIOES[value];
+    } else {
+      const colorRange = categoricalColors(opts.categoricalPalette, uniqueValues.length);
+      colorScale = scaleOrdinal().domain(uniqueValues).range(colorRange);
+    }
 
     const matchExpression = ['match', ['to-string', ['get', attribute]]];
     uniqueValues.forEach(value => {
@@ -181,8 +209,12 @@ export const buildLegendItems = (scaleExpression, values, missingCount = 0) => {
   const type = scaleExpression?.[0];
   const items = [];
   if (type === 'match') {
+    const valores = [];
+    for (let i = 2; i < scaleExpression.length - 1; i += 2) valores.push(`${scaleExpression[i]}`);
+    const regioes = ehRegiao(valores);
     for (let i = 2; i < scaleExpression.length - 1; i += 2) {
-      items.push({ value: `${scaleExpression[i]}`, color: toHex(scaleExpression[i + 1]) });
+      const v = `${scaleExpression[i]}`;
+      items.push({ value: regioes ? NOMES_REGIOES[v] : v, color: toHex(scaleExpression[i + 1]) });
     }
   } else if (type === 'step') {
     const numericValues = (values || []).map(makeNumberParser(values)).filter((v) => !Number.isNaN(v)).sort((a, b) => a - b);
@@ -288,9 +320,9 @@ export function makeVizValueGetter(allRows, attribute, symbology) {
 
 // Título legível de uma variável normalizada: "casos por 100.000 População"
 export const normalizedLabel = (attribute, symbology) => {
-  if (!symbology?.normalizeBy) return attribute;
+  if (!symbology?.normalizeBy) return rotuloAtributo(attribute);
   const f = Number(symbology.factor) || 1;
-  return `${attribute} ÷ ${symbology.normalizeBy}${f !== 1 ? ` × ${f.toLocaleString('pt-BR')}` : ''}`;
+  return `${rotuloAtributo(attribute)} ÷ ${rotuloAtributo(symbology.normalizeBy)}${f !== 1 ? ` × ${f.toLocaleString('pt-BR')}` : ''}`;
 };
 
 // Nomes típicos de contagens absolutas (mapa coroplético de totais engana: municípios

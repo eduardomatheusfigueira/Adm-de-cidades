@@ -1,10 +1,11 @@
 import React from 'react';
 import Papa from 'papaparse';
+import { Download } from 'lucide-react';
 
 const ExportTab = ({ cityData, indicators }) => {
     const handleDownload = () => {
         if (!indicators || indicators.length === 0) {
-            alert('Sem dados para exportar.');
+            alert('Não há indicadores deste município para exportar.');
             return;
         }
 
@@ -34,16 +35,12 @@ const ExportTab = ({ cityData, indicators }) => {
     return (
         <div className="export-tab">
             <div className="export-content">
-                <h3>Exportar Dados</h3>
                 <p>
-                    Baixe todos os indicadores disponíveis para <strong>{cityData?.Nome_Municipio}</strong> em formato CSV.
-                    O arquivo incluirá dados históricos e atuais.
+                    Baixe os indicadores de <strong>{cityData?.Nome_Municipio}</strong> em CSV, com todos os anos disponíveis.
                 </p>
-                <div className="export-stats">
-                    <span>Total de Registros: <strong>{indicators?.length || 0}</strong></span>
-                </div>
-                <button className="download-button" onClick={handleDownload}>
-                    <span className="icon">⬇️</span> Download CSV
+                <p className="export-stats">{(indicators?.length || 0).toLocaleString('pt-BR')} registros</p>
+                <button type="button" className="btn btn-primary" onClick={handleDownload} disabled={!indicators || indicators.length === 0}>
+                    <Download size={17} strokeWidth={1.75} aria-hidden="true" /> Baixar CSV
                 </button>
             </div>
         </div>
